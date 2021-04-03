@@ -19,15 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Event.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Event.h" />
     <ClInclude Include="Object.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fs_coord.glsl" />
+    <None Include="vs_coord.glsl" />
+    <None Include="vs_skybox.glsl" />
+    <None Include="vs_sphere.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="in.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -38,6 +38,7 @@ int width, height;
 float aspect;
 glm::mat4 pMat, vMat, mMat, mvMat;
 
+glm::mat4 lMat;
 Sphere mySphere = Sphere(48);
 
 //start:setupvert
@@ -77,11 +78,18 @@ void setupVert_sphere(void)
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
 }
-
-void setupVert_coord(void) //todo
+void setupVert_coord(void)
 {
+	float vertCoordPositions[18] = {
+		-1.5f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
+		0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, -2.0f, 0.0f, 0.0f, 2.0f };
+	glGenBuffers(1, coordVbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCoordPositions), vertCoordPositions, GL_STATIC_DRAW);
 }
-void setupVert_skybox(void) //doing
+void setupVert_skybox(void)
 {
 	float cubeVertexPositions[108] =
 		{-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
@@ -107,12 +115,12 @@ void init(GLFWwindow *window)
 	glBindVertexArray(vao[0]);
 
 	skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
-	//	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
+	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	//	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
 	cameraX = 5.0f;
-	cameraY = 0.0f;
-	cameraZ = 25.0f;
+	cameraY = 5.0f;
+	cameraZ = 5.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
@@ -120,6 +128,7 @@ void init(GLFWwindow *window)
 
 	setupVert_sphere();
 	setupVert_skybox();
+	setupVert_coord();
 	sphereTexture = Utils::loadTexture("earth.jpg");
 	skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -136,7 +145,7 @@ void draw_skybox(void)
 	glUseProgram(skyboxRenderingProgram);
 
 	vLoc = glGetUniformLocation(skyboxRenderingProgram, "v_matrix");
-	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
+	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
 
 	projLoc = glGetUniformLocation(skyboxRenderingProgram, "p_matrix");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -157,25 +166,23 @@ void draw_skybox(void)
 
 void draw_coord(void)
 {
-	/*
-	float vertCoordPositions[18] = {
-		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-	glBindVertexArray(vao[1]);
-
-	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCoordPositions), vertCoordPositions, GL_STATIC_DRAW);
-
+	//glLineWidth(5.0f);
+	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+	vMat = lMat;
+	glUseProgram(coordRenderingProgram);
 	
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
+	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
+
+	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+	
+	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	glDrawArrays(GL_LINES, 0, 2);
-	glDrawArrays(GL_LINES, 2,2);
-	glDrawArrays(GL_LINES, 4, 2);
-	*/
+
+	glDrawArrays(GL_LINES, 0, 6);
 }
 //todo
 
@@ -191,7 +198,8 @@ void draw_sphere(vector<Ball> &balls)
 		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
 		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
 
-		vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+		vMat = lMat;
 		mMat = glm::translate(glm::mat4(1.0f), iterator.location()); //marker++++++++++++++++++++++++++++
 
 		mvMat = vMat * mMat;
@@ -210,9 +218,11 @@ void draw_sphere(vector<Ball> &balls)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sphereTexture);
 
-		glEnable(GL_CULL_FACE);
-		glFrontFace(GL_CCW);
+		//glEnable(GL_CULL_FACE);
+		//glFrontFace(GL_CCW);
 
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 	}
 }
@@ -222,9 +232,10 @@ void display(GLFWwindow *window, double currentTime, vector<Ball> &balls)
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	draw_skybox();
+	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	//draw_skybox();
 	draw_sphere(balls);
+	draw_coord();
 }
 
 void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
@@ -236,6 +247,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 
 int main(void)
 {
+	//freopen("out.txt", "w", stdout);
 	cerr << "complier OK" << endl;
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
@@ -272,11 +284,18 @@ int main(void)
 	//read in
 	for (int i = 0; i != numBalls; i++)
 		balls.push_back(Ball(ifstrm));
+	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1));
+	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1));
+	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1));
+	numBalls += 3;
 	vecprint(cout, balls);
 
 	//while------------------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window))
 	{
+		//cameraX += 0.09f;
+		//cameraY -= 0.01f;
+
 		cout << "I'm here1" << endl;
 		//print
 		vecprint(cout, balls);

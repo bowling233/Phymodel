@@ -2,36 +2,6 @@
 
 研究性学习：小球碰撞模型的物理分析、算法设计和C++/OpenGL实现
 
-## 编辑约定
-
-以下是几个用于程序源代码文件的标记：
-* `tochk`:wait to be checked
-* `todo`
-* `doing`
-* `tomdf`:wait to be modified
-* `wrong`
-* `Ac`:accomplished
-* `temp`
-
-
-### 
-
-doing
-
-* event
-
-todo
-
-* event_mgr
-* plane
-
-
-tochk
-
-* timetocollision(wall)
-* handlecollision
-* vecprint(wall)
-
 ## 环境配置
 
 2.8更新：使用了VS项目路径变量，不再需要拷贝`OpenGLtemplate`文件夹
@@ -42,9 +12,25 @@ tochk
 
 ## Todo List
 
+现在等待做的
+
+1. 把小球类的碰撞处理做好
+2. 测试小球和墙的碰撞（如果不行还要修复）
+3. 实现OpenGL墙的绘制
+4. 把Event更改为Collision
+5. 构建一个CollisionSystem类
+
+
+关于OpenGL墙的绘制的基本思路：
+
+1. 由位置、法向量确定平面的方程
+2. 按精度取值解方程得到三角形顶点坐标
+3. 索引数组、构造法向量、纹理坐标等（完成Plane类的数据填充）
+4. 在OpenGL中调用绘制（编写着色器）
+
 - [ ] 写论文
-    - [ ] API
-    - [ ] 程序框图 
+    - [ ] API_wait
+    - [ ] 程序框图_doing
     - [ ] 算法分析
     - [ ] 性能测试
     - [ ] 模型应用
@@ -53,6 +39,18 @@ tochk
         - [ ] Ball
         - [ ] Event
         - [ ] Event_mgr
+
+## 编辑约定
+
+以下是几个用于程序源代码文件的标记：
+
+* `tochk`:wait to be checked
+* `todo`
+* `doing`
+* `tomdf`:wait to be modified
+* `wrong`
+* `Ac`:accomplished
+* `temp`
 
 ## 文件结构
 

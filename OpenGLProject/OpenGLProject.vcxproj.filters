@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Event.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -32,11 +29,27 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Event.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vs_coord.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="fs_coord.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="vs_skybox.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="vs_sphere.glsl">
+      <Filter>源文件</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="in.txt">
+      <Filter>源文件</Filter>
+    </Text>
   </ItemGroup>
 </Project>

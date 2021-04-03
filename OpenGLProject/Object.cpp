@@ -3,7 +3,12 @@
 #include <cmath>
 #include <cstdlib>
 #include <iomanip>
+#include <string>
 
+void inline printvec3(glm::vec3 v)
+{
+    std::cout<<v.x<<' '<<v.y<< ' ' <<v.z<< ' ';
+}
 class Wall;
 
 //友元------------------------------------------------------
@@ -36,6 +41,9 @@ std::ostream &print(std::ostream &os, const Ball &ball)
 
 float Ball::timeToCollision(const Ball &ball) const
 {
+    glm::vec3 r = this->loc - ball.loc;
+    if (glm::dot(-r, this->vel) < 0) return -1.0;
+    if (glm::dot(r, ball.vel) < 0) return -1.0;
     float dvx = (*this).vel.x - ball.vel.x, dvy = (*this).vel.y - ball.vel.y, dvz = (*this).vel.z - ball.vel.z;
     float dx = (*this).loc.x - ball.loc.x, dy = (*this).loc.y - ball.loc.y, dz = (*this).loc.z - ball.loc.z;
     float a = square(dvx) + square(dvy) + square(dvz);
@@ -43,10 +51,16 @@ float Ball::timeToCollision(const Ball &ball) const
     float c = square(dx) + square(dy) + square(dz) - square((*this).r + ball.r);
     float delta = square(b) - 4.0 * a * c;
 
+  
     if (delta < 0.0)        return -1.0;
+
     float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
-    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
-    if (x2 > 0)
+    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));//x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
+
+      //debug
+    //std::cout << dvx << ' ' << dvy << ' ' << dvz << ' ' << dx << ' ' << dy << ' ' << dz << ' ' << a << ' ' << b << ' ' << c << ' ' << delta << ' '<<x1 << ' ' << x2<<std::endl;
+
+    if (x2 > 0)//小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
         return x2;
     if (x1 > 0)
         return x1;
@@ -65,17 +79,24 @@ float Ball::timeToCollision(const Wall &wall) const//tochk
 
 void Ball::handleCollision(Ball &ball)//tochk
 {
-    glm::vec3 d = glm::normalize(this->loc-ball.loc);
-    float v10=glm::dot(d,this->vel);
-    float v20=glm::dot(d,ball.vel);
+    glm::vec3 r = glm::normalize(this->loc-ball.loc);
+    float v10=glm::dot(r,this->vel);
+    float v20=glm::dot(r,ball.vel);
     float m1 = this->m;
     float m2 = ball.m;
 
     float v1=((m1-m2)*v10+2*m2*v20)/(m1+m2);
     float v2=((m2-m1)*v20+2*m1*v10)/(m1+m2);
-    
-    this->vel += (v10-v1)*d;
-    ball.vel += (v20-v2)*d;
+    glm::vec3 dv1 = (v1 - v10) * r;
+    glm::vec3 dv2 = (v2 - v20) * r;
+
+    std::cout << "handle ball info::" <<
+        "vecr:"; printvec3(r);
+    std::cout << "v10,v20" << v10 << v20 << m1 << m2
+        << "v1,v2" << v1 << v2
+        << "dv1,dv2"; printvec3(dv1); printvec3(dv2);
+    this->vel += dv1;
+    ball.vel += dv2;
 
     std::cout << "handle ball end" << std::endl;
 }
