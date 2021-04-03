@@ -15,6 +15,8 @@
 现在等待做的
 
 1. 把小球类的碰撞处理做好
+   1. 返回根的问题（通过反向运行判断，但未检验实用性
+   2. 步长的问题，留到事件实现中讨论
 2. 测试小球和墙的碰撞（如果不行还要修复）
 3. 实现OpenGL墙的绘制
 4. 把Event更改为Collision
@@ -52,23 +54,14 @@
 * `Ac`:accomplished
 * `temp`
 
-## 文件结构
-
-* Ball.h+Ball.cpp:小球类Ball和墙类Wall
-    * `void calBtB(Ball & ball1, Ball & ball2)`
-* Event.h+Event.cpp:事件类Event和事件队列类Event_mgr
-    * `void push(Event & event)`
-* Utils.h+Utils.cpp:OpenGL实用工具
-* Sphere.h+Sphere.cpp:OpenGL小球类Sphere
-* testgen.cpp+test.txt:测试数据生成
-* main.cpp:主程序
-
-## 引用仓库
+## 依赖项
 
 * [GLFW:Graphics Library Framework](https://github.com/glfw/glfw)
 * [GLEW:OpenGL Extension Wrangler Library](http://glew.sourceforge.net/)
 * [GLM:OpenGL Mathematics](https://github.com/g-truc/glm)
 * [SOIL2:Simple OpenGL Image Library](https://github.com/SpartanJ/soil2)
+
+为缩减项目体积，已经删去Optional部分的库，仅保留必要设施
 
 Optional:
 
@@ -77,4 +70,6 @@ Optional:
 * [freeglut](https://www.transmissionzero.co.uk/software/freeglut-devel/)
 * [freeglut help](https://www.2bboy.com/archives/181.html)
 
-*GLFW GLEW GLM SOIL2 GLAD freeglut全部都已经配置好*放在OpenGLtemplate中，默认配置为x64，使用OpenGL4.3(GLAD选项).使用GLAD时，请在项目源文件中包含`OpenGLtemplate\glad_src\glad.c`
+~~*GLFW GLEW GLM SOIL2 GLAD freeglut全部都已经配置好*放在OpenGLtemplate中，~~
+
+默认配置为x64，使用OpenGL4.3(GLAD选项).使用GLAD时，请在项目源文件中包含`OpenGLtemplate\glad_src\glad.c`
