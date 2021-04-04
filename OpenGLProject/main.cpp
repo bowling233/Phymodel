@@ -17,6 +17,7 @@ using namespace std;
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
+
 #include <iomanip>
 #include <vector>
 #include <queue>

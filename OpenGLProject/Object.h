@@ -22,7 +22,7 @@ class Ball
 
 public: //接口
     //构造函数
-    Ball() : Ball(1.0, 1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.5, 10.0), 0) {}
+    Ball() : Ball(1.0, 1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0), 0) {}
     Ball(const float &mass, const float &radium,
          const glm::vec3 location, const glm::vec3 velocity,
          const int counter)
@@ -33,10 +33,9 @@ public: //接口
     float mass() const { return m; }
     float radium() const { return r; }
     glm::vec3 location() const { return loc; }
-    glm::vec3 v_vec() const { return vel; }
-    float v_len() const { return glm::length(vel); }
+    glm::vec3 velocity() const { return vel; }
     float energe_k() const { return 0.5f * m * square(glm::length(vel)); }
-    int counter() const { return count; }
+    int count() const { return count; }
 
     //操作：移动。判断。
     void move(const float time) { (*this).loc += time * (*this).vel; }
@@ -48,19 +47,17 @@ public: //接口
 private: //私有
     float m, r;
     glm::vec3 loc, vel;
-    int count;
+    int count = 0;
     bool state = true;
 };
 
-//友元声明
 std::istream &read(std::istream &is, Ball &ball);
 std::ostream &print(std::ostream &os, const Ball &ball);
-
-//其它操作函数
 void vecprint(std::ostream &os, const std::vector<Ball> &balls);
 
 //Wall-------------------------------------------------------------
 
+//notice:Wall的nor向量在创建时就已经归一化
 class Wall
 {
     friend class Ball;

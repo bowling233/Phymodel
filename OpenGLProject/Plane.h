@@ -14,11 +14,11 @@ private:
 	std::vector<glm::vec2> texCoords;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> tangents;
-	void init(int);
+	void init(int range, float a, float b, float c,float d);
 
 public:
-	Sphere();
-	Sphere(int prec);
+	Plane();
+	Plane(int range,float a,float b, float c,float d);
 	int getNumVertices();
 	int getNumIndices();
 	std::vector<int> getIndices();

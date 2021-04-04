@@ -22,7 +22,6 @@
 4. 把Event更改为Collision
 5. 构建一个CollisionSystem类
 
-
 关于OpenGL墙的绘制的基本思路：
 
 1. 由位置、法向量确定平面的方程

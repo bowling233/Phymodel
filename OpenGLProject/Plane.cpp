@@ -5,61 +5,61 @@
 #include "Plane.h"
 using namespace std;
 
-Sphere::Sphere() {
-	init(48);
+Plane::Plane() {
+	init(100);
 }
 
-Sphere::Sphere(int prec) {
-	init(prec);
+Plane::Plane(int range, float a, float b, float c) {
+	init(range,a, b,c);
 }
 
-float Sphere::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
-void Sphere::init(int prec) {
-	numVertices = (prec + 1) * (prec + 1);
-	numIndices = prec * prec * 6;
+void Plane::init(int range, float a, float b, float c,float d) {
+	
+	int num = range * 2 + 1;
+	numVertices = num*num;
+	numIndices = (num-1) * (num - 1) * 6;
 	for (int i = 0; i < numVertices; i++) { vertices.push_back(glm::vec3()); }
 	for (int i = 0; i < numVertices; i++) { texCoords.push_back(glm::vec2()); }
 	for (int i = 0; i < numVertices; i++) { normals.push_back(glm::vec3()); }
-	for (int i = 0; i < numVertices; i++) { tangents.push_back(glm::vec3()); }
+	//for (int i = 0; i < numVertices; i++) { tangents.push_back(glm::vec3()); }
 	for (int i = 0; i < numIndices; i++) { indices.push_back(0); }
 
 	// calculate triangle vertices
-	for (int i = 0; i <= prec; i++) {
-		for (int j = 0; j <= prec; j++) {
-			float y = (float)cos(toRadians(180.0f - i * 180.0f / prec));
-			float x = -(float)cos(toRadians(j*360.0f / prec))*(float)abs(cos(asin(y)));
-			float z = (float)sin(toRadians(j*360.0f / (float)(prec)))*(float)abs(cos(asin(y)));
-			vertices[i*(prec + 1) + j] = glm::vec3(x, y, z);
-			texCoords[i*(prec + 1) + j] = glm::vec2(((float)j / prec), ((float)i / prec));
-			normals[i*(prec + 1) + j] = glm::vec3(x, y, z);
+	for (int i = 0,x=-range; i != num; i++,x++) {//第i行，共num行，故从0开始直到num-1为止
+		for (int j = 0,y=-range; j !=num; j++,y++) {//第j列
+			float z = (-d-a*x-b*y)/c;
+			vertices[i*num + j] = glm::vec3(x, y, z);
+			texCoords[i * num + j] = glm::vec2(((float)j/(num-1)), ((float)i / (num-1)));//x轴是j的坐标
+			normals[i*num + j] = glm::vec3(a,b,c);
 
-			// calculate tangent vector
+			/* calculate tangent vector暂时不用
 			if (((x == 0) && (y == 1) && (z == 0)) || ((x == 0) && (y == -1) && (z == 0))) {
 				tangents[i*(prec + 1) + j] = glm::vec3(0.0f, 0.0f, -1.0f);
 			}
 			else {
 				tangents[i*(prec + 1) + j] = glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(x, y, z));
 			}
+			*/
 		}
 	}
 	// calculate triangle indices
-	for (int i = 0; i<prec; i++) {
-		for (int j = 0; j<prec; j++) {
-			indices[6 * (i*prec + j) + 0] = i*(prec + 1) + j;
-			indices[6 * (i*prec + j) + 1] = i*(prec + 1) + j + 1;
-			indices[6 * (i*prec + j) + 2] = (i + 1)*(prec + 1) + j;
-			indices[6 * (i*prec + j) + 3] = i*(prec + 1) + j + 1;
-			indices[6 * (i*prec + j) + 4] = (i + 1)*(prec + 1) + j + 1;
-			indices[6 * (i*prec + j) + 5] = (i + 1)*(prec + 1) + j;
+	for (int i = 0; i!=num-1; i++) {
+		for (int j = 0; j!=num-1; j++) {//位于第i,j个顶点，处理两个三角形，它们分别是：i*num+j.顶点从0开始到num-2停止处理
+			indices[6 * (i*(num-1) + j) + 0] = i*num + j;
+			indices[6 * (i* (num - 1) + j) + 1] = i*num + j + 1;
+			indices[6 * (i* (num - 1) + j) + 2] = (i + 1)*num + j;
+			indices[6 * (i* (num - 1) + j) + 3] = i*num + j + 1;
+			indices[6 * (i* (num - 1) + j) + 4] = (i + 1)*num + j + 1;
+			indices[6 * (i* (num - 1) + j) + 5] = (i + 1)*num + j;
 		}
 	}
 }
 
-int Sphere::getNumVertices() { return numVertices; }
-int Sphere::getNumIndices() { return numIndices; }
-std::vector<int> Sphere::getIndices() { return indices; }
-std::vector<glm::vec3> Sphere::getVertices() { return vertices; }
-std::vector<glm::vec2> Sphere::getTexCoords() { return texCoords; }
-std::vector<glm::vec3> Sphere::getNormals() { return normals; }
-std::vector<glm::vec3> Sphere::getTangents() { return tangents; }
+int Plane::getNumVertices() { return numVertices; }
+int Plane::getNumIndices() { return numIndices; }
+std::vector<int> Plane::getIndices() { return indices; }
+std::vector<glm::vec3> Plane::getVertices() { return vertices; }
+std::vector<glm::vec2> Plane::getTexCoords() { return texCoords; }
+std::vector<glm::vec3> Plane::getNormals() { return normals; }
+std::vector<glm::vec3> Plane::getTangents() { return tangents; }
