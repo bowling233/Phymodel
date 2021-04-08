@@ -1,0 +1,8 @@
+多边形是否重叠
+https://blog.csdn.net/bmexue/article/details/1372831
+凸多边形重叠计算
+https://blog.csdn.net/sinat_41104353/article/details/84594835
+数学之美--不规则多边形重叠计算(2)
+https://www.pianshen.com/article/5761626028/
+如何避免多边形重叠(How to avoid overlapping polygon)
+https://www.it1352.com/2057326.html

@@ -58,6 +58,14 @@ git remote add origin git@github.com:xx/aaaaa.git
 
 [.gitignore](https://github.com/github/gitignore/blob/master/VisualStudio.gitignore)
 
+### 彻底重置本地更改：
+
+当git pull出现冲突时，如果需要舍弃本地更改，可以：
+
+```
+git reset --hard
+```
+
 ## 2.Coding(OpenGL)
 
 ### GLSL调试
