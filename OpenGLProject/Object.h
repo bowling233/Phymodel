@@ -38,6 +38,7 @@ public:
     //information
     glm::vec3 vel() { return velocity; }
     float m() { return mass; }
+    float ek(){return 0.5f * m * square(glm::length(velocity));}
     //action
     void move(float time) { location += velocity * t; }
     //abstract virtual
@@ -61,15 +62,14 @@ class FixedPoint : public FixedObject
 
 class FixedBall : public FixedObject //protected:radius
 {
-    friend :
 
-        private :
-
-        //construct
-        FixedBall() : FixedBall(1.0f);
+private:
+    //construct
+    FixedBall() : FixedBall(1.0f);
     FixedBall(float r) : radius(r) {}
     FixedBall(glm::vec3 loc, float r) : FixedObject(loc), radius(r) {}
-
+    //information
+    float r() const { return radius; }
 protected:
     float radius;
 };
@@ -79,10 +79,10 @@ class Wall : public FixedObject
     //friend
     friend std::istream &read(std::istream &, Wall &);
     friend std::ostream &print(std::ostream &, const Wall &);
+
 public:
     Wall() : Wall(glm::vec3(0.0f, 0.0f, 1.0f));
-    Wall(glm::vec3 norv) : normalVector(norv){}
-    
+    Wall(glm::vec3 norv) : normalVector(norv) {}
 
 private:
     glm::vec3 normalVector;
@@ -108,83 +108,24 @@ public:
 
     //override
 
-private:
-    //no
 } std::istream &read(std::istream &is, Point &point);
 std::ostream &print(std::ostream &os, const Point &point);
 
-class Ball : public MovableObject, public FixedBall //new:r
+class Ball : public MovableObject, public FixedBall //new:0
 {
     //friend
     friend std::istream &read(std::istream &, Ball &);
     friend std::ostream &print(std::ostream &, const Ball &);
     Ball(std::istream &is) : Ball() { read(is, *this); }
+    //informat
 public:
     //construct
     Ball() : {}
-    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : FixedBall(loc), MovableObject(vel, m), FixedBall(r) {}
+    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : FixedObject(loc), MovableObject(vel, m), FixedBall(r) {}
 };
-/*
-class Ball
-{
-    //友元
-
-
-
-public: //接口
-    //构造函数
-    Ball() : Ball(1.0, 1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0), 0) {}
-    Ball(const float &mass, const float &radium,
-         const glm::vec3 location, const glm::vec3 velocity,
-         const int counter)
-        : m(mass), r(radium), loc(location), vel(velocity), count(counter) {}
-     //外部定义构造函数，从输入读取小球
-
-    //返回
-    float mass() const { return m; }
-    float radium() const { return r; }
-    glm::vec3 location() const { return loc; }
-    glm::vec3 velocity() const { return vel; }
-    float energe_k() const { return 0.5f * m * square(glm::length(vel)); }
-    int count() const { return count; }
-
-    //操作：移动。判断。
-    void move(const float time) { (*this).loc += time * (*this).vel; }
-    float timeToCollision(const Ball &) const;
-    float timeToCollision(const Wall &) const;
-    void handleCollision(Ball &);
-    void handleCollision(const Wall &);
-
-private: //私有
-    float m, r;
-    glm::vec3 loc, vel;
-    int count = 0;
-    bool state = true;
-};
-*/
-std::istream &
-read(std::istream &is, Ball &ball);
+std::istream &read(std::istream &is, Ball &ball);
 std::ostream &print(std::ostream &os, const Ball &ball);
 void vecprint(std::ostream &os, const std::vector<Ball> &balls);
-//Point-------------------------------------------------------------
-
-class Point_fixed
-{
-    //friend
-    friend std::istream &read(std::istream &, Point_fixed &);
-    friend std::ostream &print(std::ostream &, const Point_fixed &);
-
-public:
-    Point_fixed() : Point_fixed(glm::vec3(0.0f));
-    Point_fixed(const glm::vec3 location) : location(location);
-    Point_fixed(std::istream &is) : Point_fixed(){read(is, *this)};
-
-private:
-    glm::vec3 location;
-} std::istream &read(std::istream &is, Point_fixed &point);
-std::ostream &print(std::ostream &os, const Point_fixed &point);
-
-//Ball-------------------------------------------------------------
-
+//Polygon---------------------------------------------------------------------
 
 #endif
