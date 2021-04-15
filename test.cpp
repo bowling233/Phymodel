@@ -1,15 +1,32 @@
 #include <vector>
 #include <iostream>
 using namespace std;
+class Subunion
+{
+public:
+    Subunion() = default;
+    Subunion(int i,float j):subnum(i),subflo(j){}
+    Subunion(float j):Subunion(1,j){}
+    int subnum = 0;
+    float subflo = 0.0f;
+};
+class Test
+{
+public:
+    Test() = default;
+    Test(const int i) : num(i) {}
+    Test(const float j) : num2(j) {}
+    union
+    {
+        int num;
+        Subunion num2;
+    };
+};
 int main()
 {
-    vector<int> nums;
-    for (int i = 0; i != 10; i++)
-        nums.push_back(i);
-    int &p = nums[2];
-    cout << p << endl;
-    nums[2] = 9;
-    cout << p << endl;
-    cout << nums[2] << endl;
+    Test test1(1);
+    Test test2(1.0f);
+    cout << test1.num2.subflo << endl;
+    cout << test2.num2.subflo << endl;
     return 0;
 }
