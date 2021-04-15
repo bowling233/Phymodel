@@ -7,6 +7,8 @@
 
 void inline printvec3(glm::vec3 v) { std::cout << ' ' << v.x << ' ' << v.y << ' ' << v.z << ' '; }
 
+class Point;
+class Ball;
 class Wall;
 
 //操作------------------------------------------------------

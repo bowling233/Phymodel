@@ -6,17 +6,83 @@
 #include <glm\glm.hpp>
 #define square(x) ((x) * (x))
 //全部使用float类型
-//名称约定：私有数据用单字母，接口函数都全名，大写分隔单词，尽量不使用下划线
+//名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
 
-class Wall;
-class Event;
+//Abstract base class--------------------------------------------------------------------------------
+class FixedObject //new:location,count,state
+{
+public:
+    //construct
+    FixedObject() : FixedObject(glm::vec3(0.0f));
+    FixedObject(const glm::vec3 loc) : location(loc) {}
+    //information
+    glm::vec3 loc() { return location; }
+    unsigned int c() { return count; }
+    //action
+private:
+    glm::vec3 location;
+    unsigned int count;
+    bool state = true;
+}
+//说明：默认创建一个在原点的物体
 
-//Ball-------------------------------------------------------------
+class MovingObject : FixedObject //new:velocity,mass             //virtual:bounceOff,predict,judge
+{
+public:
+    //construct
+    MovingObject() : MovingObject(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
+    MovingObject(glm::vec3 loc, glm::vec3 vel, float m) : FixedObject(loc), velocity(velocity), mass(mass) {}
+    //information
+    glm::vec3 vel() { return velocity; }
+    float m() { return mass; }
+    //action
+    void move(float time) { location += velocity * t; }
+    //abstract virtual
+    virtual bounceOff(FixedObject &) = 0;
+    virtual predict(FixedObject &) = 0;
+    virtual judge(FixedObject &) = 0;
 
+private:
+    glm::vec3 velocity;
+    float mass;
+}
+//说明：默认拥有向x轴正方向的速度1，质量1
+
+//Concrete class--------------------------------------------------------------------------------
+class Point : public MovingObject //new:0
+{
+    //friend
+    friend std::istream &read(std::istream &, Point &);
+    friend std::ostream &print(std::ostream &, const Point &);
+
+public:
+    //construct
+    Point() = default;
+    Point(glm::vec3 loc, glm::vec3 vel, float m) : MovingObject(loc, vel, m) {}
+    //Point(std::istream &is) : Point(){read(is, *this)};
+    //action
+
+    //override
+
+private:
+    //no
+} std::istream &read(std::istream &is, Point &point);
+std::ostream &print(std::ostream &os, const Point &point);
+
+class Ball : public MovingObject //new:r
+{
+    //friend
+public:
+    //construct
+    Ball()=default;
+private:
+    float radium;
+}
+/*
 class Ball
 {
     //友元
-    friend class Event;
+
     friend std::istream &read(std::istream &, Ball &);
     friend std::ostream &print(std::ostream &, const Ball &);
 
@@ -50,10 +116,29 @@ private: //私有
     int count = 0;
     bool state = true;
 };
-
+*/
 std::istream &read(std::istream &is, Ball &ball);
 std::ostream &print(std::ostream &os, const Ball &ball);
 void vecprint(std::ostream &os, const std::vector<Ball> &balls);
+//Point-------------------------------------------------------------
+
+class Point_fixed
+{
+    //friend
+    friend std::istream &read(std::istream &, Point_fixed &);
+    friend std::ostream &print(std::ostream &, const Point_fixed &);
+
+public:
+    Point_fixed() : Point_fixed(glm::vec3(0.0f));
+    Point_fixed(const glm::vec3 location) : location(location);
+    Point_fixed(std::istream &is) : Point_fixed(){read(is, *this)};
+
+private:
+    glm::vec3 location;
+} std::istream &read(std::istream &is, Point_fixed &point);
+std::ostream &print(std::ostream &os, const Point_fixed &point);
+
+//Ball-------------------------------------------------------------
 
 //Wall-------------------------------------------------------------
 
