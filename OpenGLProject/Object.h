@@ -29,13 +29,8 @@ public:
     virtual ~FixedObject() = default;
     //information
     glm::vec3 loc() const { return location; }
-    unsigned int cnt() const { return count; }
-    bool st() const { return state; }
-
 protected:
     glm::vec3 location;
-    unsigned int count = 0;
-    bool state = true;
 };
 //说明：默认创建一个在原点的物体
 
@@ -134,10 +129,13 @@ public:
     //construct
     Point() = default;
     Point(const glm::vec3 &loc, const glm::vec3 &vel, const float m) : MovableObject(loc, vel, m) {}
+    ~Point() = default;
     //Point(std::istream &is) : Point(){read(is, *this)};
 
     //action
     bool judge(FixedPoint &) override;
+
+    void bounceOff(FixedPoint &) override;
 
 private:
     //no
@@ -158,6 +156,7 @@ public:
     Ball(glm::vec3 &loc, glm::vec3 &vel, float m, float r) : FixedObject(loc), MovableObject(vel, m), FixedBall(r) {}
     //Ball(std::istream& is) : Ball() { read(is, *this); }
     ~Ball() = default;
+    //action
 };
 class Segment
 {
@@ -167,7 +166,7 @@ public:
     Segment(const glm::vec3 &front, const glm::vec3 &end) : vertices{front, end} {}
     ~Segment() = default;
     //information
-    array<glm::vec3, 2> vert() { return vertices; }
+    array<glm::vec3, 2> vert() const { return vertices; }
 
 private:
     array<glm::vec3, 2> vertices;
@@ -185,7 +184,7 @@ public:
         : vertices{vert1, vert2, vert3, vert4, vert5, vert6} {}
     ~Cuboid() = default;
     //information
-    array<glm::vec3, 6> vert() { return vertices; }
+    array<glm::vec3, 6> vert() const { return vertices; }
 
 private:
     array<glm::vec3, 6> vertices;
@@ -200,10 +199,10 @@ public:
         this->vertices = vert;
         numVert = vertices.size();
     }
-    
+    ~Polygon() = default;
     //informatioin
-    vector<glm::vec3> vert() { return vertices; }
-    unsigned int num() { return numVert; }
+    vector<glm::vec3> vert() const { return vertices; }
+    unsigned int num() const { return numVert; }
 
 private:
     vector<glm::vec3> vertices;
@@ -214,9 +213,45 @@ class Object
 {
 public:
     Object() : type(FP), fixedpoint(FixedPoint()) {}
-
+    Object(const FixedPoint &obj) : type(FP), fixedpoint(obj) {}
+    Object(const FixedBall &obj) : type(FB), fixedball(obj) {}
+    Object(const Wall &obj) : type(W), wall(obj) {}
+    Object(const Point &obj) : type(P), point(obj) {}
+    Object(const Ball &obj) : type(B), ball(obj) {}
+    Object(const Segment &obj) : type(S), segment(obj) {}
+    Object(const Cuboid &obj) : type(C), cuboid(obj) {}
+    Object(const Polygon &obj) : type(POLY), polygon(obj) {}
+    ~Object() :
+    {
+        if (type == FP)
+            this->fixedpoint.~FixedPoint();
+        if (type == FB)
+            this->fixedball.~FixedBall();
+        if (type == W)
+            this->wall.~Wall();
+        if (type == P)
+            this->point.~Point();
+        if (type == B)
+            this->ball.~Ball();
+        if (type == S)
+            this->segment.~Segment();
+        if (type == C)
+            this->cuboid.~Cuboid();
+        if (type == POLY)
+            this->polygon.~Polygon();
+    }
+    //information
+    unsigned int cnt() const { return count; }
+    //action
+    void bounceOff(Object& obj)
+    {
+        if(type == P)
+            this->point.bounceOff(obj);
+    }
 private:
-    eunm obj_type{FP, FB, W, P, B, S, C, POLY} type;
+
+    unsigned int count = 0;
+    eunm{FP, FB, W, P, B, S, C, POLY} type;
     union
     {
         FixedPoint fixedpoint;
@@ -224,9 +259,9 @@ private:
         Wall wall;
         Point point;
         Ball ball;
-        //Segment segment;
-        //Cuboid cuboid;
-        //Polygon polygon;
+        Segment segment;
+        Cuboid cuboid;
+        Polygon polygon;
     }
 };
 #endif

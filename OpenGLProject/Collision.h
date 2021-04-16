@@ -4,6 +4,88 @@
 #include <vector>
 #include <iostream>
 
+class Object;
+class FixedObject;
+class FixedPoint;
+class FixedBall;
+class Wall;
+class Point;
+class Ball;
+class Segment;
+class Cuboid;
+class Polygon;
+
+class Event;
+class Event_mgr;
+class CollisionSystem;
+
+class Event
+{
+public:
+    //construct
+    Event() : {}
+    Event(const Object &obja, const Object &objb, const float t) : obj1(obja), obj2(objb), time(t), count1(obja.cnt()), count2(objb.cnt()) {}
+    ~Event() :
+    {
+        obj1.~Object();
+        obj2.~Object();
+    }
+    //information
+    float t() { return time; }
+    //action
+    void handle(){
+        
+    }
+
+private:
+    Object obj1, obj2;
+    float time;
+    unsigned int count1, count2;
+};
+
+class Event_mgr
+{
+};
+
+class CollisionSystem
+{
+public:
+    CollisionSystem(std::istream &is) : CollisionSystem()
+    {
+        int numBalls, numWalls;
+        if (!is)
+        {
+            cerr << "open is err" << endl;
+            exit(EXIT_FAILURE);
+        }
+        if (!(is >> numBalls))
+        {
+            cerr << "num err" << endl;
+            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
+            exit(EXIT_FAILURE);
+        }
+        //read in balls
+        for (int i = 0; i != numBalls; i++)
+            this->balls.push_back(Ball(is));
+        if (!(is >> numWalls))
+        {
+            cerr << "num err" << endl;
+            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
+            exit(EXIT_FAILURE);
+        }
+        //read in walls
+        for (int i = 0; i != numWalls; i++)
+
+            this->walls.push_back(Wall(is));
+        std::cout << "System created::::::::::::::::" << std::endl;
+    }
+
+private:
+    std::vector<Ball> balls;
+    std::vector<Wall> walls;
+}
+
+/*
 class Ball;
 class Wall;
 class Event;
@@ -45,42 +127,5 @@ private:
     std::vector<Event> eventPQ; //默认情况下Event_mgr包含一个空的事件vector
 };
 */
-class CollisionSystem
-{
-public:
-    CollisionSystem(std::istream &is) : CollisionSystem()
-    {
-        int numBalls, numWalls;
-        if (!is)
-        {
-            cerr << "open is err" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (!(is >> numBalls))
-        {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in balls
-        for (int i = 0; i != numBalls; i++)
-            this->balls.push_back(Ball(is));
-        if (!(is >> numWalls))
-        {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in walls
-        for (int i = 0; i != numWalls; i++)
-
-            this->walls.push_back(Wall(is));
-        std::cout << "System created::::::::::::::::" << std::endl;
-    }
-
-private:
-    std::vector<Ball> balls;
-    std::vector<Wall> walls;
-}
 
 #endif
