@@ -46,6 +46,7 @@ public:
     //information
     glm::vec3 vel() { return velocity; }
     float m() { return mass; }
+    float ek(){return 0.5f * m * square(glm::length(velocity));}
     //action
     void move(float t) { this->location += velocity * t; }
     //abstract virtual
