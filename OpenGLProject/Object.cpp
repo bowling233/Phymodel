@@ -12,7 +12,6 @@ class FixedBall;
 class Wall;
 class Point;
 class Ball;
-class Vertices;
 class Segment;
 class Cuboid;
 class Polygon;

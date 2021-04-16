@@ -6,14 +6,13 @@
 #include <glm\glm.hpp>
 #define square(x) ((x) * (x))
 
-class Object;
+class Object;      //todo
 class FixedObject; //ac
 class FixedPoint;  //ac
 class FixedBall;
 class Wall;
 class Point;
 class Ball;
-class Vertices;
 class Segment;
 class Cuboid;
 class Polygon;
@@ -159,6 +158,56 @@ public:
     Ball(glm::vec3 &loc, glm::vec3 &vel, float m, float r) : FixedObject(loc), MovableObject(vel, m), FixedBall(r) {}
     //Ball(std::istream& is) : Ball() { read(is, *this); }
     ~Ball() = default;
+};
+class Segment
+{
+public:
+    //construct
+    Segment() : vertices{glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)} {}
+    Segment(const glm::vec3 &front, const glm::vec3 &end) : vertices{front, end} {}
+    ~Segment() = default;
+    //information
+    array<glm::vec3, 2> vert() { return vertices; }
+
+private:
+    array<glm::vec3, 2> vertices;
+};
+class Cuboid
+{
+public:
+    //construct
+    Cuboid() : vertices{
+                   glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f),
+                   glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f),
+                   glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f)} {}
+    Cuboid(const glm::vec3 &vert1, const glm::vec3 &vert2, const glm::vec3 &vert3,
+           const glm::vec3 &vert4, const glm::vec3 &vert5, const glm::vec3 &vert6)
+        : vertices{vert1, vert2, vert3, vert4, vert5, vert6} {}
+    ~Cuboid() = default;
+    //information
+    array<glm::vec3, 6> vert() { return vertices; }
+
+private:
+    array<glm::vec3, 6> vertices;
+};
+class Polygon
+{
+public:
+    //construct
+    Polygon() = default;
+    Polygon(const vector<glm::vec3> &vert) :
+    {
+        this->vertices = vert;
+        numVert = vertices.size();
+    }
+    
+    //informatioin
+    vector<glm::vec3> vert() { return vertices; }
+    unsigned int num() { return numVert; }
+
+private:
+    vector<glm::vec3> vertices;
+    unsigned int numVert;
 };
 
 class Object
