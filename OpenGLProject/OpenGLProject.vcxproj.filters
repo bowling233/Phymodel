@@ -15,19 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="testmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Sphere.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Plane.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,23 +26,6 @@
     <ClInclude Include="Object.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Plane.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="vs_coord.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="fs_coord.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_skybox.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_sphere.glsl">
-      <Filter>源文件</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="in.txt">

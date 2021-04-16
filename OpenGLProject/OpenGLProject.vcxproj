@@ -19,21 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Plane.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="testmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object.h" />
-    <ClInclude Include="Plane.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="fs_coord.glsl" />
-    <None Include="vs_coord.glsl" />
-    <None Include="vs_skybox.glsl" />
-    <None Include="vs_sphere.glsl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="in.txt" />

@@ -5,6 +5,22 @@
 #include <iomanip>
 #include <string>
 
+class FixedObject;
+class FixedPoint;
+class FixedBall;
+class Wall;
+class Point;
+class Ball;
+
+//Point
+bool Point::judge(FixedPoint& fixedpoint)//todo
+{
+    if(this->location==fixedpoint.loc())
+        return true;
+    return false;
+}
+
+/*
 void inline printvec3(glm::vec3 v) { std::cout << ' ' << v.x << ' ' << v.y << ' ' << v.z << ' '; }
 
 class Point;
@@ -81,7 +97,7 @@ void Ball::handleCollision(Ball &ball)
               << "dv1,dv2";
     printvec3(dv1);
     printvec3(dv2);
-    //*/
+    //
 
     std::cout << "handle ball end" << std::endl;
 }
@@ -166,3 +182,4 @@ void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
         print(os, walls[i]);
     }
 }
+*/
