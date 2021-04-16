@@ -6,12 +6,17 @@
 #include <glm\glm.hpp>
 #define square(x) ((x) * (x))
 
-class FixedObject;
-class FixedPoint;
+class Object;
+class FixedObject; //ac
+class FixedPoint;  //ac
 class FixedBall;
 class Wall;
 class Point;
 class Ball;
+class Vertices;
+class Segment;
+class Cuboid;
+class Polygon;
 //全部使用float类型
 //名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
 
@@ -20,14 +25,14 @@ class FixedObject //protected:location,count*,state*
 {
 public:
     //construct
-    FixedObject() : location(glm::vec3(0.0f)){}
-    FixedObject(const glm::vec3& loc) : location(loc) {}
+    FixedObject() : location(glm::vec3(0.0f)) {}
+    FixedObject(const glm::vec3 &loc) : location(loc) {}
     virtual ~FixedObject() = default;
     //information
     glm::vec3 loc() const { return location; }
     unsigned int cnt() const { return count; }
     bool st() const { return state; }
-    //action
+
 protected:
     glm::vec3 location;
     unsigned int count = 0;
@@ -39,26 +44,28 @@ class MovableObject : public virtual FixedObject //protected:velocity,mass  //vi
 {
 public:
     //construct
-    //MovableObject() : MovableObject(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f);
-    MovableObject() : MovableObject(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f){}
-    MovableObject(const glm::vec3& loc, const glm::vec3& vel, const float m) : FixedObject(loc), velocity(vel), mass(m) {}
-    MovableObject(const glm::vec3& vel, const float m) : velocity(vel), mass(m) {}
+    MovableObject() : MovableObject(glm::vec3(1.0f, 0.0f, 0.0f), 1.0f) {}
+    MovableObject(const glm::vec3 &loc, const glm::vec3 &vel, const float m) : FixedObject(loc), velocity(vel), mass(m) {}
+    MovableObject(const glm::vec3 &vel, const float m) : velocity(vel), mass(m) {}
     //information
     glm::vec3 vel() { return velocity; }
     float m() { return mass; }
-    float ek(){return 0.5f * m * square(glm::length(velocity));}
+    float ek() { return 0.5f * m * square(glm::length(velocity)); }
     //action
-    void move(float t) { this->location += velocity * t; }
+    void move(float t) { location += velocity * t; }
+    void reverse() { velocity = -velocity; }
     //abstract virtual
-    virtual bool judge(FixedPoint&) = 0;
-    virtual bool judge(FixedBall&) = 0;
-    virtual bool judge(FixedPoint&) = 0;
-    /*
-    virtual void bounceOff(FixedObject &) = 0;
-    virtual float predict(FixedObject &) = 0;
-    virtual bool judge(FixedObject &) = 0;
-    */
-    
+    //predict
+    virtual float predict(FixedPoint &) = 0;
+    virtual float predict(FixedBall &) = 0;
+    virtual float predict(Wall &) = 0;
+    virtual float predict(Point &) = 0;
+    virtual float predict(Ball &) = 0;
+    float predict(Object &obj)
+    {
+        if (obj.type() == FIXEDPOINT)
+            return this->predict(obj.fixedpoint());
+    }
 
 protected:
     glm::vec3 velocity;
@@ -74,7 +81,7 @@ class FixedPoint final : public FixedObject //Ac//new:0
 public:
     //construct
     FixedPoint() = default;
-    FixedPoint(const glm::vec3& loc) :FixedObject(loc){}
+    FixedPoint(const glm::vec3 &loc) : FixedObject(loc) {}
     ~FixedPoint() = default;
 };
 
@@ -82,12 +89,13 @@ class FixedBall : public virtual FixedObject //Ac//protected:radius    //virtual
 {
 public:
     //construct//Ac
-    FixedBall() : radius(1.0f){}
+    FixedBall() : radius(1.0f) {}
     FixedBall(const float r) : radius(r) {}
-    FixedBall(const glm::vec3& loc, const float r) : FixedObject(loc), radius(r) {}
+    FixedBall(const glm::vec3 &loc, const float r) : FixedObject(loc), radius(r) {}
     ~FixedBall() = default;
     //information//Ac
-    float r() const{ return radius; }
+    float r() const { return radius; }
+
 protected:
     float radius;
 };
@@ -100,12 +108,13 @@ class Wall final : public FixedObject //private:normalVector
 
 public:
     //construct
-    Wall() : normalVector(glm::vec3(0.0f, 0.0f, 1.0f)){}
-    Wall(const glm::vec3& norv) : normalVector(norv) {}
-    Wall(const glm::vec3& loc, const glm::vec3& norv) :FixedObject(loc), normalVector(norv){}
+    Wall() : normalVector(glm::vec3(0.0f, 0.0f, 1.0f)) {}
+    Wall(const glm::vec3 &norv) : normalVector(norv) {}
+    Wall(const glm::vec3 &loc, const glm::vec3 &norv) : FixedObject(loc), normalVector(norv) {}
     ~Wall() = default;
     //information
     glm::vec3 norm() const { return normalVector; }
+
 private:
     glm::vec3 normalVector;
 };
@@ -125,73 +134,50 @@ class Point final : public MovableObject //new:0
 public:
     //construct
     Point() = default;
-    Point(const glm::vec3& loc, const glm::vec3& vel,const float m) : MovableObject(loc, vel, m) {}
+    Point(const glm::vec3 &loc, const glm::vec3 &vel, const float m) : MovableObject(loc, vel, m) {}
     //Point(std::istream &is) : Point(){read(is, *this)};
 
     //action
-    bool judge(FixedPoint&)override;
+    bool judge(FixedPoint &) override;
 
 private:
     //no
-}; 
+};
 /*
 std::istream &read(std::istream& is, Point& point);
 std::ostream &print(std::ostream &os, const Point &point);
+*/
 
-
-class Ball final : public MovableObject, public FixedBall //new:r
+class Ball final : public MovableObject, public FixedBall //new:0
 {
     //friend
-    friend std::istream &read(std::istream &, Ball &);
-    friend std::ostream &print(std::ostream &, const Ball &);
-
+    //friend std::istream &read(std::istream &, Ball &);
+    //friend std::ostream &print(std::ostream &, const Ball &);
 public:
     //construct
-    Ball() =default;
-    Ball(glm::vec3& loc, glm::vec3& vel, float m, float r) : FixedObject(loc), MovableObject(vel, m), FixedBall(r) {}
+    Ball() = default;
+    Ball(glm::vec3 &loc, glm::vec3 &vel, float m, float r) : FixedObject(loc), MovableObject(vel, m), FixedBall(r) {}
     //Ball(std::istream& is) : Ball() { read(is, *this); }
     ~Ball() = default;
 };
-/*
-class Ball
+
+class Object
 {
-    //友元
+public:
+    Object() : type(FP), fixedpoint(FixedPoint()) {}
 
-
-
-public: //接口
-    //构造函数
-    Ball() : Ball(1.0, 1.0, glm::vec3(0.0, 0.0, 0.0), glm::vec3(1.0, 0.0, 0.0), 0) {}
-    Ball(const float &mass, const float &radium,
-         const glm::vec3 location, const glm::vec3 velocity,
-         const int counter)
-        : m(mass), r(radium), loc(location), vel(velocity), count(counter) {}
-     //外部定义构造函数，从输入读取小球
-
-    //返回
-    float mass() const { return m; }
-    float radium() const { return r; }
-    glm::vec3 location() const { return loc; }
-    glm::vec3 velocity() const { return vel; }
-    float energe_k() const { return 0.5f * m * square(glm::length(vel)); }
-    int count() const { return count; }
-
-    //操作：移动。判断。
-    void move(const float time) { (*this).loc += time * (*this).vel; }
-    float timeToCollision(const Ball &) const;
-    float timeToCollision(const Wall &) const;
-    void handleCollision(Ball &);
-    void handleCollision(const Wall &);
-
-private: //私有
-    float m, r;
-    glm::vec3 loc, vel;
-    int count = 0;
-    bool state = true;
+private:
+    eunm obj_type{FP, FB, W, P, B, S, C, POLY} type;
+    union
+    {
+        FixedPoint fixedpoint;
+        FixedBall fixedball;
+        Wall wall;
+        Point point;
+        Ball ball;
+        //Segment segment;
+        //Cuboid cuboid;
+        //Polygon polygon;
+    }
 };
-
-std::istream &read(std::istream &is, Ball &ball);
-std::ostream &print(std::ostream &os, const Ball &ball);
-void vecprint(std::ostream &os, const std::vector<Ball> &balls);
-*/
 #endif

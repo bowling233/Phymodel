@@ -5,12 +5,17 @@
 #include <iomanip>
 #include <string>
 
+class Object;
 class FixedObject;
 class FixedPoint;
 class FixedBall;
 class Wall;
 class Point;
 class Ball;
+class Vertices;
+class Segment;
+class Cuboid;
+class Polygon;
 
 //Point
 bool Point::judge(FixedPoint& fixedpoint)//todo
