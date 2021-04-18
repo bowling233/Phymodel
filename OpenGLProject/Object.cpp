@@ -4,49 +4,59 @@
 #include <cstdlib>
 #include <iomanip>
 #include <string>
+#include <glm\glm.hpp>
 
-class Object;
-class FixedObject;
-class FixedPoint;
-class FixedBall;
-class Wall;
-class Point;
-class Ball;
-class Segment;
-class Cuboid;
-class Polygon;
-
-//Point
-float Point::predict(FixedPoint& fixedpoint)//todo
+//vec3 tools
+std::ostream &operator<<(std::ostream &os, glm::vec3 &v)
 {
-    if(this->location==fixedpoint.loc())
-        return 1.0f;
+    os << v.x << v.y << v.z;
+}
+
+std::istream &operator>>(std::istream &is, glm::vec3 &v)
+{
+    is >> v.x >> v.y >> v.z;
+}
+
+//Ball------------------------------------------------------
+//predict
+float Ball::preditc(const FixedBall &fixedball) //todo
+{
     return -1.0f;
 }
 
-/*
-void inline printvec3(glm::vec3 v) { std::cout << ' ' << v.x << ' ' << v.y << ' ' << v.z << ' '; }
-
-class Point;
-class Ball;
-class Wall;
-
-//操作------------------------------------------------------
-
-float Ball::timeToCollision(const Ball &ball) const
+float Ball::predict(const Wall &wall) //tochk
 {
-    glm::vec3 r = this->loc - ball.loc;
+    glm::vec3 r = location - wall.loc();
+    float r_l = glm::dot(r, wall.norm());        //球到平面的垂直距离
+    float v_l = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
 
-    if (glm::dot(-r, this->vel) < 0)
-        return -1.0;
-    if (glm::dot(r, ball.vel) < 0)
-        return -1.0;
+    if (v_l * r_l >= 0)
+        return -1.0f;
+    return -r_l / v_l;
+}
 
-    float dvx = (*this).vel.x - ball.vel.x, dvy = (*this).vel.y - ball.vel.y, dvz = (*this).vel.z - ball.vel.z;
-    float dx = (*this).loc.x - ball.loc.x, dy = (*this).loc.y - ball.loc.y, dz = (*this).loc.z - ball.loc.z;
-    float a = square(dvx) + square(dvy) + square(dvz);
+float Ball::predict(Ball &ball)//tochk
+{
+    glm::vec3 r = location - ball.location,
+              dv = velocity - ball.velocity;
+    /*/tochk
+    if (glm::dot(-r, velocity) < 0)
+        return -1.0;
+    if (glm::dot(r, ball.velocity) < 0)
+        return -1.0;
+/*/
+
+    float dvx = velocity.x - ball.velocity.x,
+          dvy = velocity.y - ball.velocity.y,
+          dvz = velocity.z - ball.velocity.z,
+          dx = location.x - ball.location.x,
+          dy = location.y - ball.location.y,
+          dz = location.z - ball.location.z;
+
+    //float a = square(dvx) + square(dvy) + square(dvz);
+    float a = square(glm::length(dv));
     float b = 2.0 * (dvx * dx + dvy * dy + dvz * dz);
-    float c = square(dx) + square(dy) + square(dz) - square((*this).r + ball.r);
+    float c = square(dx) + square(dy) + square(dz) - square(r + ball.r);
     float delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
@@ -59,6 +69,7 @@ float Ball::timeToCollision(const Ball &ball) const
     //std::cout << dvx << ' ' << dvy << ' ' << dvz << ' ' << dx << ' ' << dy << ' ' << dz << ' ' << a << ' ' << b << ' ' << c << ' ' << delta << ' '<<x1 << ' ' << x2<<std::endl;
 
     //question:小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
+
     if (x2 > 0)
         return x2;
     if (x1 > 0)
@@ -66,31 +77,32 @@ float Ball::timeToCollision(const Ball &ball) const
     return -1.0;
 }
 
-float Ball::timeToCollision(const Wall &wall) const //tochk
+//bounceOff
+void Ball::bounceOff(const FixedBall &fixedball)//todo
 {
-    glm::vec3 r = (*this).loc - wall.loc;
-    float r_l = glm::dot(r, wall.nor);           //球到平面的垂直距离
-    float v_l = glm::dot((*this).vel, wall.nor); //速度在平面法向量方向上的分量
-
-    if (v_l * r_l >= 0)
-        return -1.0f;
-    return -r_l / v_l;
 }
 
-void Ball::handleCollision(Ball &ball)
+void Ball::bounceOff(const Wall &wall) //tochk
 {
-    glm::vec3 r = glm::normalize(this->loc - ball.loc);
-    float v10 = glm::dot(r, this->vel);
-    float v20 = glm::dot(r, ball.vel);
-    float m1 = this->m;
-    float m2 = ball.m;
+    glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
+    velocity = velocity - 2 * (dot(velocity, ckd_nor)) * ckd_nor;
+    //std::cout << "handle wall end" << std::endl;
+}
 
-    float v1 = ((m1 - m2) * v10 + 2 * m2 * v20) / (m1 + m2);
-    float v2 = ((m2 - m1) * v20 + 2 * m1 * v10) / (m1 + m2);
-    glm::vec3 dv1 = (v1 - v10) * r;
-    glm::vec3 dv2 = (v2 - v20) * r;
-    this->vel += dv1;
-    ball.vel += dv2;
+void Ball::bounceOff(Ball &ball) //tochk
+{
+    glm::vec3 r = glm::normalize(location - ball.location);
+    float v10 = glm::dot(r, velocity),
+          v20 = glm::dot(r, ball.velocity),
+          m1 = mass,
+          m2 = ball.mass;
+
+    float v1 = ((m1 - m2) * v10 + 2 * m2 * v20) / (m1 + m2),
+          v2 = ((m2 - m1) * v20 + 2 * m1 * v10) / (m1 + m2);
+    glm::vec3 dv1 = (v1 - v10) * r,
+              dv2 = (v2 - v20) * r;
+    velocity += dv1;
+    ball.velocity += dv2;
 
     /*debug_chunk
     std::cout << "handle ball info: "
@@ -101,35 +113,29 @@ void Ball::handleCollision(Ball &ball)
               << "dv1,dv2";
     printvec3(dv1);
     printvec3(dv2);
-    //
+    /*/
 
-    std::cout << "handle ball end" << std::endl;
+    //std::cout << "handle ball end" << std::endl;
 }
 
-void Ball::handleCollision(const Wall &wall) //tochk
+//io
+std::istream &operator>>(std::istream &is, Ball &ball)
 {
-    glm::vec3 ckd_nor = glm::dot(((*this).loc - wall.loc), wall.nor) > 0 ? wall.nor : -wall.nor;
-    (*this).vel = (*this).vel - 2 * (dot((*this).vel, ckd_nor)) * ckd_nor;
-    std::cout << "handle wall end" << std::endl;
-}
-
-//其他操作函数------------------------------------------------------
-std::istream &read(std::istream &is, Ball &ball) //ball_related
-{
-    is >> ball.m >> ball.r >> ball.loc.x >> ball.loc.y >> ball.loc.z >> ball.vel.x >> ball.vel.y >> ball.vel.z >> ball.count;
-    if (is.good())
+    is >> ball.mass >> ball.radius >> ball.location.x >> ball.location.y >> ball.location.z >> ball.velocity.x >> ball.velocity.y >> ball.velocity.z;
+    /*if (is.good())
         std::cout << "read in ball finished" << std::endl;
+    /*/
     return is;
 }
 
-std::ostream &print(std::ostream &os, const Ball &ball) //ball_related
+std::ostream &operator<<(std::ostream &os, const Ball &ball)
 {
     os << std::setprecision(2) << std::fixed;
     os << std::setw(5) << ball.m << " |"
        << std::setw(5) << ball.r << " |"
-       << std::setw(5) << ball.loc.x << " |"
-       << std::setw(5) << ball.loc.y << " |"
-       << std::setw(5) << ball.loc.z << " |"
+       << std::setw(5) << ball.location.x << " |"
+       << std::setw(5) << ball.location.y << " |"
+       << std::setw(5) << ball.location.z << " |"
        << std::setw(5) << ball.vel.x << " |"
        << std::setw(5) << ball.vel.y << " |"
        << std::setw(5) << ball.vel.z << " |"
@@ -139,7 +145,7 @@ std::ostream &print(std::ostream &os, const Ball &ball) //ball_related
     return os;
 }
 
-void vecprint(std::ostream &os, const std::vector<Ball> &balls) //ball_related
+std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
 {
     os << "-----------Balls---------------------------------------------------" << std::endl;
     os << "Ball | Mass | Radi | locX | loxY | locZ | velX | velY | velZ | cout" << std::endl;
@@ -149,32 +155,36 @@ void vecprint(std::ostream &os, const std::vector<Ball> &balls) //ball_related
         os << std::setw(5) << i << '|';
         print(os, balls[i]);
     }
+    return os;
 }
 
 //Wall---------------------------------------------------------------------------------------------
 
-std::istream &read(std::istream &is, Wall &wall)
+std::istream &operator>>(std::istream &is, Wall &wall)
 {
-    is >> wall.loc.x >> wall.loc.y >> wall.loc.z >> wall.nor.x >> wall.nor.y >> wall.nor.z;
-    if (is.good())
+    is >> wall.location.x >> wall.location.y >> wall.location.z >> wall.normalVector.x >> wall.normalVector.y >> wall.normalVector.z;
+    /*if (is.good())
         std::cout << "read in wall finished" << std::endl;
+    /*/
     return is;
 }
 
-std::ostream &print(std::ostream &os, const Wall &wall)
+std::ostream &operator<<(std::ostream &os, const Wall &wall)
 {
     os << std::setprecision(2) << std::fixed;
-    os << wall.loc.x << " |"
-       << wall.loc.y << " |"
-       << wall.loc.z << " |"
-       << wall.nor.x << " |"
-       << wall.nor.y << " |"
-       << wall.nor.z
+    os << wall.location.x << " |"
+       << wall.location.y << " |"
+       << wall.location.z << " |"
+       << wall.normalVector.x << " |"
+       << wall.normalVector.y << " |"
+       << wall.normalVector.z
        << std::endl
        << std::defaultfloat;
     return os;
 }
 
+/*
+//probably no use
 void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
 {
     os << "-----------walls---------------------------------------------------" << std::endl;
@@ -186,4 +196,4 @@ void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
         print(os, walls[i]);
     }
 }
-*/
+* /
