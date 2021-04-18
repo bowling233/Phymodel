@@ -12,6 +12,18 @@
 
 ## Todo List
 
+### 当前开发进度
+
+status: simple-event
+
+遗留问题：
+
+* predict:fixedBall,
+* bounceOff:fixedBall,
+* event:
+
+### 以前开发进度
+
 现在等待做的
 
 1. 把小球类的碰撞处理做好
