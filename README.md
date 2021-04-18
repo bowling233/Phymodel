@@ -18,9 +18,14 @@
    1. 返回根的问题（通过反向运行判断，但未检验实用性
    2. 步长的问题，留到事件实现中讨论
 2. 测试小球和墙的碰撞（如果不行还要修复）
-3. 实现OpenGL墙的绘制
-4. 把Event更改为Collision
-5. 构建一个CollisionSystem类
+3. Object类的运算符重载:输入和输出
+4. 测试Object类的正常使用
+5. Event类仔细构建
+6. 
+7. CollisionSyetem类的构建
+8. 实现OpenGL墙的绘制
+9. 
+10. 
 
 关于OpenGL墙的绘制的基本思路：
 

@@ -15,10 +15,10 @@ int main()
     for(int i = 0;i!=5;i++)
     points.push_back(Point());
     for (auto& i : points)
-        cout << i.judge(pointone) << endl;
+        cout << i.predict(pointone) << endl;
     points.pop_back();
     for (auto& i : points)
-        cout << i.judge(pointone) << endl;
+        cout << i.predict(pointone) << endl;
 
     cout << pointone.loc().x << endl;
     return 0;

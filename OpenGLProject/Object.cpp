@@ -17,11 +17,11 @@ class Cuboid;
 class Polygon;
 
 //Point
-bool Point::judge(FixedPoint& fixedpoint)//todo
+float Point::predict(FixedPoint& fixedpoint)//todo
 {
     if(this->location==fixedpoint.loc())
-        return true;
-    return false;
+        return 1.0f;
+    return -1.0f;
 }
 
 /*

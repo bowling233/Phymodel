@@ -21,27 +21,33 @@ class CollisionSystem;
 
 class Event
 {
+    //io
+    friend std::ostream operator<<(std::ostream &, const Event &);
+
 public:
     //construct
     Event() : {}
-    Event(const Object &obja, const Object &objb, const float t) : obj1(obja), obj2(objb), time(t), count1(obja.cnt()), count2(objb.cnt()) {}
-    ~Event() :
-    {
-        obj1.~Object();
-        obj2.~Object();
-    }
+    Event(const MovableObject&obj1, const Object &obj2, const float t) : object1(obj1), object2(obj2), time(t), count1(obj1.cnt()), count2(objb.cnt()) {}
+    ~Event() = default;
     //information
     float t() { return time; }
     //action
-    void handle(){
-        
-    }
+    void handle(); //extern
+
+    //operator
+    bool operator<(const Evnet &event) { return (this->time) < event.time; }
 
 private:
-    Object obj1, obj2;
+    MovableObject &object1;
+    Object &object2;
     float time;
     unsigned int count1, count2;
 };
+
+std::ostream operator<<(std::ostream &os, const Event &event) //todo
+{
+    os << std::endl;
+}
 
 class Event_mgr
 {
