@@ -7,19 +7,26 @@
 #include <glm\glm.hpp>
 
 //vec3 tools
-std::ostream &operator<<(std::ostream &os, glm::vec3 &v)
+
+std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
 {
-    os << v.x << v.y << v.z;
+    os << std::setprecision(3) << std::fixed;
+    os << std::setw(8) << v.x << " |"
+       << std::setw(8) << v.y << " |"
+       << std::setw(8) << v.z << " |"
+       << std::defaultfloat;
+    return os;
 }
 
 std::istream &operator>>(std::istream &is, glm::vec3 &v)
 {
     is >> v.x >> v.y >> v.z;
+    return is;
 }
 
 //Ball------------------------------------------------------
 //predict
-float Ball::preditc(const FixedBall &fixedball) //todo
+float Ball::predict(const FixedBall &fixedball) //todo
 {
     return -1.0f;
 }
@@ -35,7 +42,7 @@ float Ball::predict(const Wall &wall) //tochk
     return -r_l / v_l;
 }
 
-float Ball::predict(Ball &ball)//tochk
+float Ball::predict(Ball &ball) //tochk
 {
     glm::vec3 r = location - ball.location,
               dv = velocity - ball.velocity;
@@ -56,7 +63,7 @@ float Ball::predict(Ball &ball)//tochk
     //float a = square(dvx) + square(dvy) + square(dvz);
     float a = square(glm::length(dv));
     float b = 2.0 * (dvx * dx + dvy * dy + dvz * dz);
-    float c = square(dx) + square(dy) + square(dz) - square(r + ball.r);
+    float c = square(dx) + square(dy) + square(dz) - square(radius + ball.radius);
     float delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
@@ -78,7 +85,7 @@ float Ball::predict(Ball &ball)//tochk
 }
 
 //bounceOff
-void Ball::bounceOff(const FixedBall &fixedball)//todo
+void Ball::bounceOff(const FixedBall &fixedball) //todo
 {
 }
 
@@ -121,7 +128,7 @@ void Ball::bounceOff(Ball &ball) //tochk
 //io
 std::istream &operator>>(std::istream &is, Ball &ball)
 {
-    is >> ball.mass >> ball.radius >> ball.location.x >> ball.location.y >> ball.location.z >> ball.velocity.x >> ball.velocity.y >> ball.velocity.z;
+    is >> ball.location >> ball.velocity>>ball.mass >> ball.radius ;
     /*if (is.good())
         std::cout << "read in ball finished" << std::endl;
     /*/
@@ -130,31 +137,24 @@ std::istream &operator>>(std::istream &is, Ball &ball)
 
 std::ostream &operator<<(std::ostream &os, const Ball &ball)
 {
-    os << std::setprecision(2) << std::fixed;
-    os << std::setw(5) << ball.m << " |"
-       << std::setw(5) << ball.r << " |"
-       << std::setw(5) << ball.location.x << " |"
-       << std::setw(5) << ball.location.y << " |"
-       << std::setw(5) << ball.location.z << " |"
-       << std::setw(5) << ball.vel.x << " |"
-       << std::setw(5) << ball.vel.y << " |"
-       << std::setw(5) << ball.vel.z << " |"
-       << std::setw(5) << ball.count
-       << std::endl
+    os << std::setprecision(3) << std::fixed;
+    os << std::setw(8) << ball.number << " |"
+       << std::setw(8) << ball.mass << " |"
+       << std::setw(8) << ball.radius << " |"
+       << ball.location << ball.velocity
+       << std::setw(8) << ball.count << " |"
        << std::defaultfloat;
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
 {
-    os << "-----------Balls---------------------------------------------------" << std::endl;
-    os << "Ball | Mass | Radi | locX | loxY | locZ | velX | velY | velZ | cout" << std::endl;
-    int numBalls = (int)(balls.size());
-    for (int i = 0; i != numBalls; i++)
-    {
-        os << std::setw(5) << i << '|';
-        print(os, balls[i]);
-    }
+    os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
+    os << "   Ball  |  Mass   | Radius  | locX    | loxY    | locZ    | velX    | velY    | velZ    | cnt     |"
+       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+       << std::endl;
+    for (auto const &i : balls)
+        os << i << std::endl;
     return os;
 }
 
@@ -162,7 +162,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
 
 std::istream &operator>>(std::istream &is, Wall &wall)
 {
-    is >> wall.location.x >> wall.location.y >> wall.location.z >> wall.normalVector.x >> wall.normalVector.y >> wall.normalVector.z;
+    is >> wall.location >> wall.normalVector;
     /*if (is.good())
         std::cout << "read in wall finished" << std::endl;
     /*/
@@ -171,20 +171,14 @@ std::istream &operator>>(std::istream &is, Wall &wall)
 
 std::ostream &operator<<(std::ostream &os, const Wall &wall)
 {
-    os << std::setprecision(2) << std::fixed;
-    os << wall.location.x << " |"
-       << wall.location.y << " |"
-       << wall.location.z << " |"
-       << wall.normalVector.x << " |"
-       << wall.normalVector.y << " |"
-       << wall.normalVector.z
-       << std::endl
+    os << std::setprecision(3) << std::fixed;
+    os << wall.location << wall.normalVector << std::endl
        << std::defaultfloat;
     return os;
 }
 
 /*
-//probably no use
+probably no use
 void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
 {
     os << "-----------walls---------------------------------------------------" << std::endl;
@@ -196,4 +190,4 @@ void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
         print(os, walls[i]);
     }
 }
-* /
+*/

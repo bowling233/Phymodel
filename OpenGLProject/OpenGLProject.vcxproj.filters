@@ -15,10 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="testmain.cpp">
+    <ClCompile Include="Object.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Object.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -31,5 +37,25 @@
     <Text Include="in.txt">
       <Filter>源文件</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fs_coord.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="fs_skybox.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="fs_sphere.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="vs_coord.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="vs_skybox.glsl">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="vs_sphere.glsl">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -5,13 +5,17 @@
 #include <vector>
 #include <glm\glm.hpp>
 
-#define square(x) ((x) * (x))
-
-class Object; //ac
+class Object; 
 class MovableObject;
-class FixedBall; //ac
+class FixedBall;
 class Wall;
 class Ball;
+static unsigned int ballNum = 0;
+
+//tools
+#define square(x) ((x) * (x))
+std::ostream& operator<<(std::ostream&, const glm::vec3&);
+std::istream& operator>>(std::istream&, glm::vec3&);
 
 //全部使用float类型
 //名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
@@ -69,8 +73,8 @@ class Wall : public Object //private:normalVector
 {
     //friend
     //io
-    friend std::istream &operator>>(std::istream &, Wall &)
-    friend std::ostream &operator<<(std::ostream &, const Wall &)
+    friend std::istream& operator>>(std::istream&, Wall&);
+    friend std::ostream& operator<<(std::ostream&, const Wall&);
 public:
     //construct
     Wall() : normalVector(glm::vec3(0.0f, 0.0f, 1.0f)) {}
@@ -118,13 +122,13 @@ public:
 
     //abstract virtual
     //predict
-    virtual float predict(FixedBall &) = 0;
-    virtual float predict(Wall &) = 0;
+    virtual float predict(const FixedBall &) = 0;
+    virtual float predict(const Wall &) = 0;
     virtual float predict(Ball &) = 0;
 
     //bounceOff
-    virtual void bounceOff(FixedBall &) = 0;
-    virtual void bounceOff(Wall &) = 0;
+    virtual void bounceOff(const FixedBall &) = 0;
+    virtual void bounceOff(const Wall &) = 0;
     virtual void bounceOff(Ball &) = 0;
 
 protected:
@@ -143,7 +147,8 @@ class Ball final : public MovableObject, public FixedBall //no new
 public:
     //construct
     Ball() = default;
-    Ball(glm::vec3 &loc, glm::vec3 &vel, float m, float r) : Object(loc), MovableObject(vel, m), FixedBall(r) {}
+    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), MovableObject(vel, m), FixedBall(r) { }
+    Ball(std::istream& is) :Ball(){is >> *this; }
     //copy move destruct
     Ball(const Ball &) = default;
     Ball(Ball &&) = default;
@@ -154,15 +159,18 @@ public:
     //action
     //abstract virtual
     //predict
-    float predict(const FixedBall &) override;
-    float predict(const Wall &) override;
-    float predict(Ball &) override;
+    float predict(const FixedBall &);
+    float predict(const Wall &);
+    float predict(Ball &);
 
     //bounceOff
-    void bounceOff(const FixedBall &) override;
-    void bounceOff(const Wall &) override;
-    void bounceOff(Ball &) override;
+    void bounceOff(const FixedBall &) ;
+    void bounceOff(const Wall &);
+    void bounceOff(Ball &) ;
+private:
+    unsigned int number=++ballNum;
 };
-std::ostream &operator<<(std::ostream &, const std::vector<Ball>)
+std::ostream& operator<<(std::ostream&, const std::vector<Ball>&);
+
 
 #endif

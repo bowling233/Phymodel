@@ -8,18 +8,14 @@
 
 using namespace std;
 
+
+
 int main()
 {
-    FixedPoint pointone;
-    vector<Point> points;
-    for(int i = 0;i!=5;i++)
-    points.push_back(Point());
-    for (auto& i : points)
-        cout << i.predict(pointone) << endl;
-    points.pop_back();
-    for (auto& i : points)
-        cout << i.predict(pointone) << endl;
+    vector<Ball> balls;
+    for (int i = 0; i != 2; i++)
+        balls.push_back(Ball());
 
-    cout << pointone.loc().x << endl;
+    cout << balls;
     return 0;
 }

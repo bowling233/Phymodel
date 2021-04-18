@@ -82,9 +82,9 @@ void setupVert_sphere(void)
 void setupVert_coord(void)
 {
 	float vertCoordPositions[18] = {
-		-1.5f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
-		0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, -2.0f, 0.0f, 0.0f, 2.0f };
+		-100.f, 0.0f, 0.0f, 100.f, 0.0f, 0.0f,
+		0.0f, -100.0f, 0.0f, 0.0f, 100.0f, 0.0f,
+		0.0f, 0.0f, -100.0f, 0.0f, 0.0f, 100.0f };
 	glGenBuffers(1, coordVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
@@ -201,7 +201,7 @@ void draw_sphere(vector<Ball> &balls)
 
 		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator.location()); //marker++++++++++++++++++++++++++++
+		mMat = glm::translate(glm::mat4(1.0f), iterator.loc()); //marker++++++++++++++++++++++++++++
 
 		mvMat = vMat * mMat;
 
@@ -249,7 +249,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 int main(void)
 {
 	//freopen("out.txt", "w", stdout);
-	cerr << "complier OK" << endl;
+	//cerr << "complier OK" << endl;
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -270,6 +270,7 @@ int main(void)
 	vector<Ball> balls;
 	int numBalls;
 	int round = 0;
+	
 	//check
 	if (!ifstrm)
 	{
@@ -284,12 +285,15 @@ int main(void)
 	}
 	//read in
 	for (int i = 0; i != numBalls; i++)
+	{
+	
 		balls.push_back(Ball(ifstrm));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1));
+	}
+	balls.push_back(Ball(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f ));
+	balls.push_back(Ball(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+	balls.push_back(Ball(glm::vec3(10.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1.0f, 1.0f));
 	numBalls += 3;
-	vecprint(cout, balls);
+	cout << balls;
 
 	//while------------------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window))
@@ -299,23 +303,23 @@ int main(void)
 
 		cout << "I'm here1" << endl;
 		//print
-		vecprint(cout, balls);
+		cout << balls;
 		//refresh
 		for (auto &i : balls)
 		{
-			i.move(0.01f);
+			i.move(0.05f);
 		}
 		//examine
 		for (int i = 0; i != numBalls; i++)
 		{
 			for (int j = i + 1; j != numBalls; j++)
 			{
-				float t = balls[i].timeToCollision(balls[j]);
+				float t = balls[i].predict(balls[j]);
 				cout << "++++++++++++++++++++t:" << t << endl;
 				if (t > 0 && t < 0.1f)
 				{
 					cout << "bounced::::::::::::::::::::::::::::" << endl;
-					balls[i].handleCollision(balls[j]);
+					balls[i].bounceOff(balls[j]);
 				}
 			}
 		}
