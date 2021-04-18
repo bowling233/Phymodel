@@ -4,6 +4,13 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <queue>
+
+class Object; //ac
+class MovableObject;
+class FixedBall; //ac
+class Wall;
+class Ball;
 
 class Event;
 class CollisionSystem;
@@ -15,8 +22,7 @@ class Event
 
 public:
     //construct
-    Event() : {}
-    Event(const MovableObject&obj1, const Object &obj2, const float t) : object1(obj1), object2(obj2), time(t), count1(obj1.cnt()), count2(objb.cnt()) {}
+    Event(const MovableObject &obj1, const Object &obj2, const float t) : object1(obj1), object2(obj2), time(t), count1(obj1.cnt()), count2(objb.cnt()) {}
     ~Event() = default;
     //information
     float t() { return time; }
@@ -27,53 +33,80 @@ public:
     bool operator<(const Evnet &event) { return (this->time) < event.time; }
 
 private:
-    Ball &object1;
-    
+    Ball &ball;
+    Object &object;
+    enum event_type
+    {
+        FB,
+        W,
+        B,
+        U
+    } type;
     float time;
-    unsigned int count1, count2;
+    unsigned int countBall, countObject;
 };
 
 std::ostream operator<<(std::ostream &os, const Event &event) //todo
 {
     os << std::endl;
+    return os;
 }
 
+#ifdef DEBUG
 class CollisionSystem
 {
 public:
-    CollisionSystem(std::istream &is) : CollisionSystem()
+    CollisionSystem(std::istream &is) : CollisionSystem() {}
+
+    //io
+    void readIn(std::istream &is)
     {
-        int numBalls, numWalls;
+        char identifier;
+        int num;
+
         if (!is)
         {
-            cerr << "open is err" << endl;
+            std::cerr << "is open err" << std::endl;
             exit(EXIT_FAILURE);
         }
-        if (!(is >> numBalls))
+        while (is >> identifier) //iden
         {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in balls
-        for (int i = 0; i != numBalls; i++)
-            this->balls.push_back(Ball(is));
-        if (!(is >> numWalls))
-        {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in walls
-        for (int i = 0; i != numWalls; i++)
+            if (!(is >> num)) //num
+            {
+                std::cerr << "num err" << std::endl;
+                std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
+                exit(EXIT_FAILURE);
+            }
 
-            this->walls.push_back(Wall(is));
-        std::cout << "System created::::::::::::::::" << std::endl;
+            switch (identifier)
+            {
+            case A:
+            {
+                Ball tempBall;
+                for (int i = 0; i != num; i++)
+                {
+                    is >> tempBall;
+                    balls.push_back(tempBall);
+                }
+                break;
+            }
+                //todo
+            default:
+                break;
+            }
+        }
+
+        
+        std::cout << "System read in over::::::::::::::::" << std::endl;
     }
 
 private:
     std::vector<Ball> balls;
-    std::vector<Wall> walls;
+    std::vector<shared_ptr<Object>> objects;
+    std::priority_queue<Event> events;
+    float currentTime;
 }
+
+#endif
 
 #endif

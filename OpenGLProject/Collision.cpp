@@ -2,15 +2,28 @@
 
 void Event::handle()
 {
-    if(this->type)//wall
+    switch (type)
     {
-        this->ball1.handleCollision(this->wall);
-    }
-    else//ball
+    case event_type::FB:
     {
-        this->ball1.handleCollision(this->ball2);
+        FixedBall &obj_ref = dynamic_cast<FixedBall &>(object);
+        ball.bounceOff(obj_ref);
+        break;
     }
+    case event_type::W:
+    {
+        Wall &obj_ref = dynamic_cast<Wall &>(object);
+        ball.bounceOff(obj_ref);
+        break;
+    }
+    case event_type::B:
+    {
+        Ball &obj_ref = dynamic_cast<Ball &>(object);
+        ball.bounceOff(obj_ref);
+        break;
+    }
+    default:
+        break;
+    }
+    type = event_type::U;
 }
-
-
-
