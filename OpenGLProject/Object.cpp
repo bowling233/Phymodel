@@ -84,19 +84,46 @@ float Ball::predict(Ball &ball) //tochk
     return -1.0;
 }
 
-//bounceOff
-void Ball::bounceOff(const FixedBall &fixedball) //todo
+//bounce
+void Ball::bounce(Object &object)
+{
+    switch (object.type())
+    {
+    case:
+        FIXEDBALL
+        {
+            FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
+            this->bounce(fixedBall);
+            break;
+        }
+    case:
+        BALL
+        {
+            Ball &ball = dynamic_cast<Ball &>(object);
+            this->bounce(ball);
+            break;
+        }
+    case:
+        WALL
+        {
+            Wall &wall = dynamic_cast<Wall &>(object);
+            this->bounce(wall);
+            break;
+        }
+    }
+}
+void Ball::bounce(const FixedBall &fixedball) //todo
 {
 }
 
-void Ball::bounceOff(const Wall &wall) //tochk
+void Ball::bounce(const Wall &wall) //tochk
 {
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity = velocity - 2 * (dot(velocity, ckd_nor)) * ckd_nor;
     //std::cout << "handle wall end" << std::endl;
 }
 
-void Ball::bounceOff(Ball &ball) //tochk
+void Ball::bounce(Ball &ball) //tochk
 {
     glm::vec3 r = glm::normalize(location - ball.location);
     float v10 = glm::dot(r, velocity),
@@ -128,7 +155,7 @@ void Ball::bounceOff(Ball &ball) //tochk
 //io
 std::istream &operator>>(std::istream &is, Ball &ball)
 {
-    is >> ball.location >> ball.velocity>>ball.mass >> ball.radius ;
+    is >> ball.location >> ball.velocity >> ball.mass >> ball.radius;
     /*if (is.good())
         std::cout << "read in ball finished" << std::endl;
     /*/
@@ -163,9 +190,6 @@ std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
 std::istream &operator>>(std::istream &is, Wall &wall)
 {
     is >> wall.location >> wall.normalVector;
-    /*if (is.good())
-        std::cout << "read in wall finished" << std::endl;
-    /*/
     return is;
 }
 
@@ -191,3 +215,15 @@ void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
     }
 }
 */
+std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
+{
+    is >> fixedBall.location >> fixedBall.radius;
+    return is;
+}
+std::ostream &operator<<(std::ostream &os, const FixedBall &fixedBall)
+{
+    os << std::setprecision(3) << std::fixed;
+    os << fixedBall.location << fixedBall.radius << std::endl
+       << std::defaultfloat;
+    return os;
+}

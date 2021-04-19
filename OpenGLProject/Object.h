@@ -5,7 +5,7 @@
 #include <vector>
 #include <glm\glm.hpp>
 
-class Object; 
+class Object;
 class MovableObject;
 class FixedBall;
 class Wall;
@@ -14,8 +14,14 @@ static unsigned int ballNum = 0;
 
 //tools
 #define square(x) ((x) * (x))
-std::ostream& operator<<(std::ostream&, const glm::vec3&);
-std::istream& operator>>(std::istream&, glm::vec3&);
+std::ostream &operator<<(std::ostream &, const glm::vec3 &);
+std::istream &operator>>(std::istream &, glm::vec3 &);
+enum Object_type
+{
+    FIXEDBALL,
+    BALL,
+    WALL
+};
 
 //全部使用float类型
 //名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
@@ -33,14 +39,15 @@ public:
     Object &operator=(const Object &) = default;
     Object &operator=(Object &&) = default;
     virtual ~Object() = default;
-
     //information
     glm::vec3 loc() const { return location; }
     unsigned int cnt() { return count; }
+    Object_type type() { return type; }
 
 protected:
     glm::vec3 location;
     unsigned int count = 0;
+    Object_type type;
 };
 //说明：默认创建一个在原点的物体
 
@@ -50,6 +57,10 @@ protected:
 
 class FixedBall : public virtual Object //Ac//protected:radius    //virtual from:Object
 {
+    //io
+    friend std::istream &operator>>(std::istream &, FixedBall &);
+    friend std::ostream &operator<<(std::ostream &, const FixedBall &);
+
 public:
     //construct
     FixedBall() : radius(1.0f) {}
@@ -67,14 +78,18 @@ public:
 
 protected:
     float radius;
+    Object_type type = FIXEDBALL;
 };
+std::istream &operator>>(std::istream &, FixedBall &);
+std::ostream &operator<<(std::ostream &, const FixedBall &);
 
 class Wall : public Object //private:normalVector
 {
     //friend
     //io
-    friend std::istream& operator>>(std::istream&, Wall&);
-    friend std::ostream& operator<<(std::ostream&, const Wall&);
+    friend std::istream &operator>>(std::istream &, Wall &);
+    friend std::ostream &operator<<(std::ostream &, const Wall &);
+
 public:
     //construct
     Wall() : normalVector(glm::vec3(0.0f, 0.0f, 1.0f)) {}
@@ -92,12 +107,14 @@ public:
 
 protected:
     glm::vec3 normalVector;
+    Object_type type = WALL;
 };
-
+std::istream &operator>>(std::istream &, Wall &);
+std::ostream &operator<<(std::ostream &, const Wall &);
 
 //Movable +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-class MovableObject : public virtual Object //protected:velocity,mass  //virtual from:Object   //virtual:bounceOff,predict
+class MovableObject : public virtual Object //protected:velocity,mass  //virtual from:Object   //virtual:bounce,predict
 {
 public:
     //construct
@@ -126,10 +143,11 @@ public:
     virtual float predict(const Wall &) = 0;
     virtual float predict(Ball &) = 0;
 
-    //bounceOff
-    virtual void bounceOff(const FixedBall &) = 0;
-    virtual void bounceOff(const Wall &) = 0;
-    virtual void bounceOff(Ball &) = 0;
+    //bounce
+    virtual void bounce(Object &) = 0;
+    virtual void bounce(const FixedBall &) = 0;
+    virtual void bounce(const Wall &) = 0;
+    virtual void bounce(Ball &) = 0;
 
 protected:
     glm::vec3 velocity;
@@ -147,8 +165,8 @@ class Ball final : public MovableObject, public FixedBall //no new
 public:
     //construct
     Ball() = default;
-    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), MovableObject(vel, m), FixedBall(r) { }
-    Ball(std::istream& is) :Ball(){is >> *this; }
+    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), MovableObject(vel, m), FixedBall(r) {}
+    Ball(std::istream &is) : Ball() { is >> *this; }
     //copy move destruct
     Ball(const Ball &) = default;
     Ball(Ball &&) = default;
@@ -163,14 +181,18 @@ public:
     float predict(const Wall &);
     float predict(Ball &);
 
-    //bounceOff
-    void bounceOff(const FixedBall &) ;
-    void bounceOff(const Wall &);
-    void bounceOff(Ball &) ;
-private:
-    unsigned int number=++ballNum;
-};
-std::ostream& operator<<(std::ostream&, const std::vector<Ball>&);
+    //bounce
+    void bounce(Object &);
+    void bounce(const FixedBall &);
+    void bounce(const Wall &);
+    void bounce(Ball &);
 
+private:
+    unsigned int number = ++ballNum;
+    Object_type type = BALL;
+};
+std::ostream &operator<<(std::ostream &, const std::vector<Ball> &);
+std::istream &operator>>(std::istream &, Ball &);
+std::ostream &operator<<(std::ostream &, const Ball &);
 
 #endif
