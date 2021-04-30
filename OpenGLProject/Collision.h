@@ -1,5 +1,6 @@
 ﻿#ifndef COLLISION_H
 #define COLLISION_H
+
 #include "Object.h"
 #include <vector>
 #include <iostream>
@@ -32,17 +33,17 @@ public:
     ~Event() = default;
 
     //information
-    float t() { return time; }
+    float t() const { return time; }
 
     //action
-    void handle()
+    void handle()const 
     {
         if ((ball->cnt() == countBall) && (object->cnt() == countObject))
             ball->bounce(*object);
     }
 
     //compare
-    bool operator<(const Event &event)const { return time < event.time; }
+    bool operator<(const Event &event)const { return time > event.time; }
 
 private:
     std::shared_ptr<Ball> ball;
@@ -51,6 +52,9 @@ private:
     unsigned int countBall, countObject;
 };
 std::ostream &operator<<(std::ostream &, const Event &);
+std::ostream& operator<<(std::ostream&, const std::vector<Event>&);
+
+std::ostream& operator<<(std::ostream&, std::priority_queue<Event, std::vector<Event>>);
 
 /*/
 class CollisionSystem

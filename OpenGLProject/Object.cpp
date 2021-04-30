@@ -5,9 +5,14 @@
 #include <iomanip>
 #include <string>
 #include <glm\glm.hpp>
+#include <memory>
 
-//tools
+//definition
+unsigned int FixedBall::sum = 0;
+unsigned int Wall::sum = 0;
+unsigned int Ball::sum = 0;
 
+//tools---------------------------------------------------------------------------------------------
 std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
 {
     os << std::setprecision(3) << std::fixed;
@@ -25,6 +30,12 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
 }
 
 //fixedBall ---------------------------------------------------------------------------------------------
+FixedBall::FixedBall(std::istream &is) : FixedBall()
+{
+    is >> *this;
+    number = ++sum;
+}
+
 std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
 {
     is >> fixedBall.location >> fixedBall.radius;
@@ -34,12 +45,30 @@ std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
 std::ostream &operator<<(std::ostream &os, const FixedBall &fixedBall)
 {
     os << std::setprecision(3) << std::fixed;
-    os << fixedBall.location << fixedBall.radius << std::endl
+    os << std::setw(8) << fixedBall.number << " |"
+       << fixedBall.location
+       << std::setw(8) << fixedBall.radius << std::endl
        << std::defaultfloat;
     return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<FixedBall>> &fixedBalls)
+{
+    os << "-----------FixedBalls------------------------------" << std::endl;
+    os << "   Ball  | locX    | loxY    | locZ    | Radius  |"
+       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+       << std::endl;
+    for (auto const &i : fixedBalls)
+        os << *i << std::endl;
+    return os;
+}
+
 //Wall---------------------------------------------------------------------------------------------
+Wall::Wall(std::istream &is) : Wall()
+{
+    is >> *this;
+    number = ++sum;
+}
 
 std::istream &operator>>(std::istream &is, Wall &wall)
 {
@@ -50,44 +79,47 @@ std::istream &operator>>(std::istream &is, Wall &wall)
 std::ostream &operator<<(std::ostream &os, const Wall &wall)
 {
     os << std::setprecision(3) << std::fixed;
-    os << wall.location << wall.normalVector << std::endl
+    os << std::setw(8) << wall.number << " |"
+       << wall.location << wall.normalVector << std::endl
        << std::defaultfloat;
     return os;
 }
 
-/*
-probably no use
-void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
+std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wall>> &walls)
 {
-    os << "-----------walls---------------------------------------------------" << std::endl;
-    os << "wall | locX | loxY | locZ | norX | norY | norZ |" << std::endl;
-    int numWalls = (int)(walls.size());
-    for (int i = 0; i != numWalls; i++)
-    {
-        os << std::setw(5) << i << '|';
-        print(os, walls[i]);
-    }
+    os << "-----------Walls------------------------------------------------------" << std::endl;
+    os << "   Wall  | locX    | loxY    | locZ    | norX    | norY    | norZ    |"
+       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+       << std::endl;
+    for (auto const &i : walls)
+        os << *i << std::endl;
+    return os;
 }
-*/
 
+//Ball---------------------------------------------------------------------------------------------
+Ball::Ball(std::istream &is) : Ball()
+{
+    is >> *this;
+    number = ++sum;
+}
 
 //predict------------------------------------------------------------------------------------------------------------
 float Ball::predict(Object &object)
 {
     switch (object.type())
     {
-    case FIXEDBALL:
+    case Object_type::FIXEDBALL:
 
     {
         FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
         return this->predict(fixedBall);
     }
-    case BALL:
+    case Object_type::BALL:
     {
         Ball &ball = dynamic_cast<Ball &>(object);
         return this->predict(ball);
     }
-    case WALL:
+    case Object_type::WALL:
     {
         Wall &wall = dynamic_cast<Wall &>(object);
         return this->predict(wall);
@@ -95,9 +127,25 @@ float Ball::predict(Object &object)
     }
 }
 
-float Ball::predict(const FixedBall &fixedball) //todo
+float Ball::predict(const FixedBall &fixedBall) //tochk
 {
-    return 1.0f;
+    glm::vec3 dLoc = location - fixedBall.loc();
+    float a = square(glm::length(velocity)),
+          b = 2 * glm::dot(velocity, dLoc),
+          c = square(glm::length(dLoc)) - square(radius + fixedBall.r());
+
+    float delta = square(b) - 4.0 * a * c;
+    if (delta < 0.0)
+        return -1.0;
+
+    float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
+    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
+
+    if (x2 > 0)
+        return x2;
+    if (x1 > 0)
+        return x1;
+    return -1.0;
 }
 
 float Ball::predict(const Wall &wall) //tochk
@@ -109,41 +157,42 @@ float Ball::predict(const Wall &wall) //tochk
     if (v_l * r_l >= 0)
         return -1.0f;
     return -r_l / v_l;
+    //another solution
+#ifdef DEBUG
+    glm::vec3 r = location - wall.loc();
+    glm::vec3 chk_nor = (glm::dot(r, wall.norm())) > 0 ? wall.norm() : -wall.norm(); //选择一个背向球的法向量
+    float v_l = glm::dot(velocity, chk_nor);//速度在平面法向量方向上的分量
+    if (v_1 < 0)
+        return -1.0f;                 //背向运动
+    float r_l = glm::dot(r, chk_nor); //球到平面的垂直距离
+    return r_l / v_l;
+#endif
 }
 
 float Ball::predict(Ball &ball) //tochk
 {
-    glm::vec3 r = location - ball.location,
-              dv = velocity - ball.velocity;
-    /*/tochk
-    if (glm::dot(-r, velocity) < 0)
-        return -1.0;
-    if (glm::dot(r, ball.velocity) < 0)
-        return -1.0;
-/*/
+    glm::vec3 r = location - ball.location, //以ball为中心
+        dv = velocity - ball.velocity;
 
-    float dvx = velocity.x - ball.velocity.x,
-          dvy = velocity.y - ball.velocity.y,
-          dvz = velocity.z - ball.velocity.z,
-          dx = location.x - ball.location.x,
-          dy = location.y - ball.location.y,
-          dz = location.z - ball.location.z;
+    //*/tochk//这是为了检测两个球的速度是否均背离。只有两个同时满足才能排除。只满足一个可能发生追及
+    if ((glm::dot(-r, velocity) < 0) /*以this为中心*/ && (glm::dot(r, ball.velocity) < 0) /*以ball为中心*/)
+        return -1.0; //*/
 
-    //float a = square(dvx) + square(dvy) + square(dvz);
     float a = square(glm::length(dv));
-    float b = 2.0 * (dvx * dx + dvy * dy + dvz * dz);
-    float c = square(dx) + square(dy) + square(dz) - square(radius + ball.radius);
+    float b = 2.0 * (dv.x * r.x + dv.y * r.y + dv.z * r.z);
+    float c = square(glm::length(r)) - square(radius + ball.radius);
     float delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
         return -1.0;
 
     float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
-    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a)); //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
+    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a)); 
+    //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
 
-    //debug_chunk
-    //std::cout << dvx << ' ' << dvy << ' ' << dvz << ' ' << dx << ' ' << dy << ' ' << dz << ' ' << a << ' ' << b << ' ' << c << ' ' << delta << ' '<<x1 << ' ' << x2<<std::endl;
-
+#ifdef DEBUG
+    std::cout "debug:ball bounce ball:" << a << ' ' << b << ' ' << c << ' ' << delta << ' ' << x1 << ' ' << x2 << std::endl;
+#endif
     //question:小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
 
     if (x2 > 0)
@@ -158,20 +207,20 @@ void Ball::bounce(Object &object)
 {
     switch (object.type())
     {
-    case FIXEDBALL:
+    case Object_type::FIXEDBALL:
 
     {
         FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
         this->bounce(fixedBall);
         break;
     }
-    case BALL:
+    case Object_type::BALL:
     {
         Ball &ball = dynamic_cast<Ball &>(object);
         this->bounce(ball);
         break;
     }
-    case WALL:
+    case Object_type::WALL:
     {
         Wall &wall = dynamic_cast<Wall &>(object);
         this->bounce(wall);
@@ -180,9 +229,10 @@ void Ball::bounce(Object &object)
     }
 }
 
-void Ball::bounce(const FixedBall &fixedball) //todo
+void Ball::bounce(const FixedBall &fixedBall) //tochk
 {
-    velocity = glm::vec3(0.0f);
+    glm::vec3 dLoc = location - fixedBall.loc();
+    velocity += -2 * glm::dot(velocity, dLoc) * dLoc; //沿球心连线方向速度反两倍
 }
 
 void Ball::bounce(const Wall &wall) //tochk
@@ -194,7 +244,11 @@ void Ball::bounce(const Wall &wall) //tochk
 
 void Ball::bounce(Ball &ball) //tochk
 {
+    std::cout << "bounce" << std::endl;
+    std::cout << *this << std::endl
+              << ball << std::endl;
     glm::vec3 r = glm::normalize(location - ball.location);
+
     float v10 = glm::dot(r, velocity),
           v20 = glm::dot(r, ball.velocity),
           m1 = mass,
@@ -206,28 +260,12 @@ void Ball::bounce(Ball &ball) //tochk
               dv2 = (v2 - v20) * r;
     velocity += dv1;
     ball.velocity += dv2;
-
-    /*debug_chunk
-    std::cout << "handle ball info: "
-              << "vecr:";
-    printvec3(r);
-    std::cout << "v10,v20" << v10 << v20 << m1 << m2
-              << "v1,v2" << v1 << v2
-              << "dv1,dv2";
-    printvec3(dv1);
-    printvec3(dv2);
-    /*/
-
-    //std::cout << "handle ball end" << std::endl;
 }
 
 //io------------------------------------------------------------------------------------------------------------
 std::istream &operator>>(std::istream &is, Ball &ball)
 {
     is >> ball.location >> ball.velocity >> ball.mass >> ball.radius;
-    /*if (is.good())
-        std::cout << "read in ball finished" << std::endl;
-    /*/
     return is;
 }
 
@@ -235,30 +273,18 @@ std::ostream &operator<<(std::ostream &os, const Ball &ball)
 {
     os << std::setprecision(3) << std::fixed;
     os << std::setw(8) << ball.number << " |"
+       << ball.location << ball.velocity
        << std::setw(8) << ball.mass << " |"
        << std::setw(8) << ball.radius << " |"
-       << ball.location << ball.velocity
        << std::setw(8) << ball.count << " |"
        << std::defaultfloat;
-    return os;
-}
-
-//vecio------------------------------------------------------------------------------------------------------------
-std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
-{
-    os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
-    os << "   Ball  |  Mass   | Radius  | locX    | loxY    | locZ    | velX    | velY    | velZ    | cnt     |"
-       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
-       << std::endl;
-    for (auto const &i : balls)
-        os << i << std::endl;
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Ball>> &balls)
 {
     os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
-    os << "   Ball  |  Mass   | Radius  | locX    | loxY    | locZ    | velX    | velY    | velZ    | cnt     |"
+    os << "   Ball  | locX    | loxY    | locZ    | velX    | velY    | velZ    |  Mass   | Radius  | cnt     |"
        // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
        << std::endl;
     for (auto const &i : balls)

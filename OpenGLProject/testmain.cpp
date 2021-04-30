@@ -9,13 +9,16 @@
 #include <queue>
 #include "Object.h"
 #include "Collision.h"
+#include <cstdio>
 
 using namespace std;
+#define _CRT_SECURE_NO_WARNINGS
 
 int main()
 {
     ifstream ifstrm("in.txt");
     ofstream ofstrm("out.txt");
+
     vector<shared_ptr<Ball>> balls;
     vector<shared_ptr<Wall>> walls;
     vector<shared_ptr<FixedBall>> fixedBalls;
@@ -29,6 +32,7 @@ int main()
     }
 
     char identifier;
+
 
     int num;
     while (ifstrm >> identifier) //iden
@@ -56,7 +60,7 @@ int main()
             }
             case 'F':
             {
-                //fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
+                fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
                 break;
             }
             default:
@@ -64,12 +68,10 @@ int main()
             }
         }
     }
-    balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-    balls.push_back(make_shared<Ball>(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-    balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-    fixedBalls.push_back(make_shared<FixedBall>());
-    cout << balls;
-    //cout << fixedBalls;
+
+    ofstrm << balls;
+    ofstrm << fixedBalls;
+    //ofstrm << fixedBalls;
 
     priority_queue<Event, vector<Event>> events;
 
@@ -80,7 +82,7 @@ int main()
         {
             //ball to ball
             t = (**i).predict(**j);
-            cout << "++++++++++++++++++++t:" << t << endl;
+            ofstrm << "++++++++++++++++++++t:" << t << endl;
             if (t > 0 )
                 events.push(Event(*i, *j, t));
         }
@@ -89,10 +91,28 @@ int main()
             events.push(Event(*i, fixedBalls[0], t));
     }
 
-    while (!events.empty())
+    ofstrm << "num event:" << events.size() << endl;
+
+    ofstrm << events;
+
+    float currentTime = 0;
+    float deltaTime = 0.1;
+    for (; currentTime < 20; currentTime += deltaTime)
     {
-        cout << events.top();
-        events.pop();
+        ofstrm << "::::::::::::::::::::::::currentTime:" << currentTime<<endl;
+        for (auto& i : balls)
+            i->move(deltaTime);
+        ofstrm << balls;
+        while((!events.empty())&&(currentTime >= events.top().t()))
+        {
+            ofstrm << "!!!!!!!!!!!!!!!!!!!!!!!!!eventHandle" << endl;
+            ofstrm << events.top() << endl;
+            events.top().handle();
+            events.pop();
+        }
+        ofstrm << events;
+        ofstrm << endl << endl;
     }
+
     return 0;
 }

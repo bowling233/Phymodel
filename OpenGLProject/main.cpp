@@ -11,6 +11,7 @@
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include "Sphere.h"
 #include "Utils.h"
+#include <cstdlib>
 using namespace std;
 
 //关掉vs错误提示
@@ -187,7 +188,7 @@ void draw_coord(void)
 }
 //todo
 
-void draw_sphere(vector<Ball> &balls)
+void draw_sphere(vector<shared_ptr<Ball>> &balls)
 {
 	glUseProgram(sphereRenderingProgram);
 	for (const auto &iterator : balls)
@@ -201,7 +202,47 @@ void draw_sphere(vector<Ball> &balls)
 
 		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator.loc()); //marker++++++++++++++++++++++++++++
+		mMat = glm::translate(glm::mat4(1.0f), iterator->loc()); //marker++++++++++++++++++++++++++++
+
+		mvMat = vMat * mMat;
+
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, sphereTexture);
+
+		//glEnable(GL_CULL_FACE);
+		//glFrontFace(GL_CCW);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+	}
+}
+void draw_sphere(vector<shared_ptr<FixedBall>>& fixedBalls)
+{
+	glUseProgram(sphereRenderingProgram);
+	for (const auto& iterator : fixedBalls)
+	{
+
+		//		if (iterator.counter() == 0)
+		//			continue;
+
+		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
+		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
+
+		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+		vMat = lMat;
+		mMat = glm::translate(glm::mat4(1.0f), iterator->loc()); //marker++++++++++++++++++++++++++++
 
 		mvMat = vMat * mMat;
 
@@ -228,7 +269,7 @@ void draw_sphere(vector<Ball> &balls)
 	}
 }
 
-void display(GLFWwindow *window, double currentTime, vector<Ball> &balls)
+void display(GLFWwindow *window, double currentTime, vector<shared_ptr<Ball>> &balls,vector<shared_ptr<FixedBall>>&fixedBalls)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -236,6 +277,7 @@ void display(GLFWwindow *window, double currentTime, vector<Ball> &balls)
 	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 	//draw_skybox();
 	draw_sphere(balls);
+	draw_sphere(fixedBalls);
 	draw_coord();
 }
 
@@ -294,17 +336,17 @@ int main(void)
 		{
 			switch (identifier)
 			{
-			case B:
+			case 'B':
 			{
 				balls.push_back(make_shared<Ball>(ifstrm));
 				break;
 			}
-			case W:
+			case 'W':
 			{
-				walls.push_back(make_shared<Wall>(ifstrm));
+				//walls.push_back(make_shared<Wall>(ifstrm));
 				break;
 			}
-			case F:
+			case 'F':
 			{
 				fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
 				break;
@@ -314,82 +356,43 @@ int main(void)
 			}
 		}
 	}
-	balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-	balls.push_back(make_shared<Ball>(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-	balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1.0f, 1.0f));
-	fixedBalls.push_back(make_shared<FixedBall>());
-	cout << balls;
-	//cout << fixedBalls;
 
-	priority_queue<Event, vector<Event>> events;
-
+	ofstrm << balls;
+	ofstrm << fixedBalls;
 	float t;
-	for (auto i = balls.begin(); i != balls.end(); i++)
-	{
-		for (auto j = i + 1; j != balls.end(); j++)
-		{
-			//ball to ball
-			t = (**i).predict(**j);
-			cout << "++++++++++++++++++++t:" << t << endl;
-			if (t > 0 && t < 0.1f)
-				events.push(Event(*i, *j, t));
-		}
-		t = (**i).predict(*fixedBalls[1]);
-		if (t > 0 && t < 0.1f)
-			events.push(Event(*i, fixedBalls[1], t));
-	}
 
-	while (!events.empty())
-	{
-		cout << events.top();
-		events.pop();
-	}
-
-	/*
 	//while------------------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window))
 	{
-		//cameraX += 0.09f;
-		//cameraY -= 0.01f;
-
-		cout << "I'm here1" << endl;
-		//print
-		cout << balls;
+		//move camera
+#ifdef DEBUG
+		cameraX += 0.09f;
+		cameraY -= 0.01f;
+#endif
 		//refresh
 		for (auto &i : balls)
-		{
-			i.move(0.05f);
-		}
+			(*i).move(0.01f);
+		cout << balls;
 
 		//examine
-		for (int i = 0; i != numBalls; i++)
+		for (auto i = balls.begin(); i != balls.end(); i++)
 		{
-			for (int j = i + 1; j != numBalls; j++)
+			for (auto j = i + 1; j != balls.end(); j++)
 			{
-				float t = balls[i].predict(balls[j]);
-				cout << "++++++++++++++++++++t:" << t << endl;
+				//ball to ball
+				t = (**i).predict(**j);
+				ofstrm << "++++++++++++++++++++t:" << t << endl;
 				if (t > 0 && t < 0.1f)
-				{
-					cout << "bounced::::::::::::::::::::::::::::" << endl;
-					Object& obj = balls[j];
-					balls[i].bounce(obj);
-				}
-				t = balls[i].predict(fixedball1);
-				if (t > 0 && t < 0.1f)
-				{
-					cout << "bounced::::::::::::::::::::::::::::" << endl;
-					Object& obj = balls[j];
-					balls[i].bounce(fixedball1);
-				}
+					(**i).bounce((**j));
 			}
 		}
 		//display
-		display(window, glfwGetTime(), balls);
+		display(window, glfwGetTime(), balls,fixedBalls);
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	*/
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

@@ -10,11 +10,9 @@ class MovableObject;
 class FixedBall;
 class Wall;
 class Ball;
-static unsigned int ballNum = 0;
 
 //definition
-#define square(x) ((x) * (x))
-enum Object_type
+enum class Object_type
 {
     NUL,
     FIXEDBALL,
@@ -23,6 +21,7 @@ enum Object_type
 };
 
 //tools
+#define square(x) ((x) * (x))
 std::ostream &operator<<(std::ostream &, const glm::vec3 &);
 std::istream &operator>>(std::istream &, glm::vec3 &);
 
@@ -34,9 +33,8 @@ class Object //protected:location
 {
 public:
     //construct
-    Object() : location(glm::vec3(0.0f)){}
+    Object() : location(glm::vec3(0.0f)) {}
     Object(const glm::vec3 &loc) : location(loc) {}
-
     //copy move destruct
     Object(const Object &) = default;
     Object(Object &&) = default;
@@ -46,8 +44,9 @@ public:
 
     //information
     glm::vec3 loc() const { return location; }
-    unsigned int cnt() { return count; }
-    virtual Object_type type()=0;
+    virtual unsigned int cnt() = 0;
+    virtual Object_type type() = 0;
+    virtual unsigned int num() = 0;
 
 protected:
     glm::vec3 location;
@@ -55,8 +54,11 @@ protected:
 };
 //说明：默认创建一个在原点的物体
 
-//FixedBall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+
+
+//FixedBall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class FixedBall : public Object //protected:radius
 {
     //io
@@ -68,7 +70,7 @@ public:
     FixedBall() : radius(1.0f) {}
     FixedBall(const float &r) : radius(r) {}
     FixedBall(const glm::vec3 &loc, const float r) : Object(loc), radius(r) {}
-
+    FixedBall(std::istream &);
     //copy move destruct
     FixedBall(const FixedBall &) = default;
     FixedBall(FixedBall &&) = default;
@@ -78,15 +80,27 @@ public:
 
     //information
     float r() const { return radius; }
-    Object_type type() {        return FIXEDBALL;    }
+    unsigned int cnt() { return 0; }
+    Object_type type() { return Object_type::FIXEDBALL; }
+    unsigned int num() { return number; }
+
 protected:
     float radius;
+
+private:
+    static unsigned int sum;
+    unsigned int number = 0;
 };
 std::istream &operator>>(std::istream &, FixedBall &);
 std::ostream &operator<<(std::ostream &, const FixedBall &);
 
-//Wall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<FixedBall>> &);
 
+
+
+
+
+//Wall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Wall : public Object //private:normalVector
 {
     //friend
@@ -99,6 +113,7 @@ public:
     Wall() : normalVector(glm::vec3(0.0f, 0.0f, 1.0f)) {}
     Wall(const glm::vec3 &norv) : normalVector(norv) {}
     Wall(const glm::vec3 &loc, const glm::vec3 &norv) : Object(loc), normalVector(norv) {}
+    Wall(std::istream &);
     //copy move destruct
     Wall(const Wall &) = default;
     Wall(Wall &&) = default;
@@ -108,12 +123,25 @@ public:
 
     //information
     glm::vec3 norm() const { return normalVector; }
-    Object_type type() { return WALL; }
+    unsigned int cnt() { return 0; }
+    Object_type type() { return Object_type::WALL; }
+    unsigned int num() { return number; }
+
 protected:
     glm::vec3 normalVector;
+
+private:
+    static unsigned int sum;
+    unsigned int number = 0;
 };
 std::istream &operator>>(std::istream &, Wall &);
 std::ostream &operator<<(std::ostream &, const Wall &);
+
+std::ostream& operator<<(std::ostream&, const std::vector<FixedBall>&);
+
+
+
+
 
 //Ball ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Ball final : public FixedBall //velocity,mass
@@ -126,8 +154,9 @@ class Ball final : public FixedBall //velocity,mass
 public:
     //construct
     Ball() : velocity(glm::vec3(1.0f, 0.0f, 0.0f)), mass(1.0f) {} //说明：默认拥有向x轴正方向的速度1，质量1
-    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : FixedBall(loc,r), velocity(vel), mass(m) {}
-    Ball(std::istream &is) : Ball() { is >> *this; }
+    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : FixedBall(loc, r), velocity(vel), mass(m) {}
+    Ball(std::istream &);
+    //Ball递增自己的计数器
 
     //copy move destruct
     Ball(const Ball &) = default;
@@ -140,11 +169,13 @@ public:
     glm::vec3 vel() { return velocity; }
     float m() { return mass; }
     float ek() { return 0.5f * mass * square(glm::length(velocity)); }
-    Object_type type() { return BALL; }
+    unsigned int cnt() { return count; }
+    Object_type type() { return Object_type::BALL; }
+    unsigned int num() { return number; }
 
     //action
     void move(float t) { location += velocity * t; }
-    void reverse() { velocity = -velocity; }
+    void rev() { velocity = -velocity; }
 
     //predict
     float predict(Object &);
@@ -161,12 +192,13 @@ public:
 private:
     glm::vec3 velocity;
     float mass;
-    unsigned int number = ++ballNum;
+    static unsigned int sum;
+    unsigned int number = 0,count = 0;
 };
+
 std::istream &operator>>(std::istream &, Ball &);
 std::ostream &operator<<(std::ostream &, const Ball &);
 
-std::ostream &operator<<(std::ostream &, const std::vector<Ball> &);
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Ball>> &);
 
 #endif
