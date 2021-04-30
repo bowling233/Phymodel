@@ -19,12 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="testmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="Object.h" />
   </ItemGroup>
   <ItemGroup>

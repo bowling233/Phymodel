@@ -6,7 +6,7 @@
 #include <string>
 #include <glm\glm.hpp>
 
-//vec3 tools
+//tools
 
 std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
 {
@@ -24,11 +24,80 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
     return is;
 }
 
-//Ball------------------------------------------------------
-//predict
+//fixedBall ---------------------------------------------------------------------------------------------
+std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
+{
+    is >> fixedBall.location >> fixedBall.radius;
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, const FixedBall &fixedBall)
+{
+    os << std::setprecision(3) << std::fixed;
+    os << fixedBall.location << fixedBall.radius << std::endl
+       << std::defaultfloat;
+    return os;
+}
+
+//Wall---------------------------------------------------------------------------------------------
+
+std::istream &operator>>(std::istream &is, Wall &wall)
+{
+    is >> wall.location >> wall.normalVector;
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, const Wall &wall)
+{
+    os << std::setprecision(3) << std::fixed;
+    os << wall.location << wall.normalVector << std::endl
+       << std::defaultfloat;
+    return os;
+}
+
+/*
+probably no use
+void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
+{
+    os << "-----------walls---------------------------------------------------" << std::endl;
+    os << "wall | locX | loxY | locZ | norX | norY | norZ |" << std::endl;
+    int numWalls = (int)(walls.size());
+    for (int i = 0; i != numWalls; i++)
+    {
+        os << std::setw(5) << i << '|';
+        print(os, walls[i]);
+    }
+}
+*/
+
+
+//predict------------------------------------------------------------------------------------------------------------
+float Ball::predict(Object &object)
+{
+    switch (object.type())
+    {
+    case FIXEDBALL:
+
+    {
+        FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
+        return this->predict(fixedBall);
+    }
+    case BALL:
+    {
+        Ball &ball = dynamic_cast<Ball &>(object);
+        return this->predict(ball);
+    }
+    case WALL:
+    {
+        Wall &wall = dynamic_cast<Wall &>(object);
+        return this->predict(wall);
+    }
+    }
+}
+
 float Ball::predict(const FixedBall &fixedball) //todo
 {
-    return -1.0f;
+    return 1.0f;
 }
 
 float Ball::predict(const Wall &wall) //tochk
@@ -84,36 +153,36 @@ float Ball::predict(Ball &ball) //tochk
     return -1.0;
 }
 
-//bounce
+//bounce------------------------------------------------------------------------------------------------------------
 void Ball::bounce(Object &object)
 {
     switch (object.type())
     {
-    case:
-        FIXEDBALL
-        {
-            FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
-            this->bounce(fixedBall);
-            break;
-        }
-    case:
-        BALL
-        {
-            Ball &ball = dynamic_cast<Ball &>(object);
-            this->bounce(ball);
-            break;
-        }
-    case:
-        WALL
-        {
-            Wall &wall = dynamic_cast<Wall &>(object);
-            this->bounce(wall);
-            break;
-        }
+    case FIXEDBALL:
+
+    {
+        FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
+        this->bounce(fixedBall);
+        break;
+    }
+    case BALL:
+    {
+        Ball &ball = dynamic_cast<Ball &>(object);
+        this->bounce(ball);
+        break;
+    }
+    case WALL:
+    {
+        Wall &wall = dynamic_cast<Wall &>(object);
+        this->bounce(wall);
+        break;
+    }
     }
 }
+
 void Ball::bounce(const FixedBall &fixedball) //todo
 {
+    velocity = glm::vec3(0.0f);
 }
 
 void Ball::bounce(const Wall &wall) //tochk
@@ -152,7 +221,7 @@ void Ball::bounce(Ball &ball) //tochk
     //std::cout << "handle ball end" << std::endl;
 }
 
-//io
+//io------------------------------------------------------------------------------------------------------------
 std::istream &operator>>(std::istream &is, Ball &ball)
 {
     is >> ball.location >> ball.velocity >> ball.mass >> ball.radius;
@@ -174,6 +243,7 @@ std::ostream &operator<<(std::ostream &os, const Ball &ball)
     return os;
 }
 
+//vecio------------------------------------------------------------------------------------------------------------
 std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
 {
     os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
@@ -185,45 +255,13 @@ std::ostream &operator<<(std::ostream &os, const std::vector<Ball> &balls)
     return os;
 }
 
-//Wall---------------------------------------------------------------------------------------------
-
-std::istream &operator>>(std::istream &is, Wall &wall)
+std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Ball>> &balls)
 {
-    is >> wall.location >> wall.normalVector;
-    return is;
-}
-
-std::ostream &operator<<(std::ostream &os, const Wall &wall)
-{
-    os << std::setprecision(3) << std::fixed;
-    os << wall.location << wall.normalVector << std::endl
-       << std::defaultfloat;
-    return os;
-}
-
-/*
-probably no use
-void vecprint(std::ostream &os, const std::vector<Wall> &walls) //tochk
-{
-    os << "-----------walls---------------------------------------------------" << std::endl;
-    os << "wall | locX | loxY | locZ | norX | norY | norZ |" << std::endl;
-    int numWalls = (int)(walls.size());
-    for (int i = 0; i != numWalls; i++)
-    {
-        os << std::setw(5) << i << '|';
-        print(os, walls[i]);
-    }
-}
-*/
-std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
-{
-    is >> fixedBall.location >> fixedBall.radius;
-    return is;
-}
-std::ostream &operator<<(std::ostream &os, const FixedBall &fixedBall)
-{
-    os << std::setprecision(3) << std::fixed;
-    os << fixedBall.location << fixedBall.radius << std::endl
-       << std::defaultfloat;
+    os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
+    os << "   Ball  |  Mass   | Radius  | locX    | loxY    | locZ    | velX    | velY    | velZ    | cnt     |"
+       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+       << std::endl;
+    for (auto const &i : balls)
+        os << *i << std::endl;
     return os;
 }

@@ -1,33 +1,11 @@
 #include "Collision.h"
 
-void Event::handle()
+std::ostream &operator<<(std::ostream &os, const Event &event)
 {
-    switch (type)
-    {
-    case event_type::FB:
-    {
-        FixedBall &obj_ref = dynamic_cast<FixedBall &>(object);
-        ball.bounce(obj_ref);
-        break;
-    }
-    case event_type::W:
-    {
-        Wall &obj_ref = dynamic_cast<Wall &>(object);
-        ball.bounce(obj_ref);
-        break;
-    }
-    case event_type::B:
-    {
-        Ball &obj_ref = dynamic_cast<Ball &>(object);
-        ball.bounce(obj_ref);
-        break;
-    }
-    default:
-        break;
-    }
-    type = event_type::U;
+    os << time <<std::endl;
+    return os;
 }
-
+/*
 std::istream operator>>(std::istream &is, CollisionSystem &system)
 {
     {
@@ -80,3 +58,4 @@ void CollisionSystem::reverse()
     for(auto&i:balls)
         i.reverse();
 }
+*/

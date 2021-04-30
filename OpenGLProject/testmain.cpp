@@ -5,17 +5,94 @@
 //#include <queue>
 #include <fstream>
 #include <iomanip>
+#include <vector>
+#include <queue>
+#include "Object.h"
+#include "Collision.h"
 
 using namespace std;
 
-
-
 int main()
 {
-    vector<Ball> balls;
-    for (int i = 0; i != 2; i++)
-        balls.push_back(Ball());
+    ifstream ifstrm("in.txt");
+    ofstream ofstrm("out.txt");
+    vector<shared_ptr<Ball>> balls;
+    vector<shared_ptr<Wall>> walls;
+    vector<shared_ptr<FixedBall>> fixedBalls;
+    int round = 0;
 
+    //check
+    if (!ifstrm)
+    {
+        cerr << "open ifstrm err" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    char identifier;
+
+    int num;
+    while (ifstrm >> identifier) //iden
+    {
+
+        if (!(ifstrm >> num)) //num
+        {
+            std::cerr << "num err" << std::endl;
+            std::cerr << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        for (int i = 0; i != num; i++)
+        {
+            switch (identifier)
+            {
+            case 'B':
+            {
+                balls.push_back(make_shared<Ball>(ifstrm));
+                break;
+            }
+            case 'W':
+            {
+                //walls.push_back(make_shared<Wall>(ifstrm));
+                break;
+            }
+            case 'F':
+            {
+                //fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+    balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+    balls.push_back(make_shared<Ball>(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+    balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+    fixedBalls.push_back(make_shared<FixedBall>());
     cout << balls;
+    //cout << fixedBalls;
+
+    priority_queue<Event, vector<Event>> events;
+
+    float t;
+    for (auto i = balls.begin(); i != balls.end(); i++)
+    {
+        for (auto j = i + 1; j != balls.end(); j++)
+        {
+            //ball to ball
+            t = (**i).predict(**j);
+            cout << "++++++++++++++++++++t:" << t << endl;
+            if (t > 0 )
+                events.push(Event(*i, *j, t));
+        }
+        t = (**i).predict(*fixedBalls[0]);
+        if (t > 0 )
+            events.push(Event(*i, fixedBalls[0], t));
+    }
+
+    while (!events.empty())
+    {
+        cout << events.top();
+        events.pop();
+    }
     return 0;
 }

@@ -18,13 +18,13 @@ class CollisionSystem;
 class Event
 {
     //io
-    friend std::ostream operator<<(std::ostream &, const Event &);
+    friend std::ostream &operator<<(std::ostream &, const Event &);
 
 public:
     //construct
-    Event(Ball &b, Object &o, const float t) : ball(b), object(o), time(t), countBall(b.cnt()), countObject(o.cnt()) {}
+    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+
     //copy move destruct
-    //tochk
     Event(const Event &) = default;
     Event(Event &&) = default;
     Event &operator=(const Event &) = default;
@@ -37,26 +37,22 @@ public:
     //action
     void handle()
     {
-        if ((ball.cnt() == countBall) && (object.cnt() == countObject))
-            ball.bounce(object);
+        if ((ball->cnt() == countBall) && (object->cnt() == countObject))
+            ball->bounce(*object);
     }
 
-    //operator
-    bool operator<(const Evnet &event) { return time < event.time; }
+    //compare
+    bool operator<(const Event &event)const { return time < event.time; }
 
 private:
-    Ball &ball;
-    Object &object;
+    std::shared_ptr<Ball> ball;
+    std::shared_ptr<Object> object;
     float time;
     unsigned int countBall, countObject;
 };
+std::ostream &operator<<(std::ostream &, const Event &);
 
-std::ostream operator<<(std::ostream &os, const Event &event) //todo
-{
-    os << std::endl;
-    return os;
-}
-
+/*/
 class CollisionSystem
 {
     friend void draw(CollisionSystem &);
@@ -77,6 +73,7 @@ private:
     std::vector<Wall> walls;
     std::priority_queue<Event> events;
     float currentTime;
-} std::istream operator>>(std::istream &, CollisionSystem &);
-
+}; 
+std::istream operator>>(std::istream&, CollisionSystem&);
+//*/
 #endif
