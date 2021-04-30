@@ -22,6 +22,7 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include "Object.h"
+#include "Collision.h"
 
 #define numVAOs 1
 
@@ -82,9 +83,9 @@ void setupVert_sphere(void)
 void setupVert_coord(void)
 {
 	float vertCoordPositions[18] = {
-		-1.5f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f,
-		0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, -2.0f, 0.0f, 0.0f, 2.0f };
+		-100.f, 0.0f, 0.0f, 100.f, 0.0f, 0.0f,
+		0.0f, -100.0f, 0.0f, 0.0f, 100.0f, 0.0f,
+		0.0f, 0.0f, -100.0f, 0.0f, 0.0f, 100.0f};
 	glGenBuffers(1, coordVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
@@ -171,17 +172,16 @@ void draw_coord(void)
 	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 	vMat = lMat;
 	glUseProgram(coordRenderingProgram);
-	
+
 	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
 	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
 
 	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-
 
 	glDrawArrays(GL_LINES, 0, 6);
 }
@@ -201,7 +201,7 @@ void draw_sphere(vector<Ball> &balls)
 
 		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator.location()); //marker++++++++++++++++++++++++++++
+		mMat = glm::translate(glm::mat4(1.0f), iterator.loc()); //marker++++++++++++++++++++++++++++
 
 		mvMat = vMat * mMat;
 
@@ -249,7 +249,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 int main(void)
 {
 	//freopen("out.txt", "w", stdout);
-	cerr << "complier OK" << endl;
+	//cerr << "complier OK" << endl;
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -264,33 +264,88 @@ int main(void)
 
 	init(window);
 
-	//priority_queue<Event> events;
+	
 	ifstream ifstrm("in.txt");
 	ofstream ofstrm("out.txt");
-	vector<Ball> balls;
-	int numBalls;
+	vector<shared_ptr<Ball>> balls;
+	vector<shared_ptr<Wall>> walls;
+	vector<shared_ptr<FixedBall>> fixedBalls;
 	int round = 0;
+
 	//check
 	if (!ifstrm)
 	{
 		cerr << "open ifstrm err" << endl;
 		exit(EXIT_FAILURE);
 	}
-	if (!(ifstrm >> numBalls))
-	{
-		cerr << "num err" << endl;
-		cerr << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << endl;
-		exit(EXIT_FAILURE);
-	}
-	//read in
-	for (int i = 0; i != numBalls; i++)
-		balls.push_back(Ball(ifstrm));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1));
-	balls.push_back(Ball(1.0f, 1.0f, glm::vec3(0.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1));
-	numBalls += 3;
-	vecprint(cout, balls);
 
+	char identifier;
+	int num;
+	while (ifstrm >> identifier) //iden
+	{
+
+		if (!(ifstrm >> num)) //num
+		{
+			std::cerr << "num err" << std::endl;
+			std::cerr << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		for (int i = 0; i != num; i++)
+		{
+			switch (identifier)
+			{
+			case B:
+			{
+				balls.push_back(make_shared<Ball>(ifstrm));
+				break;
+			}
+			case W:
+			{
+				walls.push_back(make_shared<Wall>(ifstrm));
+				break;
+			}
+			case F:
+			{
+				fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
+				break;
+			}
+			default:
+				break;
+			}
+		}
+	}
+	balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+	balls.push_back(make_shared<Ball>(glm::vec3(0.0f, 3.0f, 0.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+	balls.push_back(make_shared<Ball>(glm::vec3(10.0f, 0.0f, 15.0f), glm::vec3(0.0f), 1.0f, 1.0f));
+	fixedBalls.push_back(make_shared<FixedBall>());
+	cout << balls;
+	//cout << fixedBalls;
+
+	priority_queue<Event, vector<Event>> events;
+
+	float t;
+	for (auto i = balls.begin(); i != balls.end(); i++)
+	{
+		for (auto j = i + 1; j != balls.end(); j++)
+		{
+			//ball to ball
+			t = (**i).predict(**j);
+			cout << "++++++++++++++++++++t:" << t << endl;
+			if (t > 0 && t < 0.1f)
+				events.push(Event(*i, *j, t));
+		}
+		t = (**i).predict(*fixedBalls[1]);
+		if (t > 0 && t < 0.1f)
+			events.push(Event(*i, fixedBalls[1], t));
+	}
+
+	while (!events.empty())
+	{
+		cout << events.top();
+		events.pop();
+	}
+
+	/*
 	//while------------------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window))
 	{
@@ -299,33 +354,42 @@ int main(void)
 
 		cout << "I'm here1" << endl;
 		//print
-		vecprint(cout, balls);
+		cout << balls;
 		//refresh
 		for (auto &i : balls)
 		{
-			i.move(0.01f);
+			i.move(0.05f);
 		}
+
 		//examine
 		for (int i = 0; i != numBalls; i++)
 		{
 			for (int j = i + 1; j != numBalls; j++)
 			{
-				float t = balls[i].timeToCollision(balls[j]);
+				float t = balls[i].predict(balls[j]);
 				cout << "++++++++++++++++++++t:" << t << endl;
 				if (t > 0 && t < 0.1f)
 				{
 					cout << "bounced::::::::::::::::::::::::::::" << endl;
-					balls[i].handleCollision(balls[j]);
+					Object& obj = balls[j];
+					balls[i].bounce(obj);
+				}
+				t = balls[i].predict(fixedball1);
+				if (t > 0 && t < 0.1f)
+				{
+					cout << "bounced::::::::::::::::::::::::::::" << endl;
+					Object& obj = balls[j];
+					balls[i].bounce(fixedball1);
 				}
 			}
 		}
 		//display
 		display(window, glfwGetTime(), balls);
-
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	*/
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

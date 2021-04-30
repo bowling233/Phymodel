@@ -3,135 +3,77 @@
 #include "Object.h"
 #include <vector>
 #include <iostream>
+#include <memory>
+#include <queue>
 
-class Object;
-class FixedObject;
-class FixedPoint;
-class FixedBall;
+class Object; //ac
+class MovableObject;
+class FixedBall; //ac
 class Wall;
-class Point;
 class Ball;
-class Segment;
-class Cuboid;
-class Polygon;
 
 class Event;
-class Event_mgr;
 class CollisionSystem;
 
 class Event
 {
     //io
-    friend std::ostream operator<<(std::ostream &, const Event &);
+    friend std::ostream &operator<<(std::ostream &, const Event &);
 
 public:
     //construct
-    Event() : {}
-    Event(const MovableObject&obj1, const Object &obj2, const float t) : object1(obj1), object2(obj2), time(t), count1(obj1.cnt()), count2(objb.cnt()) {}
+    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+
+    //copy move destruct
+    Event(const Event &) = default;
+    Event(Event &&) = default;
+    Event &operator=(const Event &) = default;
+    Event &operator=(Event &&) = default;
     ~Event() = default;
+
     //information
     float t() { return time; }
-    //action
-    void handle(); //extern
 
-    //operator
-    bool operator<(const Evnet &event) { return (this->time) < event.time; }
+    //action
+    void handle()
+    {
+        if ((ball->cnt() == countBall) && (object->cnt() == countObject))
+            ball->bounce(*object);
+    }
+
+    //compare
+    bool operator<(const Event &event)const { return time < event.time; }
 
 private:
-    MovableObject &object1;
-    Object &object2;
+    std::shared_ptr<Ball> ball;
+    std::shared_ptr<Object> object;
     float time;
-    unsigned int count1, count2;
+    unsigned int countBall, countObject;
 };
+std::ostream &operator<<(std::ostream &, const Event &);
 
-std::ostream operator<<(std::ostream &os, const Event &event) //todo
-{
-    os << std::endl;
-}
-
-class Event_mgr
-{
-};
-
+/*/
 class CollisionSystem
 {
-public:
-    CollisionSystem(std::istream &is) : CollisionSystem()
-    {
-        int numBalls, numWalls;
-        if (!is)
-        {
-            cerr << "open is err" << endl;
-            exit(EXIT_FAILURE);
-        }
-        if (!(is >> numBalls))
-        {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in balls
-        for (int i = 0; i != numBalls; i++)
-            this->balls.push_back(Ball(is));
-        if (!(is >> numWalls))
-        {
-            cerr << "num err" << endl;
-            cerr << is.eof() << is.bad() << is.fail() << is.good() << endl;
-            exit(EXIT_FAILURE);
-        }
-        //read in walls
-        for (int i = 0; i != numWalls; i++)
+    friend void draw(CollisionSystem &);
+    friend std::istream operator>>(std::istream &, CollisionSystem &);
 
-            this->walls.push_back(Wall(is));
-        std::cout << "System created::::::::::::::::" << std::endl;
-    }
+public:
+    //construct and destruct
+    CollisionSystem() = default;
+    ~CollisionSystem() = default;
+
+    //action
+    void run(float);
+    void reverse();
 
 private:
     std::vector<Ball> balls;
+    std::vector<FixedBall> fixedBalls;
     std::vector<Wall> walls;
-}
-
-/*
-class Ball;
-class Wall;
-class Event;
-class CollisionSystem;
-
-class Event //doing
-{
-    //friend class Event_mgr;
-
-public:
-    Event() = default;
-    Event(Ball &ball_1, Ball &ball_2, float t)//球事件
-        : type(0), ball1(ball_1), ball2(ball_2),
-          count1(ball_1.count), count2(ball_2.count),
-          time(t), wall(Wall()) {}
-    Event(Ball &ball, Wall &wall, float t)//墙事件
-        : type(1), ball1(ball), wall(wall),
-          count1(ball.count),
-          time(t) {}
-    void handle();
-
-private:
-    bool type;
-    Ball &ball1, ball2; //小球引用
-    const Wall &wall;
-    int count1, count2;
-    float time; //事件发生绝对时间
-};
-
-/*todo
-class Event_mgr
-{ //事件队列维护类
-
-public:
-    using BallIndex = std::vector<Ball>::size_type;//元素下标
-
-    
-private:
-    std::vector<Event> eventPQ; //默认情况下Event_mgr包含一个空的事件vector
-};
-*/
-
+    std::priority_queue<Event> events;
+    float currentTime;
+}; 
+std::istream operator>>(std::istream&, CollisionSystem&);
+//*/
 #endif

@@ -19,14 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="testmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="Object.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="in.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fs_coord.glsl" />
+    <None Include="fs_skybox.glsl" />
+    <None Include="fs_sphere.glsl" />
+    <None Include="vs_coord.glsl" />
+    <None Include="vs_skybox.glsl" />
+    <None Include="vs_sphere.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
