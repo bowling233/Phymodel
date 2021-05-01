@@ -2,17 +2,12 @@
 #include "Object.h"
 #include <iomanip>
 #include <memory>
+#define OUTPUT std::cout
 
-bool Event::handle() const //notice
+void Event::handle() const //notice
 {
     std::cout << "::::::::::::::::::::::::::::::Event handle: " << *this << std::endl;
-    if ((time >= 0) && (ball->cnt() == countBall) && (object->cnt() == countObject))
-    {
-        std::cout << "event check: "<< ball->cnt()<<" "<<object->cnt() << std::endl;
-        ball->bounce(*object);
-        return true;
-    }
-    return false;
+    ball->bounce(*object); //从指针变成直接对对象的引用，从这里控制权交还给ball类
 }
 
 std::ostream &operator<<(std::ostream &os, const Event &event)
@@ -44,7 +39,7 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 {
     os << "---------------Events-------------------------" << std::endl;
     os << "   time  | Ball | cnt | Obj_type  | Obj | cnt"
-       //"   1.000 |    1 |   3 | fixedball |   1 |   3"
+       //"    1.000 |    1 |   3 | fixedball |   1 |   3"
        << std::endl;
     while (!eventqueue.empty())
     {
@@ -53,62 +48,146 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
     }
     return os;
 }
-/*
-std::ostream & operator>>(std::ostream &os,CollisionSystem &system)
-{
-
-return os;
-}
-std::istream& operator>>(std::istream &is, CollisionSystem &system)
-{
-    {
-        char identifier;
-        int num;
-        while (is >> identifier) //iden
-        {
-
-            if (!(is >> num)) //num
-            {
-                std::cerr << "num err" << std::endl;
-                std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            for (int i = 0; i != num; i)
-            {
-                switch (identifier)
-                {
-                case B:
-                {
-                    system.balls.push_back(Ball(is));
-                    break;
-                }
-                case W:
-                {
-                    system.walls.push_back(Wall(is));
-                    break;
-                }
-                case F:
-                {
-                    system.fixedBalls.push_back(FixedBall(is));
-                    break;
-                }
-                default:
-                    break;
-                }
-            }
-        }
-        std::cout << "System read in over::::::::::::::::" << std::endl;
-    }
-}
 
 void CollisionSystem::run(float t)
 {
-    //todo
+    float targetTime = currentTime + t;
+    while (!(eventQueue.empty()) && (targetTime >= eventQueue.top().t())) //事件发生//notice:处理事件以后记得刷新小球位置//确保队列非空
+    {
+        move(eventQueue.top().t() - currentTime); //跳转到事件发生时间
+        eventQueue.top().handle();                //处理事件
+
+        { //主小球检测
+            std::shared_ptr<Ball> ball = eventQueue.top().b();
+            Object_type flag = eventQueue.top().obj()->type();
+            unsigned int num = eventQueue.top().obj()->num();
+
+            for (auto const &i : balls)
+                if ((flag == Object_type::BALL) && (i->num() == num))
+                    continue; //防止另外一个对象的重复
+                else if ((t = (ball->predict(*i)) > 0))
+                    eventQueue.push(Event(ball, i, t + currentTime));
+
+            for (auto const &i : fixedBalls)
+                if ((flag == Object_type::FIXEDBALL) && (i->num() == num))
+                    continue; //防止另外一个对象的重复
+                else if ((t = (ball->predict(*i)) > 0))
+                    eventQueue.push(Event(ball, i, t + currentTime));
+            for (auto const &i : walls)
+                if ((flag == Object_type::WALL) && (i->num() == num))
+                    continue; //防止另外一个对象的重复
+                else if ((t = (ball->predict(*i)) > 0))
+                    eventQueue.push(Event(ball, i, t + currentTime));
+        }
+        if (eventQueue.top().obj()->type() == Object_type::BALL) //副小球的检测,无需防重复
+        {
+            std::shared_ptr<Ball> ball = std::dynamic_pointer_cast<Ball>(eventQueue.top().obj());
+            unsigned int num = eventQueue.top().b()->num();
+            for (auto const &i : balls)
+                if (!(i->num() == num))
+                    if ((t = (ball->predict(*i)) > 0))
+                        eventQueue.push(Event(ball, i, t + currentTime));
+
+            for (auto const &i : fixedBalls)
+                if ((t = (ball->predict(*i)) > 0))
+                    eventQueue.push(Event(ball, i, t + currentTime));
+
+            for (auto const &i : walls)
+                if ((t = (ball->predict(*i)) > 0))
+                    eventQueue.push(Event(ball, i, t + currentTime));
+        }
+        eventQueue.pop(); //弹出该事件
+        while ((!eventQueue.empty()) && (!eventQueue.top().status()))
+            eventQueue.pop(); //清理后续无效事件，方便下一次操作
+    }
+
+    //发生的事件全部处理完成
+    move(targetTime - currentTime);
+
+    //OUTPUT << "run over::::::::::::::::" << std::endl << eventQueue;
 }
 
 void CollisionSystem::reverse()
 {
-    for(auto&i:balls)
-        i.reverse();
+    for (auto &i : balls)
+        i->rev();
 }
-*/
+
+void CollisionSystem::move(float t)
+{
+    for (auto &i : balls)
+        i->move(t);
+    currentTime += t;
+}
+
+void CollisionSystem::init()
+{
+    float t;
+    for (auto i = balls.cbegin(); i != balls.cend(); i++)
+    {
+        for (auto j = i + 1; j != balls.cend(); j++)
+            if ((t = (**i).predict(**j)) > 0)
+                eventQueue.push(Event(*i, *j, t));
+
+        if (!fixedBalls.empty())
+            for (auto j = fixedBalls.cbegin(); j != fixedBalls.cend(); j++)
+                if ((t = (**i).predict(**j)) > 0)
+                    eventQueue.push(Event(*i, *j, t));
+
+        if (!walls.empty())
+            for (auto j = walls.cbegin(); j != walls.cend(); j++)
+                if ((t = (**i).predict(**j)) > 0)
+                    eventQueue.push(Event(*i, *j, t));
+    }
+    OUTPUT << "System init over::::::::::::::::::::" << std::endl;
+}
+
+std::istream &operator>>(std::istream &is, CollisionSystem &system)
+{
+    char identifier;
+    int num;
+    while (is >> identifier) //iden
+    {
+
+        if (!(is >> num)) //num
+        {
+            /*
+            std::cerr << "num err" << std::endl;
+            std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
+            /*/
+            exit(EXIT_FAILURE);
+        }
+
+        for (int i = 0; i != num; i++)
+        {
+            switch (identifier)
+            {
+            case 'B':
+            {
+                system.balls.push_back(std::make_shared<Ball>(is));
+                break;
+            }
+            case 'W':
+            {
+                system.walls.push_back(std::make_shared<Wall>(is));
+                break;
+            }
+            case 'F':
+            {
+                system.fixedBalls.push_back(std::make_shared<FixedBall>(is));
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+    OUTPUT << "System read in over::::::::::::::::" << std::endl;
+    system.init();
+}
+
+std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
+{
+    os << system.balls << system.fixedBalls << system.walls << system.eventQueue;
+    return os;
+}

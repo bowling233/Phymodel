@@ -54,10 +54,6 @@ protected:
 };
 //说明：默认创建一个在原点的物体
 
-
-
-
-
 //FixedBall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class FixedBall : public Object //protected:radius
 {
@@ -96,10 +92,6 @@ std::ostream &operator<<(std::ostream &, const FixedBall &);
 
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<FixedBall>> &);
 
-
-
-
-
 //Wall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Wall : public Object //private:normalVector
 {
@@ -137,11 +129,7 @@ private:
 std::istream &operator>>(std::istream &, Wall &);
 std::ostream &operator<<(std::ostream &, const Wall &);
 
-std::ostream& operator<<(std::ostream&, const std::vector<FixedBall>&);
-
-
-
-
+std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Wall>> &);
 
 //Ball ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class Ball final : public FixedBall //velocity,mass
@@ -178,7 +166,7 @@ public:
     void rev() { velocity = -velocity; }
 
     //predict
-    float predict(Object &);
+    //float predict(Object &);
     float predict(const FixedBall &);
     float predict(const Wall &);
     float predict(Ball &);
@@ -193,7 +181,7 @@ private:
     glm::vec3 velocity;
     float mass;
     static unsigned int sum;
-    unsigned int number = 0,count = 0;
+    unsigned int number = 0, count = 0;
 };
 
 std::istream &operator>>(std::istream &, Ball &);

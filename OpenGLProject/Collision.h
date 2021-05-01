@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <GLFW\glfw3.h>
 
 class Object; //ac
 class MovableObject;
@@ -34,11 +35,12 @@ public:
 
     //information
     float t() const { return time; }
+    bool status() const { return (time >= 0) && (ball->cnt() == countBall) && (object->cnt() == countObject); }
     std::shared_ptr<Ball> b() const { return ball; }
     std::shared_ptr<Object> obj() const { return object; }
 
     //action
-    bool handle() const;
+    void handle() const;
 
     //compare
     bool operator<(const Event &event) const { return time > event.time; }
@@ -53,28 +55,32 @@ std::ostream &operator<<(std::ostream &, const Event &);
 
 std::ostream &operator<<(std::ostream &, std::priority_queue<Event, std::vector<Event>>);
 
-/*/
 class CollisionSystem
 {
-    friend void draw(CollisionSystem &);
-    friend std::istream operator>>(std::istream &, CollisionSystem &);
+    friend void display(GLFWwindow *window, double currentTime, CollisionSystem &system);
+    friend std::istream &operator>>(std::istream &, CollisionSystem &);
+    friend std::ostream &operator<<(std::ostream &, CollisionSystem &);
 
 public:
     //construct and destruct
     CollisionSystem() = default;
     ~CollisionSystem() = default;
+    CollisionSystem(std::istream &is) : CollisionSystem() { is >> *this; }
 
     //action
     void run(float);
     void reverse();
 
 private:
-    std::vector<Ball> balls;
-    std::vector<FixedBall> fixedBalls;
-    std::vector<Wall> walls;
-    std::priority_queue<Event> events;
-    float currentTime;
-}; 
-std::istream operator>>(std::istream&, CollisionSystem&);
-//*/
+    void init();
+    void move(float);
+    std::vector<std::shared_ptr<Ball>> balls;
+    std::vector<std::shared_ptr<FixedBall>> fixedBalls;
+    std::vector<std::shared_ptr<Wall>> walls;
+    std::priority_queue<Event> eventQueue;
+    float currentTime = 0;
+};
+std::istream &operator>>(std::istream &, CollisionSystem &);
+std::ostream &operator<<(std::ostream &, CollisionSystem &);
+
 #endif

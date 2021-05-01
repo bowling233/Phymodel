@@ -104,6 +104,7 @@ Ball::Ball(std::istream &is) : Ball()
 }
 
 //predict------------------------------------------------------------------------------------------------------------
+/*no need
 float Ball::predict(Object &object)
 {
     switch (object.type())
@@ -126,6 +127,7 @@ float Ball::predict(Object &object)
     }
     }
 }
+*/
 
 float Ball::predict(const FixedBall &fixedBall) //tochk
 {
@@ -243,11 +245,12 @@ void Ball::bounce(const Wall &wall) //tochk
     //std::cout << "handle wall end" << std::endl;
 }
 
-void Ball::bounce(Ball &ball) //tochk
+void Ball::bounce(Ball &ball)
 {
+
+#ifdef DEBUG
     if (number == ball.number) //防止自碰撞
         return;
-#ifdef DEBUG
     std::cout << "bounce:::::::::::::::::" << std::endl;
     std::cout << *this << std::endl
               << ball << std::endl;

@@ -18,6 +18,7 @@ using namespace std;
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
+#define OUTPUT std::cout
 
 #include <iomanip>
 #include <vector>
@@ -35,16 +36,21 @@ GLuint skyboxVbo[2], coordVbo[1], sphereVbo[3], planeVbo[3];
 GLuint skyboxTexture, sphereTexture, planeTexture;
 float rotAmt = 0.0f; //tochk
 
-// variable allocation for display
+//allocation
 GLuint mvLoc, projLoc, vLoc;
 int width, height;
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat;
-
-glm::mat4 lMat;
+glm::mat4 pMat, vMat, mMat, mvMat,lMat;
 Sphere mySphere = Sphere(48);
 
-//start:setupvert
+
+
+
+
+
+
+
+//setupvert-----------------------------------------------------------------------------------------------------------
 void setupVert_sphere(void)
 {
 
@@ -81,6 +87,7 @@ void setupVert_sphere(void)
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
 }
+
 void setupVert_coord(void)
 {
 	float vertCoordPositions[18] = {
@@ -92,6 +99,7 @@ void setupVert_coord(void)
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCoordPositions), vertCoordPositions, GL_STATIC_DRAW);
 }
+
 void setupVert_skybox(void)
 {
 	float cubeVertexPositions[108] =
@@ -112,6 +120,14 @@ void setupVert_skybox(void)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexPositions), cubeVertexPositions, GL_STATIC_DRAW);
 }
 
+
+
+
+
+
+
+
+//init-----------------------------------------------------------------------------------------------------------
 void init(GLFWwindow *window)
 {
 	glGenVertexArrays(numVAOs, vao);
@@ -135,11 +151,20 @@ void init(GLFWwindow *window)
 	sphereTexture = Utils::loadTexture("earth.jpg");
 	skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	cout << "init accomplished" << endl;
 }
 
-//draw
 
+
+
+
+
+
+
+
+
+
+
+//draw-----------------------------------------------------------------------------------------------------------
 void draw_skybox(void)
 {
 	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
@@ -186,23 +211,18 @@ void draw_coord(void)
 
 	glDrawArrays(GL_LINES, 0, 6);
 }
-//todo
 
 void draw_sphere(vector<shared_ptr<Ball>> &balls)
 {
 	glUseProgram(sphereRenderingProgram);
 	for (const auto &iterator : balls)
 	{
-
-		//		if (iterator.counter() == 0)
-		//			continue;
-
 		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
 		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
 
 		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator->loc()); //marker++++++++++++++++++++++++++++
+		mMat = glm::translate(glm::mat4(1.0f), iterator->loc());
 
 		mvMat = vMat * mMat;
 
@@ -228,21 +248,18 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 	}
 }
+
 void draw_sphere(vector<shared_ptr<FixedBall>> &fixedBalls)
 {
 	glUseProgram(sphereRenderingProgram);
 	for (const auto &iterator : fixedBalls)
 	{
-
-		//		if (iterator.counter() == 0)
-		//			continue;
-
 		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
 		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
 
 		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator->loc()); //marker++++++++++++++++++++++++++++
+		mMat = glm::translate(glm::mat4(1.0f), iterator->loc());
 
 		mvMat = vMat * mMat;
 
@@ -269,15 +286,15 @@ void draw_sphere(vector<shared_ptr<FixedBall>> &fixedBalls)
 	}
 }
 
-void display(GLFWwindow *window, double currentTime, vector<shared_ptr<Ball>> &balls, vector<shared_ptr<FixedBall>> &fixedBalls)
+void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 	//draw_skybox();
-	draw_sphere(balls);
-	draw_sphere(fixedBalls);
+	draw_sphere(system.balls);
+	draw_sphere(system.fixedBalls);
 	draw_coord();
 }
 
@@ -288,10 +305,22 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 int main(void)
 {
 	//freopen("out.txt", "w", stdout);
-	//cerr << "complier OK" << endl;
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -301,79 +330,15 @@ int main(void)
 	if (glewInit() != GLEW_OK)
 		exit(EXIT_FAILURE);
 
-	glfwSwapInterval(1);
+	glfwSwapInterval(1);//垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	init(window);
 
 	ifstream ifstrm("in.txt");
 	ofstream ofstrm("out.txt");
-	vector<shared_ptr<Ball>> balls;
-	vector<shared_ptr<Wall>> walls;
-	vector<shared_ptr<FixedBall>> fixedBalls;
-	priority_queue<Event, vector<Event>> eventQueue;
-
-	//check
-	if (!ifstrm)
-	{
-		cerr << "open ifstrm err" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-	char identifier;
-	int num;
-	while (ifstrm >> identifier) //iden
-	{
-
-		if (!(ifstrm >> num)) //num
-		{
-			std::cerr << "num err" << std::endl;
-			std::cerr << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << std::endl;
-			exit(EXIT_FAILURE);
-		}
-		for (int i = 0; i != num; i++)
-		{
-			switch (identifier)
-			{
-			case 'B':
-			{
-				balls.push_back(make_shared<Ball>(ifstrm));
-				break;
-			}
-			case 'W':
-			{
-				//walls.push_back(make_shared<Wall>(ifstrm));
-				break;
-			}
-			case 'F':
-			{
-				fixedBalls.push_back(make_shared<FixedBall>(ifstrm));
-				break;
-			}
-			default:
-				break;
-			}
-		}
-	}
-
-	cout << balls;
-	cout << fixedBalls;
-
-	float t;
-	for (auto i = balls.cbegin(); i != balls.cend(); i++)
-	{
-		for (auto j = i + 1; j != balls.cend(); j++)
-			if ((t = (**i).predict(**j)) > 0)
-				eventQueue.push(Event(*i, *j, t));
-		for (auto j = fixedBalls.cbegin(); j != fixedBalls.cend(); j++)
-			if ((t = (**i).predict(**j)) > 0)
-				eventQueue.push(Event(*i, *j, t));
-	}
-	cout << eventQueue;
-	float currentTime = 0.0f;
-	float deltaTime = 1.0 / 60.0f;
-
-	//while------------------------------------------------------------------------------------
+	CollisionSystem system(ifstrm);
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		//move camera
@@ -381,47 +346,13 @@ int main(void)
 		cameraX += 0.09f;
 		cameraY -= 0.01f;
 #endif
-		//examine
-		while (currentTime >= eventQueue.top().t())
-		{
-			if (eventQueue.top().handle()) 
-			{//确保这个事件通过处理了，再进行检测
-				{//主小球的预测
-					for (auto const& i : balls)
-						if (!(i->num() == eventQueue.top().obj()->num())) //防止另外一个对象的重复
-							if ((t = (*(eventQueue.top().b())).predict(*i)) > 0)
-								eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
-					for (auto const& i : fixedBalls)
-						if ((t = (*(eventQueue.top().b())).predict(*i)) > 0)
-							eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
-				}
-				if (eventQueue.top().obj()->type() == Object_type::BALL)//副小球的检测
-				{
-					Ball& obj = dynamic_cast<Ball&>(*(eventQueue.top().obj()));
-					for (auto const& i : balls)
-						if (!(i->num() == eventQueue.top().b()->num())) //防止另外一个对象的重复
-							if ((t = obj.predict(*i)) > 0)
-								eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
-					for (auto const& i : fixedBalls)
-						if ((t = obj.predict(*i)) > 0)
-							eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
-				}
-			}
-			else
-				cout << "event ignored" << endl;
-			eventQueue.pop();
-			cout << eventQueue;
-		}
+		system.run(1.0 / 60.0f);
 
-		//refresh
-		for (auto &i : balls)
-			i->move(deltaTime);
-		//display
-		display(window, glfwGetTime(), balls, fixedBalls);
+	//display
+		display(window, glfwGetTime(), system);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		currentTime += deltaTime;
 	}
 
 	glfwDestroyWindow(window);
