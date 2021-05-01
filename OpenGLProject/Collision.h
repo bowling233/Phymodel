@@ -23,7 +23,7 @@ class Event
 
 public:
     //construct
-    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) { std::cout << "event created: " << *this << std::endl; }
 
     //copy move destruct
     Event(const Event &) = default;
@@ -34,16 +34,14 @@ public:
 
     //information
     float t() const { return time; }
+    std::shared_ptr<Ball> b() const { return ball; }
+    std::shared_ptr<Object> obj() const { return object; }
 
     //action
-    void handle()const 
-    {
-        if ((ball->cnt() == countBall) && (object->cnt() == countObject))
-            ball->bounce(*object);
-    }
+    bool handle() const;
 
     //compare
-    bool operator<(const Event &event)const { return time > event.time; }
+    bool operator<(const Event &event) const { return time > event.time; }
 
 private:
     std::shared_ptr<Ball> ball;
@@ -52,9 +50,8 @@ private:
     unsigned int countBall, countObject;
 };
 std::ostream &operator<<(std::ostream &, const Event &);
-std::ostream& operator<<(std::ostream&, const std::vector<Event>&);
 
-std::ostream& operator<<(std::ostream&, std::priority_queue<Event, std::vector<Event>>);
+std::ostream &operator<<(std::ostream &, std::priority_queue<Event, std::vector<Event>>);
 
 /*/
 class CollisionSystem

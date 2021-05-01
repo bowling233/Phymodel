@@ -158,7 +158,7 @@ float Ball::predict(const Wall &wall) //tochk
         return -1.0f;
     return -r_l / v_l;
     //another solution
-#ifdef DEBUG
+    /*
     glm::vec3 r = location - wall.loc();
     glm::vec3 chk_nor = (glm::dot(r, wall.norm())) > 0 ? wall.norm() : -wall.norm(); //选择一个背向球的法向量
     float v_l = glm::dot(velocity, chk_nor);//速度在平面法向量方向上的分量
@@ -166,11 +166,14 @@ float Ball::predict(const Wall &wall) //tochk
         return -1.0f;                 //背向运动
     float r_l = glm::dot(r, chk_nor); //球到平面的垂直距离
     return r_l / v_l;
-#endif
+    /*/
 }
 
 float Ball::predict(Ball &ball) //tochk
 {
+    if (number == ball.number) //防止自预测
+        return -1.0f;
+
     glm::vec3 r = location - ball.location, //以ball为中心
         dv = velocity - ball.velocity;
 
@@ -187,12 +190,9 @@ float Ball::predict(Ball &ball) //tochk
         return -1.0;
 
     float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
-    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a)); 
+    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
     //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
 
-#ifdef DEBUG
-    std::cout "debug:ball bounce ball:" << a << ' ' << b << ' ' << c << ' ' << delta << ' ' << x1 << ' ' << x2 << std::endl;
-#endif
     //question:小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
 
     if (x2 > 0)
@@ -205,6 +205,7 @@ float Ball::predict(Ball &ball) //tochk
 //bounce------------------------------------------------------------------------------------------------------------
 void Ball::bounce(Object &object)
 {
+    count++;
     switch (object.type())
     {
     case Object_type::FIXEDBALL:
@@ -244,9 +245,13 @@ void Ball::bounce(const Wall &wall) //tochk
 
 void Ball::bounce(Ball &ball) //tochk
 {
-    std::cout << "bounce" << std::endl;
+    if (number == ball.number) //防止自碰撞
+        return;
+#ifdef DEBUG
+    std::cout << "bounce:::::::::::::::::" << std::endl;
     std::cout << *this << std::endl
               << ball << std::endl;
+#endif
     glm::vec3 r = glm::normalize(location - ball.location);
 
     float v10 = glm::dot(r, velocity),
@@ -260,6 +265,7 @@ void Ball::bounce(Ball &ball) //tochk
               dv2 = (v2 - v20) * r;
     velocity += dv1;
     ball.velocity += dv2;
+    ball.count++;
 }
 
 //io------------------------------------------------------------------------------------------------------------

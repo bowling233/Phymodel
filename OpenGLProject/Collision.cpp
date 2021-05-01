@@ -3,12 +3,25 @@
 #include <iomanip>
 #include <memory>
 
+bool Event::handle() const //notice
+{
+    std::cout << "::::::::::::::::::::::::::::::Event handle: " << *this << std::endl;
+    if ((time >= 0) && (ball->cnt() == countBall) && (object->cnt() == countObject))
+    {
+        std::cout << "event check: "<< ball->cnt()<<" "<<object->cnt() << std::endl;
+        ball->bounce(*object);
+        return true;
+    }
+    return false;
+}
+
 std::ostream &operator<<(std::ostream &os, const Event &event)
 {
-    os <<std::setprecision(3) << std::fixed;
+    os << std::setprecision(3) << std::fixed;
     os << std::setw(8) << event.time
-        << " | " << std::setw(4) << event.ball->num()
-        << " | "  <<std::setw(10);
+       << " | " << std::setw(4) << event.ball->num()
+       << " | " << std::setw(3) << event.countBall
+       << " | " << std::setw(10);
     switch (event.object->type())
     {
     case Object_type::FIXEDBALL:
@@ -22,30 +35,20 @@ std::ostream &operator<<(std::ostream &os, const Event &event)
         break;
     }
     os << " | " << std::setw(3) << event.object->num()
-        << std::defaultfloat;
+       << " | " << std::setw(3) << event.countObject
+       << std::defaultfloat;
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, std::vector<Event>& events)
+std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vector<Event>> eventqueue) //time consuming
 {
-    os << "---------------Events---------------------------"
-        << "   time  | Ball | Obj_type  | Obj"
-        // "   1.000 |    1 | fixedball |   1"
-        << std::endl;
-    for (auto const& i : events)
-        os << i << std::endl;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, std::priority_queue<Event, std::vector<Event>> eventqueue)//time consuming
-{
-    os << "---------------Events------------" << std::endl;
-    os << "   time  | Ball |  Obj_type  | Obj"
-        //"   1.000 |    1 |  fixedball |   1"
-        << std::endl;
-    while(!eventqueue.empty())
+    os << "---------------Events-------------------------" << std::endl;
+    os << "   time  | Ball | cnt | Obj_type  | Obj | cnt"
+       //"   1.000 |    1 |   3 | fixedball |   1 |   3"
+       << std::endl;
+    while (!eventqueue.empty())
     {
-        os << eventqueue.top()<<std::endl;
+        os << eventqueue.top() << std::endl;
         eventqueue.pop();
     }
     return os;

@@ -228,10 +228,10 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
 	}
 }
-void draw_sphere(vector<shared_ptr<FixedBall>>& fixedBalls)
+void draw_sphere(vector<shared_ptr<FixedBall>> &fixedBalls)
 {
 	glUseProgram(sphereRenderingProgram);
-	for (const auto& iterator : fixedBalls)
+	for (const auto &iterator : fixedBalls)
 	{
 
 		//		if (iterator.counter() == 0)
@@ -269,7 +269,7 @@ void draw_sphere(vector<shared_ptr<FixedBall>>& fixedBalls)
 	}
 }
 
-void display(GLFWwindow *window, double currentTime, vector<shared_ptr<Ball>> &balls,vector<shared_ptr<FixedBall>>&fixedBalls)
+void display(GLFWwindow *window, double currentTime, vector<shared_ptr<Ball>> &balls, vector<shared_ptr<FixedBall>> &fixedBalls)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -306,13 +306,12 @@ int main(void)
 
 	init(window);
 
-	
 	ifstream ifstrm("in.txt");
 	ofstream ofstrm("out.txt");
 	vector<shared_ptr<Ball>> balls;
 	vector<shared_ptr<Wall>> walls;
 	vector<shared_ptr<FixedBall>> fixedBalls;
-	int round = 0;
+	priority_queue<Event, vector<Event>> eventQueue;
 
 	//check
 	if (!ifstrm)
@@ -357,9 +356,22 @@ int main(void)
 		}
 	}
 
-	ofstrm << balls;
-	ofstrm << fixedBalls;
+	cout << balls;
+	cout << fixedBalls;
+
 	float t;
+	for (auto i = balls.cbegin(); i != balls.cend(); i++)
+	{
+		for (auto j = i + 1; j != balls.cend(); j++)
+			if ((t = (**i).predict(**j)) > 0)
+				eventQueue.push(Event(*i, *j, t));
+		for (auto j = fixedBalls.cbegin(); j != fixedBalls.cend(); j++)
+			if ((t = (**i).predict(**j)) > 0)
+				eventQueue.push(Event(*i, *j, t));
+	}
+	cout << eventQueue;
+	float currentTime = 0.0f;
+	float deltaTime = 1.0 / 60.0f;
 
 	//while------------------------------------------------------------------------------------
 	while (!glfwWindowShouldClose(window))
@@ -369,28 +381,47 @@ int main(void)
 		cameraX += 0.09f;
 		cameraY -= 0.01f;
 #endif
+		//examine
+		while (currentTime >= eventQueue.top().t())
+		{
+			if (eventQueue.top().handle()) 
+			{//确保这个事件通过处理了，再进行检测
+				{//主小球的预测
+					for (auto const& i : balls)
+						if (!(i->num() == eventQueue.top().obj()->num())) //防止另外一个对象的重复
+							if ((t = (*(eventQueue.top().b())).predict(*i)) > 0)
+								eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
+					for (auto const& i : fixedBalls)
+						if ((t = (*(eventQueue.top().b())).predict(*i)) > 0)
+							eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
+				}
+				if (eventQueue.top().obj()->type() == Object_type::BALL)//副小球的检测
+				{
+					Ball& obj = dynamic_cast<Ball&>(*(eventQueue.top().obj()));
+					for (auto const& i : balls)
+						if (!(i->num() == eventQueue.top().b()->num())) //防止另外一个对象的重复
+							if ((t = obj.predict(*i)) > 0)
+								eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
+					for (auto const& i : fixedBalls)
+						if ((t = obj.predict(*i)) > 0)
+							eventQueue.push(Event(eventQueue.top().b(), i, t + currentTime));
+				}
+			}
+			else
+				cout << "event ignored" << endl;
+			eventQueue.pop();
+			cout << eventQueue;
+		}
+
 		//refresh
 		for (auto &i : balls)
-			(*i).move(0.01f);
-		cout << balls;
-
-		//examine
-		for (auto i = balls.begin(); i != balls.end(); i++)
-		{
-			for (auto j = i + 1; j != balls.end(); j++)
-			{
-				//ball to ball
-				t = (**i).predict(**j);
-				ofstrm << "++++++++++++++++++++t:" << t << endl;
-				if (t > 0 && t < 0.1f)
-					(**i).bounce((**j));
-			}
-		}
+			i->move(deltaTime);
 		//display
-		display(window, glfwGetTime(), balls,fixedBalls);
-		
+		display(window, glfwGetTime(), balls, fixedBalls);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		currentTime += deltaTime;
 	}
 
 	glfwDestroyWindow(window);
