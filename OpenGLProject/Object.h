@@ -179,7 +179,6 @@ public:
 
 
     //examine
-    bool examine(const Ball &);
     bool back(const Ball&);
 
 

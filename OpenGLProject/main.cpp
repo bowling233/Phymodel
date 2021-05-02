@@ -18,7 +18,7 @@ using namespace std;
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
-#define OUTPUT std::cout
+
 
 #include <iomanip>
 #include <vector>
@@ -343,7 +343,7 @@ int main(void)
 	{
 		//move camera
 
-		system.run(0.5f);
+		system.run(0.01f);
 
 	//display
 		display(window, glfwGetTime(), system);

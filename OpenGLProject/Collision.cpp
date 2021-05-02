@@ -6,7 +6,7 @@
 
 void Event::handle() const //notice
 {
-    std::cout << "::::::::::::::::::::::::::::::Event handle: " << *this << std::endl;
+    OUTPUT << "::::::::::::::::::::::::::::::Event handle: " << *this << std::endl;
     ball->bounce(*object); //从指针变成直接对对象的引用，从这里控制权交还给ball类
 }
 
@@ -49,57 +49,48 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
     return os;
 }
 
-bool flag = true;
+//bool flag = true;
 
 void CollisionSystem::run(float t)
 {
-#ifdef OBJ_EXT
-    for (float targetTime = currentTime + t; currentTime < targetTime;)
-    {
-        for (auto i = balls.cbegin(); i != balls.cend(); i++)
-            for (auto j = i + 1; j != balls.cend(); j++)
-                if ((**i).examine(**j))
-                    (**i).bounce(**j);
-        move(DELTATIME);
-    }
-#endif
-
-#ifndef OBJ_EXT
     float targetTime = currentTime + t;
+
     while (!(eventQueue.empty()) && (targetTime >= eventQueue.top().t())) //事件发生//notice:处理事件以后记得刷新小球位置//确保队列非空
     {
-        std::cout << eventQueue;
-
         move(eventQueue.top().t() - currentTime); //跳转到事件发生时间
+        Event temp = eventQueue.top();
         eventQueue.top().handle();                //处理事件
-        std::cout << currentTime << std::endl;
+        eventQueue.pop();
+
+        //std::cout << currentTime << std::endl;
 
         { //主小球检测
-            std::shared_ptr<Ball> ball = eventQueue.top().b();
-            Object_type flag = eventQueue.top().obj()->type();
-            unsigned int num = eventQueue.top().obj()->num();
+            std::shared_ptr<Ball> ball = temp.b();
+            Object_type type = temp.obj()->type();
+            unsigned int num = temp.obj()->num();
 
             for (auto const &i : balls)
-                if ((flag == Object_type::BALL) && (i->num() == num))
+                if ((type == Object_type::BALL) && (i->num() == num))
                     continue; //防止另外一个对象的重复
                 else if ((t = (ball->predict(*i)) > 0))
                     eventQueue.push(Event(ball, i, t + currentTime));
 
             for (auto const &i : fixedBalls)
-                if ((flag == Object_type::FIXEDBALL) && (i->num() == num))
+                if ((type == Object_type::FIXEDBALL) && (i->num() == num))
                     continue; //防止另外一个对象的重复
                 else if ((t = (ball->predict(*i)) > 0))
                     eventQueue.push(Event(ball, i, t + currentTime));
             for (auto const &i : walls)
-                if ((flag == Object_type::WALL) && (i->num() == num))
+                if ((type == Object_type::WALL) && (i->num() == num))
                     continue; //防止另外一个对象的重复
                 else if ((t = (ball->predict(*i)) > 0))
                     eventQueue.push(Event(ball, i, t + currentTime));
         }
-        if (eventQueue.top().obj()->type() == Object_type::BALL) //副小球的检测,无需防重复
+        
+        if (temp.obj()->type() == Object_type::BALL) //副小球的检测,无需防重复
         {
-            std::shared_ptr<Ball> ball = std::dynamic_pointer_cast<Ball>(eventQueue.top().obj());
-            unsigned int num = eventQueue.top().b()->num();
+            std::shared_ptr<Ball> ball = std::dynamic_pointer_cast<Ball>(temp.obj());
+            unsigned int num = temp.b()->num();
             for (auto const &i : balls)
                 if (!(i->num() == num))
                     if ((t = (ball->predict(*i)) > 0))
@@ -113,15 +104,15 @@ void CollisionSystem::run(float t)
                 if ((t = (ball->predict(*i)) > 0))
                     eventQueue.push(Event(ball, i, t + currentTime));
         }
-        eventQueue.pop(); //弹出该事件
-        while ((!eventQueue.empty()) && (!eventQueue.top().status()))
+
+        while ((!eventQueue.empty()) && (!temp.status()))
             eventQueue.pop(); //清理后续无效事件，方便下一次操作
 
         std::cout << eventQueue;
     }
     //发生的事件全部处理完成
     move(targetTime - currentTime);
-#endif
+
     /*if ( flag&&currentTime >= 5 )
     {
         reverse();
@@ -133,7 +124,7 @@ void CollisionSystem::run(float t)
 void CollisionSystem::reverse()
 {
     while (!eventQueue.empty())eventQueue.pop();//清空
-    std::cout << eventQueue;
+    OUTPUT << eventQueue;
 
     for (auto &i : balls)
         i->rev();
@@ -150,7 +141,6 @@ void CollisionSystem::move(float t)
 
 void CollisionSystem::init()
 {
-#ifndef OBJ_EXT
     while (!eventQueue.empty())eventQueue.pop();
     float t;
     for (auto i = balls.cbegin(); i != balls.cend(); i++)
@@ -170,7 +160,6 @@ void CollisionSystem::init()
                     eventQueue.push(Event(*i, *j, t + currentTime));
     }
     OUTPUT << "System init over::::::::::::::::::::" << std::endl;
-#endif
 }
 
 std::istream &operator>>(std::istream &is, CollisionSystem &system)
@@ -182,10 +171,7 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 
         if (!(is >> num)) //num
         {
-            /*
             std::cerr << "num err" << std::endl;
-            std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
-            /*/
             exit(EXIT_FAILURE);
         }
 

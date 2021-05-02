@@ -181,8 +181,6 @@ float Ball::predict(const Ball &ball) //tochk
 
     if (this->back(ball))
         return -1.0;
-    if (this->examine(ball))
-        return 0.0f;
 
     float a = square(glm::length(dv));
     float b = 2.0 * glm::dot(dv, r);
@@ -262,17 +260,6 @@ void Ball::bounce(Ball &ball)
     velocity += (v1 - v10) * r;
     ball.velocity += (v2 - v20) * r;
     ball.count++;
-}
-
-
-bool Ball::examine(const Ball &ball)
-{
-    if (glm::length(location - ball.location) < (radius + ball.radius) - 0.01)
-    {
-        std::cout << "examine error" << std::endl;
-        return true;
-    }
-    return false;
 }
 
 bool Ball::back(const Ball& ball)
