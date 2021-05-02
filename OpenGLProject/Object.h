@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <glm\glm.hpp>
-
+#define OBJ_EXT
 class Object;
 class MovableObject;
 class FixedBall;
@@ -169,13 +169,19 @@ public:
     //float predict(Object &);
     float predict(const FixedBall &);
     float predict(const Wall &);
-    float predict(Ball &);
+    float predict(const Ball &);
 
     //bounce
     void bounce(Object &);
     void bounce(const FixedBall &);
     void bounce(const Wall &);
     void bounce(Ball &);
+
+
+    //examine
+    bool examine(const Ball &);
+    bool back(const Ball&);
+
 
 private:
     glm::vec3 velocity;

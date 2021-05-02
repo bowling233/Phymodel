@@ -7,6 +7,7 @@
 #include <glm\glm.hpp>
 #include <memory>
 
+
 //definition
 unsigned int FixedBall::sum = 0;
 unsigned int Wall::sum = 0;
@@ -171,20 +172,20 @@ float Ball::predict(const Wall &wall) //tochk
     /*/
 }
 
-float Ball::predict(Ball &ball) //tochk
+float Ball::predict(const Ball &ball) //tochk
 {
     if (number == ball.number) //防止自预测
         return -1.0f;
-
     glm::vec3 r = location - ball.location, //以ball为中心
         dv = velocity - ball.velocity;
 
-    //*/tochk//这是为了检测两个球的速度是否均背离。只有两个同时满足才能排除。只满足一个可能发生追及
-    if ((glm::dot(-r, velocity) < 0) /*以this为中心*/ && (glm::dot(r, ball.velocity) < 0) /*以ball为中心*/)
-        return -1.0; //*/
+    if (this->back(ball))
+        return -1.0;
+    if (this->examine(ball))
+        return 0.0f;
 
     float a = square(glm::length(dv));
-    float b = 2.0 * (dv.x * r.x + dv.y * r.y + dv.z * r.z);
+    float b = 2.0 * glm::dot(dv, r);
     float c = square(glm::length(r)) - square(radius + ball.radius);
     float delta = square(b) - 4.0 * a * c;
 
@@ -234,27 +235,20 @@ void Ball::bounce(Object &object)
 
 void Ball::bounce(const FixedBall &fixedBall) //tochk
 {
-    glm::vec3 dLoc = location - fixedBall.loc();
-    velocity += -2 * glm::dot(velocity, dLoc) * dLoc; //沿球心连线方向速度反两倍
+    glm::vec3 r = location - fixedBall.loc();
+    velocity += -2 * glm::dot(velocity, r) * r; //速度反两倍
 }
 
 void Ball::bounce(const Wall &wall) //tochk
 {
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
-    velocity = velocity - 2 * (dot(velocity, ckd_nor)) * ckd_nor;
-    //std::cout << "handle wall end" << std::endl;
+    velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
 }
 
 void Ball::bounce(Ball &ball)
 {
+    if (this->back(ball))return;
 
-#ifdef DEBUG
-    if (number == ball.number) //防止自碰撞
-        return;
-    std::cout << "bounce:::::::::::::::::" << std::endl;
-    std::cout << *this << std::endl
-              << ball << std::endl;
-#endif
     glm::vec3 r = glm::normalize(location - ball.location);
 
     float v10 = glm::dot(r, velocity),
@@ -264,11 +258,32 @@ void Ball::bounce(Ball &ball)
 
     float v1 = ((m1 - m2) * v10 + 2 * m2 * v20) / (m1 + m2),
           v2 = ((m2 - m1) * v20 + 2 * m1 * v10) / (m1 + m2);
-    glm::vec3 dv1 = (v1 - v10) * r,
-              dv2 = (v2 - v20) * r;
-    velocity += dv1;
-    ball.velocity += dv2;
+
+    velocity += (v1 - v10) * r;
+    ball.velocity += (v2 - v20) * r;
     ball.count++;
+}
+
+
+bool Ball::examine(const Ball &ball)
+{
+    if (glm::length(location - ball.location) < (radius + ball.radius) - 0.01)
+    {
+        std::cout << "examine error" << std::endl;
+        return true;
+    }
+    return false;
+}
+
+bool Ball::back(const Ball& ball)
+{
+    if ((glm::dot(-(location - ball.location), velocity) < 0) && (glm::dot(location - ball.location, ball.velocity) < 0))
+    {
+        std::cout << "back error" << std::endl;
+        return true;
+    }
+    return false;
+
 }
 
 //io------------------------------------------------------------------------------------------------------------

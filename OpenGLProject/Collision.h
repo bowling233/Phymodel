@@ -7,6 +7,7 @@
 #include <memory>
 #include <queue>
 #include <GLFW\glfw3.h>
+#define DELTATIME 0.001f
 
 class Object; //ac
 class MovableObject;

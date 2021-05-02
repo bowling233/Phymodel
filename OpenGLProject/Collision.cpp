@@ -49,13 +49,30 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
     return os;
 }
 
+bool flag = true;
+
 void CollisionSystem::run(float t)
 {
+#ifdef OBJ_EXT
+    for (float targetTime = currentTime + t; currentTime < targetTime;)
+    {
+        for (auto i = balls.cbegin(); i != balls.cend(); i++)
+            for (auto j = i + 1; j != balls.cend(); j++)
+                if ((**i).examine(**j))
+                    (**i).bounce(**j);
+        move(DELTATIME);
+    }
+#endif
+
+#ifndef OBJ_EXT
     float targetTime = currentTime + t;
     while (!(eventQueue.empty()) && (targetTime >= eventQueue.top().t())) //事件发生//notice:处理事件以后记得刷新小球位置//确保队列非空
     {
+        std::cout << eventQueue;
+
         move(eventQueue.top().t() - currentTime); //跳转到事件发生时间
         eventQueue.top().handle();                //处理事件
+        std::cout << currentTime << std::endl;
 
         { //主小球检测
             std::shared_ptr<Ball> ball = eventQueue.top().b();
@@ -99,18 +116,29 @@ void CollisionSystem::run(float t)
         eventQueue.pop(); //弹出该事件
         while ((!eventQueue.empty()) && (!eventQueue.top().status()))
             eventQueue.pop(); //清理后续无效事件，方便下一次操作
-    }
 
+        std::cout << eventQueue;
+    }
     //发生的事件全部处理完成
     move(targetTime - currentTime);
-
+#endif
+    /*if ( flag&&currentTime >= 5 )
+    {
+        reverse();
+        flag = false;
+    }*/
     //OUTPUT << "run over::::::::::::::::" << std::endl << eventQueue;
 }
 
 void CollisionSystem::reverse()
 {
+    while (!eventQueue.empty())eventQueue.pop();//清空
+    std::cout << eventQueue;
+
     for (auto &i : balls)
         i->rev();
+
+    init();
 }
 
 void CollisionSystem::move(float t)
@@ -122,24 +150,27 @@ void CollisionSystem::move(float t)
 
 void CollisionSystem::init()
 {
+#ifndef OBJ_EXT
+    while (!eventQueue.empty())eventQueue.pop();
     float t;
     for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
             if ((t = (**i).predict(**j)) > 0)
-                eventQueue.push(Event(*i, *j, t));
+                eventQueue.push(Event(*i, *j, t+currentTime));
 
         if (!fixedBalls.empty())
             for (auto j = fixedBalls.cbegin(); j != fixedBalls.cend(); j++)
                 if ((t = (**i).predict(**j)) > 0)
-                    eventQueue.push(Event(*i, *j, t));
+                    eventQueue.push(Event(*i, *j, t + currentTime));
 
         if (!walls.empty())
             for (auto j = walls.cbegin(); j != walls.cend(); j++)
                 if ((t = (**i).predict(**j)) > 0)
-                    eventQueue.push(Event(*i, *j, t));
+                    eventQueue.push(Event(*i, *j, t + currentTime));
     }
     OUTPUT << "System init over::::::::::::::::::::" << std::endl;
+#endif
 }
 
 std::istream &operator>>(std::istream &is, CollisionSystem &system)
@@ -177,13 +208,12 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
                 system.fixedBalls.push_back(std::make_shared<FixedBall>(is));
                 break;
             }
-            default:
-                break;
             }
         }
     }
     OUTPUT << "System read in over::::::::::::::::" << std::endl;
     system.init();
+    return is;
 }
 
 std::ostream &operator<<(std::ostream &os, CollisionSystem &system)

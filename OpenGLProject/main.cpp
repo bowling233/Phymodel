@@ -342,11 +342,8 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		//move camera
-#ifdef DEBUG
-		cameraX += 0.09f;
-		cameraY -= 0.01f;
-#endif
-		system.run(1.0 / 60.0f);
+
+		system.run(0.5f);
 
 	//display
 		display(window, glfwGetTime(), system);
