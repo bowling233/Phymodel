@@ -19,7 +19,7 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include "Object.h"
-#include "Collision.h"
+#include "Collision_time.h"
 using namespace chrono;
 //#define _CRT_SECURE_NO_DEPRECATE
 //#define _CRT_SECURE_NO_WARNINGS
@@ -363,7 +363,7 @@ int main(void)
 
 	
 
-	ifstream ifstrm("605ball.txt");
+	ifstream ifstrm("testdata\\605ball.txt");
 	ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
