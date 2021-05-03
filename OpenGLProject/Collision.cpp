@@ -128,8 +128,6 @@ void CollisionSystem::reverse()
 
     for (auto &i : balls)
         i->rev();
-
-    init();
 }
 
 void CollisionSystem::move(float t)
@@ -146,20 +144,12 @@ void CollisionSystem::init()
     for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
-            if ((t = (**i).predict(**j)) > 0)
-                eventQueue.push(Event(*i, *j, t+currentTime));
-
-        if (!fixedBalls.empty())
-            for (auto j = fixedBalls.cbegin(); j != fixedBalls.cend(); j++)
-                if ((t = (**i).predict(**j)) > 0)
-                    eventQueue.push(Event(*i, *j, t + currentTime));
-
-        if (!walls.empty())
-            for (auto j = walls.cbegin(); j != walls.cend(); j++)
-                if ((t = (**i).predict(**j)) > 0)
-                    eventQueue.push(Event(*i, *j, t + currentTime));
+            if ((**i).examine(**j))
+            {
+                std::cerr << "init error" << std::endl;
+                exit(EXIT_FAILURE);
+            }
     }
-    OUTPUT << "System init over::::::::::::::::::::" << std::endl;
 }
 
 std::istream &operator>>(std::istream &is, CollisionSystem &system)
@@ -171,7 +161,8 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 
         if (!(is >> num)) //num
         {
-            std::cerr << "num err" << std::endl;
+            std::cerr << "input err" << std::endl;
+            //std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -197,13 +188,13 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
             }
         }
     }
-    OUTPUT << "System read in over::::::::::::::::" << std::endl;
+    std::clog << "System read in over::::::::::::::::" << std::endl;
     system.init();
     return is;
 }
 
 std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
 {
-    os << system.balls << system.fixedBalls << system.walls << system.eventQueue;
+    os << system.balls << system.fixedBalls << system.walls;
     return os;
 }

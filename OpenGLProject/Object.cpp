@@ -262,6 +262,12 @@ void Ball::bounce(Ball &ball)
     ball.count++;
 }
 
+
+bool Ball::examine(const Ball &ball)
+{
+    return (glm::length(location - ball.location) < (radius + ball.radius) * 1.0001f);
+}
+
 bool Ball::back(const Ball& ball)
 {
     if ((glm::dot(-(location - ball.location), velocity) < 0) && (glm::dot(location - ball.location, ball.velocity) < 0))

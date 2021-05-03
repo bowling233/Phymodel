@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <glm\glm.hpp>
-#define OBJ_EXT
+
 class Object;
 class MovableObject;
 class FixedBall;
@@ -179,6 +179,9 @@ public:
 
 
     //examine
+    bool examine(const FixedBall &);
+    bool examine(const Wall &);
+    bool examine(const Ball &);
     bool back(const Ball&);
 
 
