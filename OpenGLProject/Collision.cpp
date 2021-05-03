@@ -2,6 +2,7 @@
 #include "Object.h"
 #include <iomanip>
 #include <memory>
+int sumbounce = 0;
 
 void CollisionSystem::run(float t)
 {
@@ -10,7 +11,9 @@ void CollisionSystem::run(float t)
         for (auto i = balls.cbegin(); i != balls.cend(); i++)
             for (auto j = i + 1; j != balls.cend(); j++)
                 if ((**i).examine(**j))
-                    (**i).bounce(**j);
+                {
+                    (**i).bounce(**j); sumbounce++;
+                }
         move(DELTATIME);
     }
 }

@@ -13,7 +13,9 @@
 #include "Sphere.h"
 #include "Utils.h"
 #include <cstdlib>
+#include <chrono> 
 using namespace std;
+using namespace chrono;
 
 //关掉vs错误提示
 #define _CRT_SECURE_NO_DEPRECATE
@@ -28,6 +30,7 @@ using namespace std;
 #include "Collision.h"
 
 #define numVAOs 1
+
 
 float cameraX, cameraY, cameraZ;
 
@@ -53,7 +56,7 @@ Sphere mySphere = Sphere(48);
 
 
 //setupvert-----------------------------------------------------------------------------------------------------------
-void setupVert_sphere()
+void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 {
 
 	std::vector<int> ind = mySphere.getIndices();
@@ -90,6 +93,14 @@ void setupVert_sphere()
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
+
+	//VBO4:scale
+	std::vector<float> scales;//float
+	for (int i = 0; i != balls.size(); i++)
+		scales.push_back(balls[i]->r());
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);//缩放矩阵
+	glBufferData(GL_ARRAY_BUFFER, scales.size() * 4, &scales[0], GL_STATIC_DRAW);
+	glVertexAttribDivisor(4, 1);//配置实例化更新数据
 }
 
 void setupVert_coord(void)
@@ -132,7 +143,7 @@ void setupVert_skybox(void)
 
 
 //init-----------------------------------------------------------------------------------------------------------
-void init(GLFWwindow *window)
+void init(GLFWwindow *window,CollisionSystem& system)
 {
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
@@ -141,21 +152,23 @@ void init(GLFWwindow *window)
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	//	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
-	cameraX = -10.0f;
-	cameraY = 3.0f;
-	cameraZ = 7.0f;
+	cameraX = -15.0f;
+	cameraY = -15.0f;
+	cameraZ = 15.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 
-	setupVert_sphere();
+	setupVert_sphere(system.b());
 	//setupVert_skybox();
 	setupVert_coord();
 	sphereTexture = Utils::loadTexture("earth.jpg");
 	skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
+
 
 
 
@@ -256,10 +269,9 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 	glBindTexture(GL_TEXTURE_2D, sphereTexture);
 
 
-	std::vector<float> scales;//float
+
 	std::vector<float> models;//vec3
-	for (int i = 0;i!=balls.size();i++)
-		scales.push_back(balls[i]->r());
+
 
 	for (int i = 0; i != balls.size(); i++) 
 	{
@@ -276,13 +288,10 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 	glVertexAttribDivisor(3, 1);//配置实例化更新数据
 
 //VBO4:scale
-	/*
-	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);//缩放矩阵
-	glBufferData(GL_ARRAY_BUFFER, scales.size() * 4, &scales[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(4);
-	glVertexAttribDivisor(4, 1);//配置实例化更新数据
-	*/
+	
 	//glEnable(GL_CULL_FACE);
 	//glFrontFace(GL_CCW);
 
@@ -291,15 +300,15 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
 }
 
-
+double currentTime=0, lastTime;
 void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(0.0, 0.0, 0.1, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	//draw_skybox();
-	//draw_sphere(system.balls);
+	draw_sphere(system.balls);
 	//draw_sphere(system.fixedBalls);
 	draw_coord();
 }
@@ -341,24 +350,49 @@ int main(void)
 
 	
 
-	ifstream ifstrm("20ball.txt");
+	ifstream ifstrm("605ball.txt");
 	ofstream ofstrm("out.txt");
+	ofstream fps("fps.txt");
+	ofstream bounce("bounce.txt");
+
 	CollisionSystem system(ifstrm);
-	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
-	
-	init(window);
+	auto last = system_clock::now();
+	auto current = system_clock::now();
+	auto duration = duration_cast<microseconds>(current - last);
+	unsigned int count = 0;
+	init(window,system);
 	
 	while (!glfwWindowShouldClose(window))
 	{
+		
+		if (count++ == 30) {
+			last = current;
+			current = system_clock::now();
+			duration = duration_cast<microseconds>(current - last);
+			cout << "fps::"
+				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
+				<< endl
+				<< "bounce persecond::" 
+				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
+				<< endl;
+			count = 0;
+			sumbounce = 0;
+
+		}
+		
+		
 		//move camera
 
-		system.run(0.01f);
+		system.run(1.0f/60.0f);
 
 	//display
 		display(window, glfwGetTime(), system);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		
+		
+		
 	}
 
 	glfwDestroyWindow(window);

@@ -7,7 +7,9 @@
 #include <memory>
 #include <queue>
 #include <GLFW\glfw3.h>
-#define DELTATIME 0.001f
+constexpr auto DELTATIME = 0.01f;
+extern int sumbounce;
+
 
 class Object; 
 class MovableObject;

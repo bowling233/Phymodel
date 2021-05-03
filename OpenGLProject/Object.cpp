@@ -267,12 +267,7 @@ void Ball::bounce(Ball &ball)
 
 bool Ball::examine(const Ball &ball)
 {
-    if (glm::length(location - ball.location) < (radius + ball.radius)*1.0001f)
-    {
-        std::cout << "crossed" << std::endl;
-        return true;
-    }
-    return false;
+    return (glm::length(location - ball.location) < (radius + ball.radius) * 1.0001f);
 }
 
 bool Ball::back(const Ball& ball)
