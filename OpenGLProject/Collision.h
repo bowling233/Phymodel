@@ -33,6 +33,9 @@ public:
     //action
     void run(float);
     void reverse();
+    std::vector<std::shared_ptr<Ball>>& b() { return balls; }
+    std::vector<std::shared_ptr<FixedBall>>& fb() { return fixedBalls; }
+    std::vector<std::shared_ptr<Wall>>& w() { return walls; }
 
 private:
     void init();

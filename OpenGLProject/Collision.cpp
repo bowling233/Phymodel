@@ -77,13 +77,13 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
             }
         }
     }
-    OUTPUT << "System read in over::::::::::::::::" << std::endl;
+    std::clog << "System read in over::::::::::::::::" << std::endl;
     system.init();
     return is;
 }
 
 std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
 {
-    os << system.balls << system.fixedBalls << system.walls << system.eventQueue;
+    os << system.balls << system.fixedBalls << system.walls;
     return os;
 }

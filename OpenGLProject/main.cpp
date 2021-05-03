@@ -3,6 +3,7 @@
 #include <GLFW\glfw3.h>
 #include <SOIL2\soil2.h>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -32,15 +33,15 @@ float cameraX, cameraY, cameraZ;
 
 GLuint skyboxRenderingProgram, coordRenderingProgram, sphereRenderingProgram, planeRenderingProgram;
 GLuint vao[numVAOs];
-GLuint skyboxVbo[2], coordVbo[1], sphereVbo[3], planeVbo[3];
+GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[3];
 GLuint skyboxTexture, sphereTexture, planeTexture;
 float rotAmt = 0.0f; //tochk
 
 //allocation
-GLuint mvLoc, projLoc, vLoc;
+GLuint mvLoc, projLoc, vLoc ,sLoc;
 int width, height;
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat,lMat;
+glm::mat4 pMat, vMat, mMat, mvMat, lMat, sMat;
 Sphere mySphere = Sphere(48);
 
 
@@ -50,8 +51,9 @@ Sphere mySphere = Sphere(48);
 
 
 
+
 //setupvert-----------------------------------------------------------------------------------------------------------
-void setupVert_sphere(void)
+void setupVert_sphere()
 {
 
 	std::vector<int> ind = mySphere.getIndices();
@@ -62,6 +64,8 @@ void setupVert_sphere(void)
 	std::vector<float> pvalues;
 	std::vector<float> tvalues;
 	std::vector<float> nvalues;
+
+
 
 	int numIndices = mySphere.getNumIndices();
 	for (int i = 0; i < numIndices; i++)
@@ -75,8 +79,8 @@ void setupVert_sphere(void)
 		nvalues.push_back((norm[ind[i]]).y);
 		nvalues.push_back((norm[ind[i]]).z);
 	}
-
-	glGenBuffers(3, sphereVbo);
+	
+	glGenBuffers(5, sphereVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, pvalues.size() * 4, &pvalues[0], GL_STATIC_DRAW);
@@ -137,16 +141,16 @@ void init(GLFWwindow *window)
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	//	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
-	cameraX = 5.0f;
-	cameraY = 5.0f;
-	cameraZ = 5.0f;
+	cameraX = -10.0f;
+	cameraY = 3.0f;
+	cameraZ = 7.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
 
 	setupVert_sphere();
-	setupVert_skybox();
+	//setupVert_skybox();
 	setupVert_coord();
 	sphereTexture = Utils::loadTexture("earth.jpg");
 	skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
@@ -212,89 +216,91 @@ void draw_coord(void)
 	glDrawArrays(GL_LINES, 0, 6);
 }
 
+
+
 void draw_sphere(vector<shared_ptr<Ball>> &balls)
 {
+
 	glUseProgram(sphereRenderingProgram);
-	for (const auto &iterator : balls)
+	glBindVertexArray(vao[0]);
+
+	/*
+	for (int i = 0; i != balls.size(); i++)
 	{
-		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
-		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
+		mMat = glm::translate(glm::mat4(1.0f), balls[i]->loc());								   //构建好模型矩阵
+		mvLoc = glGetUniformLocation(sphereRenderingProgram, ("m_matrix[" + to_string(i) + "]").c_str()); //获取着色器中的位置
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mMat));							   //传模型矩阵
 
-		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator->loc());
-
-		mvMat = vMat * mMat;
-
-		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(1);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, sphereTexture);
-
-		//glEnable(GL_CULL_FACE);
-		//glFrontFace(GL_CCW);
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
+		sMat = glm::scale(glm::mat4(1.0f), glm::vec3(balls[i]->r()));
+		sLoc = glGetUniformLocation(sphereRenderingProgram, ("s_matrix[" + to_string(i) + "]").c_str());
+		glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(sMat));
 	}
+	*/
+
+//uniform
+	vMat = lMat;
+	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(vMat));
+	projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+//VBO0:vert
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+//VBO1:terxture
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, sphereTexture);
+
+
+	std::vector<float> scales;//float
+	std::vector<float> models;//vec3
+	for (int i = 0;i!=balls.size();i++)
+		scales.push_back(balls[i]->r());
+
+	for (int i = 0; i != balls.size(); i++) 
+	{
+		models.push_back(balls[i]->loc().x);
+		models.push_back(balls[i]->loc().y);
+		models.push_back(balls[i]->loc().z);
+	}
+
+//VBO3:model
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);//传送模型矩阵
+	glBufferData(GL_ARRAY_BUFFER, models.size() * 4, &models[0], GL_STATIC_DRAW);//直接刷新缓冲区
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(3);
+	glVertexAttribDivisor(3, 1);//配置实例化更新数据
+
+//VBO4:scale
+	/*
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);//缩放矩阵
+	glBufferData(GL_ARRAY_BUFFER, scales.size() * 4, &scales[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(4);
+	glVertexAttribDivisor(4, 1);//配置实例化更新数据
+	*/
+	//glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CCW);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
 }
 
-void draw_sphere(vector<shared_ptr<FixedBall>> &fixedBalls)
-{
-	glUseProgram(sphereRenderingProgram);
-	for (const auto &iterator : fixedBalls)
-	{
-		mvLoc = glGetUniformLocation(sphereRenderingProgram, "mv_matrix");
-		projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
-
-		//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-		vMat = lMat;
-		mMat = glm::translate(glm::mat4(1.0f), iterator->loc());
-
-		mvMat = vMat * mMat;
-
-		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(1);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, sphereTexture);
-
-		//glEnable(GL_CULL_FACE);
-		//glFrontFace(GL_CCW);
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		glDrawArrays(GL_TRIANGLES, 0, mySphere.getNumIndices());
-	}
-}
 
 void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	
 	//draw_skybox();
-	draw_sphere(system.balls);
-	draw_sphere(system.fixedBalls);
+	//draw_sphere(system.balls);
+	//draw_sphere(system.fixedBalls);
 	draw_coord();
 }
 
@@ -333,17 +339,20 @@ int main(void)
 	glfwSwapInterval(1);//垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
-	init(window);
+	
 
-	ifstream ifstrm("in.txt");
+	ifstream ifstrm("20ball.txt");
 	ofstream ofstrm("out.txt");
 	CollisionSystem system(ifstrm);
+	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	
+	init(window);
 	
 	while (!glfwWindowShouldClose(window))
 	{
 		//move camera
 
-		system.run(0.5f);
+		system.run(0.01f);
 
 	//display
 		display(window, glfwGetTime(), system);
