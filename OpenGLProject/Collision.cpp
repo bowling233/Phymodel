@@ -3,17 +3,20 @@
 #include <iomanip>
 #include <memory>
 int sumbounce = 0;
+int sumexam = 0;
 
 void CollisionSystem::run(float t)
 {
     for (float targetTime = currentTime + t; currentTime < targetTime;)
     {
         for (auto i = balls.cbegin(); i != balls.cend(); i++)
-            for (auto j = i + 1; j != balls.cend(); j++)
+            for (auto j = i + 1; j != balls.cend(); j++) {
+                sumexam++;
                 if ((**i).examine(**j))
                 {
                     (**i).bounce(**j); sumbounce++;
                 }
+            }
         move(DELTATIME);
     }
 }

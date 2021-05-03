@@ -1,106 +1,136 @@
-﻿//Program from chapter
-#include <GL\glew.h>
+﻿#include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <SOIL2\soil2.h>
 #include <string>
-#include <sstream>
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <glm\glm.hpp>
 #include <glm\gtc\type_ptr.hpp>			// glm::value_ptr
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include "Sphere.h"
 #include "Utils.h"
-#include <cstdlib>
-#include <chrono> 
 using namespace std;
-using namespace chrono;
 
-//关掉vs错误提示
-#define _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable : 4996)
-#define OUTPUT std::cout
-
-#include <iomanip>
+#include <cmath>
+#include <sstream>
+#include <cstdlib>
+#include <chrono>
+//#include <iomanip>
 #include <vector>
 #include <queue>
 #include "Object.h"
 #include "Collision.h"
+using namespace chrono;
+//#define _CRT_SECURE_NO_DEPRECATE
+//#define _CRT_SECURE_NO_WARNINGS
+//#pragma warning(disable : 4996)
 
 #define numVAOs 1
 
-
 float cameraX, cameraY, cameraZ;
-
-GLuint skyboxRenderingProgram, coordRenderingProgram, sphereRenderingProgram, planeRenderingProgram;
+GLuint skyboxRenderingProgram,
+	coordRenderingProgram,
+	sphereRenderingProgram,
+	planeRenderingProgram;
 GLuint vao[numVAOs];
 GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[3];
 GLuint skyboxTexture, sphereTexture, planeTexture;
-float rotAmt = 0.0f; //tochk
+float amt = 0.0f; //tochk
+
+Sphere mySphere = Sphere(48);
+glm::vec3 lightLoc = glm::vec3(5.0f, 2.0f, 2.0f);
 
 //allocation
-GLuint mvLoc, projLoc, vLoc ,sLoc;
+GLuint mvLoc, projLoc, vLoc, sLoc, nLoc;
+GLuint globalAmbLoc, ambLoc, diffLoc, specLoc,
+	posLoc, mambLoc, mdiffLoc, mspecLoc, mshiLoc;
 int width, height;
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat, lMat, sMat;
-Sphere mySphere = Sphere(48);
+glm::mat4 pMat, vMat, mMat, mvMat, lMat, invTrMat, rMat;
+glm::vec3 currentLightPos, transformed;
+float lightPos[3];
+
+// white light
+float globalAmbient[4] = { 0.7f, 0.7f, 0.7f, 1.0f };
+float lightAmbient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+float lightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+float lightSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+// gold material
+float* matAmb = Utils::goldAmbient();
+float* matDif = Utils::goldDiffuse();
+float* matSpe = Utils::goldSpecular();
+float matShi = Utils::goldShininess();
+
+float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 
+void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
+	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));
+	lightPos[0] = transformed.x;
+	lightPos[1] = transformed.y;
+	lightPos[2] = transformed.z;
 
+	// get the locations of the light and material fields in the shader
+	globalAmbLoc = glGetUniformLocation(renderingProgram, "globalAmbient");
+	ambLoc = glGetUniformLocation(renderingProgram, "light.ambient");
+	diffLoc = glGetUniformLocation(renderingProgram, "light.diffuse");
+	specLoc = glGetUniformLocation(renderingProgram, "light.specular");
+	posLoc = glGetUniformLocation(renderingProgram, "light.position");
+	mambLoc = glGetUniformLocation(renderingProgram, "material.ambient");
+	mdiffLoc = glGetUniformLocation(renderingProgram, "material.diffuse");
+	mspecLoc = glGetUniformLocation(renderingProgram, "material.specular");
+	mshiLoc = glGetUniformLocation(renderingProgram, "material.shininess");
 
-
-
+	//  set the uniform light and material values in the shader
+	glProgramUniform4fv(renderingProgram, globalAmbLoc, 1, globalAmbient);
+	glProgramUniform4fv(renderingProgram, ambLoc, 1, lightAmbient);
+	glProgramUniform4fv(renderingProgram, diffLoc, 1, lightDiffuse);
+	glProgramUniform4fv(renderingProgram, specLoc, 1, lightSpecular);
+	glProgramUniform3fv(renderingProgram, posLoc, 1, lightPos);
+	glProgramUniform4fv(renderingProgram, mambLoc, 1, matAmb);
+	glProgramUniform4fv(renderingProgram, mdiffLoc, 1, matDif);
+	glProgramUniform4fv(renderingProgram, mspecLoc, 1, matSpe);
+	glProgramUniform1f(renderingProgram, mshiLoc, matShi);
+}
 
 
 
 //setupvert-----------------------------------------------------------------------------------------------------------
 void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
-{
-
+{//VBO:0.顶点1.法向量2.缩放3.位置
 	std::vector<int> ind = mySphere.getIndices();
 	std::vector<glm::vec3> vert = mySphere.getVertices();
-	std::vector<glm::vec2> tex = mySphere.getTexCoords();
 	std::vector<glm::vec3> norm = mySphere.getNormals();
 
 	std::vector<float> pvalues;
-	std::vector<float> tvalues;
 	std::vector<float> nvalues;
-
-
+	std::vector<float> scales;
 
 	int numIndices = mySphere.getNumIndices();
-	for (int i = 0; i < numIndices; i++)
-	{
+	for (int i = 0; i < numIndices; i++) {
 		pvalues.push_back((vert[ind[i]]).x);
 		pvalues.push_back((vert[ind[i]]).y);
 		pvalues.push_back((vert[ind[i]]).z);
-		tvalues.push_back((tex[ind[i]]).s);
-		tvalues.push_back((tex[ind[i]]).t);
 		nvalues.push_back((norm[ind[i]]).x);
 		nvalues.push_back((norm[ind[i]]).y);
 		nvalues.push_back((norm[ind[i]]).z);
 	}
-	
-	glGenBuffers(5, sphereVbo);
+
+	for (auto const & i:balls)
+		scales.push_back(i->r());
+
+	glGenBuffers(4, sphereVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, pvalues.size() * 4, &pvalues[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pvalues.size()*4, &pvalues[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, tvalues.size() * 4, &tvalues[0], GL_STATIC_DRAW);
-
+	glBufferData(GL_ARRAY_BUFFER, nvalues.size()*4, &nvalues[0], GL_STATIC_DRAW);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
-
-	//VBO4:scale
-	std::vector<float> scales;//float
-	for (int i = 0; i != balls.size(); i++)
-		scales.push_back(balls[i]->r());
-	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);//缩放矩阵
-	glBufferData(GL_ARRAY_BUFFER, scales.size() * 4, &scales[0], GL_STATIC_DRAW);
-	glVertexAttribDivisor(4, 1);//配置实例化更新数据
+	glBufferData(GL_ARRAY_BUFFER, scales.size() * sizeof(float), &scales[0], GL_STATIC_DRAW);
+	glVertexAttribDivisor(2, 1);
 }
 
 void setupVert_coord(void)
@@ -148,25 +178,26 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 
-	skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
+	//skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	//	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
-	cameraX = -15.0f;
-	cameraY = -15.0f;
-	cameraZ = 15.0f;
+	cerr << "init passed" << endl;
+	cameraX = -5.0f;
+	cameraY = -5.0f;
+	cameraZ = 10.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(7.5f, 7.5f, 7.5f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 
 	setupVert_sphere(system.b());
 	//setupVert_skybox();
 	setupVert_coord();
-	sphereTexture = Utils::loadTexture("earth.jpg");
-	skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	//sphereTexture = Utils::loadTexture("earth.jpg");
+	//skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
+	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 
@@ -237,74 +268,56 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 	glUseProgram(sphereRenderingProgram);
 	glBindVertexArray(vao[0]);
 
-	/*
-	for (int i = 0; i != balls.size(); i++)
-	{
-		mMat = glm::translate(glm::mat4(1.0f), balls[i]->loc());								   //构建好模型矩阵
-		mvLoc = glGetUniformLocation(sphereRenderingProgram, ("m_matrix[" + to_string(i) + "]").c_str()); //获取着色器中的位置
-		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mMat));							   //传模型矩阵
-
-		sMat = glm::scale(glm::mat4(1.0f), glm::vec3(balls[i]->r()));
-		sLoc = glGetUniformLocation(sphereRenderingProgram, ("s_matrix[" + to_string(i) + "]").c_str());
-		glUniformMatrix4fv(sLoc, 1, GL_FALSE, glm::value_ptr(sMat));
-	}
-	*/
-
 //uniform
 	vMat = lMat;
 	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(vMat));
 	projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
+	currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
+	amt += 0.5f;
+	rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
+	currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
+
+	installLights(sphereRenderingProgram,vMat);
+
 //VBO0:vert
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
-//VBO1:terxture
+//VBO1:norm
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sphereTexture);
-
-
-
-	std::vector<float> models;//vec3
-
-
-	for (int i = 0; i != balls.size(); i++) 
-	{
-		models.push_back(balls[i]->loc().x);
-		models.push_back(balls[i]->loc().y);
-		models.push_back(balls[i]->loc().z);
-	}
+	std::vector<glm::vec3> models;//vec3
+	for (auto const&i:balls) 
+		models.push_back(i->loc());
 
 //VBO3:model
-	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);//传送模型矩阵
-	glBufferData(GL_ARRAY_BUFFER, models.size() * 4, &models[0], GL_STATIC_DRAW);//直接刷新缓冲区
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);//传送模型位置
+	glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::vec3), &models[0], GL_DYNAMIC_DRAW);//直接刷新缓冲区
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(3);
 	glVertexAttribDivisor(3, 1);//配置实例化更新数据
 
-//VBO4:scale
-	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[4]);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(4);
+//VBO2:scale
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
 	
-	//glEnable(GL_CULL_FACE);
-	//glFrontFace(GL_CCW);
+	glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
 }
 
-double currentTime=0, lastTime;
 void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.1, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	//draw_skybox();
@@ -352,8 +365,6 @@ int main(void)
 
 	ifstream ifstrm("605ball.txt");
 	ofstream ofstrm("out.txt");
-	ofstream fps("fps.txt");
-	ofstream bounce("bounce.txt");
 
 	CollisionSystem system(ifstrm);
 	auto last = system_clock::now();
@@ -374,6 +385,9 @@ int main(void)
 				<< endl
 				<< "bounce persecond::" 
 				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
+				<< endl
+				<< "exam persecond::"
+				<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl;
 			count = 0;
 			sumbounce = 0;
