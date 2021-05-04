@@ -31,14 +31,15 @@ float cameraX, cameraY, cameraZ;
 GLuint skyboxRenderingProgram,
 	coordRenderingProgram,
 	sphereRenderingProgram,
-	planeRenderingProgram;
+	planeRenderingProgram,
+	lightRenderingProgram;
 GLuint vao[numVAOs];
-GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[1];
-GLuint skyboxTexture, sphereTexture, planeTexture;
+GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[1], lightVbo;
+GLuint skyboxTexture;
 float amt = 0.0f; //tochk
 
 Sphere mySphere = Sphere(48);
-glm::vec3 lightLoc = glm::vec3(5.0f, 2.0f, 2.0f);
+glm::vec3 lightLoc = glm::vec3(20.5f, 7.5f, 7.5f);
 
 //allocation
 GLuint mvLoc, projLoc, vLoc, sLoc, nLoc;
@@ -182,8 +183,8 @@ void setupVert_plane(void)
 {
 	float planeVertexPositions[18] =
 	{
-		10.0f, -10.0f, 0.0f, 10.0f, 10.0f, 0.0f, -10.0f, -10.0f, 0.0f,
-		 -10.0f, -10.0f, 0.0f, -10.0f, 10.0f, 0.0f, 10.0f, 10.0f, 0.0f
+		100.0f, -100.0f, 0.0f, 100.0f, 100.0f, 0.0f, -100.0f, -100.0f, 0.0f,
+		 -100.0f, -100.0f, 0.0f, -100.0f, 100.0f, 0.0f, 100.0f, 100.0f, 0.0f
 	};
 
 	glGenBuffers(1, planeVbo);
@@ -207,9 +208,11 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	//skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
-	//planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl","tcs_plane.glsl","tes_plane.glsl", "fs_plane.glsl");
-	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
+	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl","tcs_plane.glsl","tes_plane.glsl", "fs_plane.glsl");
+	lightRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
+
 	
+
 	clog << "init passed" << endl;
 	cameraX = 20.0f;
 	cameraY = 20.0f;
@@ -226,9 +229,10 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	//setupVert_skybox();
 	setupVert_coord();
 	setupVert_plane();
-	//sphereTexture = Utils::loadTexture("earth.jpg");
-	//skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
-	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	glGenBuffers(1, &lightVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightLoc), GL_STATIC_DRAW);
 }
 
 
@@ -288,6 +292,26 @@ void draw_coord(void)
 	glEnableVertexAttribArray(0);
 
 	glDrawArrays(GL_LINES, 0, 6);
+
+
+	//--------------------------------------------LIGHT
+	
+	
+	glPointSize(5.0f);
+	glUseProgram(lightRenderingProgram);
+	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
+	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
+
+	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glDrawArrays(GL_POINTS, 0, 1);
+
+
 }
 
 void draw_sphere(vector<shared_ptr<Ball>> &balls)
@@ -296,7 +320,7 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 
 //light
 	currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
-	amt += 0.5f;
+	//amt += 0.5f;
 	rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
 	currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
 	installLights(sphereRenderingProgram, lMat);
@@ -365,10 +389,10 @@ void draw_wall()
 	glEnableVertexAttribArray(0);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDisable(GL_DEPTH_TEST);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_PATCHES, 0, 6);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 
 }
 
@@ -378,11 +402,12 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	
 	//draw_skybox();
 	draw_sphere(system.balls);
 	//draw_sphere(system.fixedBalls);
 	draw_coord();
-	draw_wall();
+	//draw_wall();
 }
 
 void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
@@ -422,7 +447,7 @@ int main(void)
 
 	
 
-	ifstream ifstrm("testdata\\20ball.txt");
+	ifstream ifstrm("testdata\\4096ball.txt");
 	ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
@@ -430,6 +455,7 @@ int main(void)
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;
+	bool flag = true;
 	init(window,system);
 	
 	while (!glfwWindowShouldClose(window))
@@ -450,13 +476,15 @@ int main(void)
 				<< endl;
 			count = 0;
 			sumbounce = 0;
+			sumexam = 0;
 
 		}
 		
-		system.run(1.0f/60.0f);
+		system.move(1.0f/60.0f);
 
 	//display
-		display(window, glfwGetTime(), system);
+	display(window, glfwGetTime(), system);
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

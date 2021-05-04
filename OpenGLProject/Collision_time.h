@@ -39,10 +39,10 @@ public:
     std::vector<std::shared_ptr<Ball>>& b() { return balls; }
     std::vector<std::shared_ptr<FixedBall>>& fb() { return fixedBalls; }
     std::vector<std::shared_ptr<Wall>>& w() { return walls; }
-
+    void move(float);
 private:
     void init();
-    void move(float);
+    
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<FixedBall>> fixedBalls;
     std::vector<std::shared_ptr<Wall>> walls;
