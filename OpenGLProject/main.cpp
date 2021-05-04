@@ -33,7 +33,7 @@ GLuint skyboxRenderingProgram,
 	sphereRenderingProgram,
 	planeRenderingProgram;
 GLuint vao[numVAOs];
-GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[3];
+GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[1];
 GLuint skyboxTexture, sphereTexture, planeTexture;
 float amt = 0.0f; //tochk
 
@@ -46,7 +46,7 @@ GLuint globalAmbLoc, ambLoc, diffLoc, specLoc,
 	posLoc, mambLoc, mdiffLoc, mspecLoc, mshiLoc;
 int width, height;
 float aspect;
-glm::mat4 pMat, vMat, mMat, mvMat, lMat, invTrMat, rMat;
+glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
 glm::vec3 currentLightPos, transformed;
 float lightPos[3];
 
@@ -62,8 +62,20 @@ float* matDif = Utils::goldDiffuse();
 float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
+
+//Tools
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
+glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
+{
+	glm::vec3 rotationAxis;
+	float rotationAngle;
+	glm::mat4 rotationMatrix;
+	rotationAxis = glm::cross(vectorBefore, vectorAfter);
+	rotationAngle = acos(glm::dot(glm::normalize(vectorBefore), glm::normalize(vectorAfter)));
+	rotationMatrix = glm::rotate(glm::mat4(1.0f), rotationAngle, rotationAxis);
+	return rotationMatrix;
+}
 
 void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
 	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));
@@ -160,9 +172,23 @@ void setupVert_skybox(void)
 		 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
 		 -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
 		 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f};
-	glGenBuffers(2, skyboxVbo);
+
+	glGenBuffers(1, skyboxVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, skyboxVbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexPositions), cubeVertexPositions, GL_STATIC_DRAW);
+}
+
+void setupVert_plane(void)
+{
+	float planeVertexPositions[18] =
+	{
+		10.0f, -10.0f, 0.0f, 10.0f, 10.0f, 0.0f, -10.0f, -10.0f, 0.0f,
+		 -10.0f, -10.0f, 0.0f, -10.0f, 10.0f, 0.0f, 10.0f, 10.0f, 0.0f
+	};
+
+	glGenBuffers(1, planeVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertexPositions), planeVertexPositions, GL_STATIC_DRAW);
 }
 
 
@@ -181,20 +207,25 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	//skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
-	//	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
-	cerr << "init passed" << endl;
-	cameraX = -5.0f;
-	cameraY = -5.0f;
-	cameraZ = 10.0f;
+	//planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl","tcs_plane.glsl","tes_plane.glsl", "fs_plane.glsl");
+	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "fs_plane.glsl");
+	
+	clog << "init passed" << endl;
+	cameraX = 20.0f;
+	cameraY = 20.0f;
+	cameraZ = 20.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(7.5f, 7.5f, 7.5f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+	//rMat = buildRotate();
+	//lMat = lMat * rMat;
 
 	setupVert_sphere(system.b());
 	//setupVert_skybox();
 	setupVert_coord();
+	setupVert_plane();
 	//sphereTexture = Utils::loadTexture("earth.jpg");
 	//skyboxTexture = Utils::loadCubeMap("cubeMap"); // expects a folder name
 	//glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -215,7 +246,6 @@ void init(GLFWwindow *window,CollisionSystem& system)
 //draw-----------------------------------------------------------------------------------------------------------
 void draw_skybox(void)
 {
-	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
 	// draw cube map
 
 	glUseProgram(skyboxRenderingProgram);
@@ -238,17 +268,17 @@ void draw_skybox(void)
 	glDisable(GL_DEPTH_TEST);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
 }
 
 void draw_coord(void)
 {
 	//glLineWidth(5.0f);
-	//vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
-	vMat = lMat;
 	glUseProgram(coordRenderingProgram);
 
 	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
-	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
+	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
 
 	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -260,41 +290,37 @@ void draw_coord(void)
 	glDrawArrays(GL_LINES, 0, 6);
 }
 
-
-
 void draw_sphere(vector<shared_ptr<Ball>> &balls)
 {
-
 	glUseProgram(sphereRenderingProgram);
-	glBindVertexArray(vao[0]);
 
-//uniform
-	vMat = lMat;
-	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(vMat));
-	projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
+//light
 	currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
 	amt += 0.5f;
 	rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
 	currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
+	installLights(sphereRenderingProgram, lMat);
 
-	installLights(sphereRenderingProgram,vMat);
+//uniform
+	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
+	projLoc = glGetUniformLocation(sphereRenderingProgram, "proj_matrix");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
 
 //VBO0:vert
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
+
 //VBO1:norm
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 
+//VBO3:model
 	std::vector<glm::vec3> models;//vec3
 	for (auto const&i:balls) 
 		models.push_back(i->loc());
 
-//VBO3:model
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);//传送模型位置
 	glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::vec3), &models[0], GL_DYNAMIC_DRAW);//直接刷新缓冲区
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -306,12 +332,44 @@ void draw_sphere(vector<shared_ptr<Ball>> &balls)
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(2);
 	
+//draw
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
-
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
+	glDisable(GL_CULL_FACE);
+}
+
+void draw_wall()
+{
+	glUseProgram(planeRenderingProgram);
+
+	/*
+	for (auto const& i : walls)
+	{
+		//uniform
+		//rMat = buildRotate(glm::vec3(1.0, 1.0, 1.0), i->norm());
+	}
+	*/
+	mMat = glm::translate(glm::mat4(1.0f),glm::vec3(-5.0,0.0,-5.0));//yes
+	vMat = lMat * glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0)) * buildRotate(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0));
+	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
+	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(vMat));
+
+	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDisable(GL_DEPTH_TEST);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glEnable(GL_DEPTH_TEST);
+
 }
 
 void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
@@ -324,6 +382,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 	draw_sphere(system.balls);
 	//draw_sphere(system.fixedBalls);
 	draw_coord();
+	draw_wall();
 }
 
 void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
@@ -363,7 +422,7 @@ int main(void)
 
 	
 
-	ifstream ifstrm("testdata\\605ball.txt");
+	ifstream ifstrm("testdata\\20ball.txt");
 	ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
