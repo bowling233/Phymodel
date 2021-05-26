@@ -1,4 +1,5 @@
-﻿#include <GL\glew.h>
+﻿//OpenGL使用的头文件
+#include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <SOIL2\soil2.h>
 #include <string>
@@ -11,6 +12,7 @@
 #include "Utils.h"
 using namespace std;
 
+//自己选用的头文件
 #include <cmath>
 #include <sstream>
 #include <cstdlib>
@@ -21,12 +23,13 @@ using namespace std;
 #include "Object.h"
 #include "Collision_time.h"
 using namespace chrono;
+//关闭vs studio错误提示
 //#define _CRT_SECURE_NO_DEPRECATE
 //#define _CRT_SECURE_NO_WARNINGS
 //#pragma warning(disable : 4996)
 
+//变量预分配部分
 #define numVAOs 1
-
 float cameraX, cameraY, cameraZ;
 GLuint skyboxRenderingProgram,
 	coordRenderingProgram,
@@ -36,11 +39,7 @@ GLuint skyboxRenderingProgram,
 GLuint vao[numVAOs];
 GLuint skyboxVbo[2], coordVbo[1], sphereVbo[5], planeVbo[1], lightVbo;
 GLuint skyboxTexture;
-float amt = 0.0f; //tochk
-
-Sphere mySphere = Sphere(48);
-glm::vec3 lightLoc = glm::vec3(20.5f, 7.5f, 7.5f);
-
+float amt = 0.0f; 
 //allocation
 GLuint mvLoc, projLoc, vLoc, sLoc, nLoc;
 GLuint globalAmbLoc, ambLoc, diffLoc, specLoc,
@@ -63,8 +62,10 @@ float* matDif = Utils::goldDiffuse();
 float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
+Sphere mySphere = Sphere(48);
+glm::vec3 lightLoc = glm::vec3(20.5f, 7.5f, 7.5f);
 
-//Tools
+//小工具函数
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
@@ -109,7 +110,7 @@ void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
 
 
 
-//setupvert-----------------------------------------------------------------------------------------------------------
+//设置顶点-----------------------------------------------------------------------------------------------------------
 void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 {//VBO:0.顶点1.法向量2.缩放3.位置
 	std::vector<int> ind = mySphere.getIndices();
@@ -199,7 +200,7 @@ void setupVert_plane(void)
 
 
 
-//init-----------------------------------------------------------------------------------------------------------
+//OpenGL初始化-----------------------------------------------------------------------------------------------------------
 void init(GLFWwindow *window,CollisionSystem& system)
 {
 	glGenVertexArrays(numVAOs, vao);
@@ -247,7 +248,7 @@ void init(GLFWwindow *window,CollisionSystem& system)
 
 
 
-//draw-----------------------------------------------------------------------------------------------------------
+//OpenGL绘制函数-----------------------------------------------------------------------------------------------------------
 void draw_skybox(void)
 {
 	// draw cube map
@@ -433,6 +434,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 int main(void)
 {
 	//freopen("out.txt", "w", stdout);
+//OpenGL初始化
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -446,8 +448,8 @@ int main(void)
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	
-
-	ifstream ifstrm("testdata\\4096ball.txt");
+//创建碰撞系统
+	ifstream ifstrm("testdata\\1000ballnormal.txt");
 	ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
@@ -457,7 +459,8 @@ int main(void)
 	unsigned int count = 0;
 	bool flag = true;
 	init(window,system);
-	
+
+//程序主循环	
 	while (!glfwWindowShouldClose(window))
 	{
 		
@@ -480,17 +483,14 @@ int main(void)
 
 		}
 		
-		system.move(1.0f/60.0f);
+		system.run(1.0f/60.0f);
 
-	//display
+//显示
 	display(window, glfwGetTime(), system);
 
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		
-		
-		
 	}
 
 	glfwDestroyWindow(window);
