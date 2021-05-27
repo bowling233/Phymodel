@@ -1,4 +1,4 @@
-﻿#ifndef OBJECT_H
+#ifndef OBJECT_H
 #define OBJECT_H
 
 #include <iostream>
@@ -6,7 +6,6 @@
 #include <glm\glm.hpp>
 
 class Object;
-class MovableObject;
 class FixedBall;
 class Wall;
 class Ball;

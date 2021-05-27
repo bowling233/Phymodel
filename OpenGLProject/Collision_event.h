@@ -1,4 +1,4 @@
-﻿#ifndef COLLISION_H
+#ifndef COLLISION_H
 #define COLLISION_H
 
 #include "Object.h"
@@ -13,7 +13,6 @@ extern int sumexam;
 
 
 class Object; 
-class MovableObject;
 class FixedBall; 
 class Wall;
 class Ball;
