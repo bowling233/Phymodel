@@ -21,13 +21,13 @@ int main()
             for (int k = 0; k != NUM; k++)
             {
                 ofstrm 
-                     << i * DISTANCE + DISTANCE / 2.0 << ' '
-                     << j * DISTANCE + DISTANCE / 2.0 << ' '
-                     << k * DISTANCE + DISTANCE / 2.0 << ' '
-                     << n(e) << ' '
-                     << n(e) << ' '
-                     << n(e) << ' '
-                     << MASS << ' '
+                     << i * DISTANCE + DISTANCE / 2.0 << '\t'
+                     << j * DISTANCE + DISTANCE / 2.0 << '\t'
+                     << k * DISTANCE + DISTANCE / 2.0 << '\t'
+                     << n(e) << '\t'
+                     << n(e) << '\t'
+                     << n(e) << '\t'
+                     << MASS << '\t'
                      << RADIUS
                      << endl;
             }
