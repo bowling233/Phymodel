@@ -15,6 +15,10 @@
 	* [Latex公式编辑器2](https://latex.91maths.com/)
 	* [参考文献生成器](http://wenxian.aazz.cn/)
   * [物理化学实验数据参考(Handbook of Chemistry and Physics)](https://hbcp.chemnetbase.com/faces/contents/ContentsSearch.xhtml)
+  * [Wikipedia镜像站](https://chi.jinzhao.wiki/)
+  * [Wikipedia镜像站2](https://zhwiki.netlify.app/)
+  * [Wikipedia英文镜像](https://en.jinzhao.wiki/wiki/Main_Page)
+  * []()
 
 * 参考文献请使用`参考文献生成器`生成统一格式的参考文献附于文件结尾参考文献部分。参考文献请按在文中的引用顺序放置，`[]`部分留空，截稿时再填写序号。
 * 当文献在文中引用时，请在引用文献处添加标记：`<ref>`，转换为word文档时重新编号
@@ -163,12 +167,21 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 #### 2.2.1 理想气体
 
-* 自1982年以来，标准状况定义为0 ℃（273.15 K）、100kPa，这样的定义接近海平面上水的冰点。1摩尔的理想气体在STP下占有的体积为22.710953（21）L(CODATA 2010)，为标准摩尔体积（standard molar volume）。这是区别一般条件而制定的标准。
-* 氧气分子直径0.346e-9m
-* 标准状态下气体分子直径2.2414e-3/6.02214076e23开立方根=
-* 一微米长度上可排列气体分子数6.452726e+02取为645个
-* k为波尔兹曼常数，k = 1.38066 x 10−23 J/K 
-* M=5.313393e-26
+数据汇总整理：
+* 默认标准状态： (273.15 K, 100 kPa)
+* [理想气体摩尔体积$V_m$](https://physics.nist.gov/cgi-bin/cuu/Value?mvol)=22.710 954 64...  x 10-3 m3 mol-1（molar volume of ideal gas）【来自】
+* 氧气分子直径d=0.346nm（常用气体分子直径表）
+* [阿伏伽德罗常数$N_A$](https://physics.nist.gov/cgi-bin/cuu/Value?na)=6.022 140 76  x 1023 mol-1
+* [玻尔兹曼常数$k_B$](https://physics.nist.gov/cgi-bin/cuu/Value?k)=1.380 649  x 10-23 J K-1
+* 氧气分子质量m=5.3 x 10^-26 kg
+
+* 标准状态下气体分子间距$\sqrt[3]{\frac{V_m}{N_A}}$=3.353473e-09m
+> printf("%e",pow(22.71095464e-3/6.02214076e23,1.0/3.0));
+* 一微米长度上可排列气体分子数2.981983e+02取为298个
+> printf("%e",1e-6/pow(22.71095464e-3/6.02214076e23,1.0/3.0));
+* 方差
+> printf("%e",sqrt(1.380649e-23*273.15/5.3e-26));
+
 
 #### 2.2.2 布朗运动
 
