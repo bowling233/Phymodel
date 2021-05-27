@@ -1,13 +1,18 @@
-#include "Collision.h"
+#include "Collision_event.h"
 #include "Object.h"
 #include <iomanip>
 #include <memory>
 #define OUTPUT std::cout
 
+
+//#############
+//Event
+//#############
 void Event::handle() const //notice
 {
+    if ((ball->cnt() == countBall) && (object->cnt() == countObject))
+        ball->bounce(*object); //从指针变成直接对对象的引用，从这里控制权交还给ball类
     OUTPUT << "::::::::::::::::::::::::::::::Event handle: " << *this << std::endl;
-    ball->bounce(*object); //从指针变成直接对对象的引用，从这里控制权交还给ball类
 }
 
 std::ostream &operator<<(std::ostream &os, const Event &event)
@@ -49,8 +54,11 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
     return os;
 }
 
-//bool flag = true;
+//#############
+//CollisionSystem
+//#############
 
+//bool flag = true;
 void CollisionSystem::run(float t)
 {
     float targetTime = currentTime + t;
@@ -125,18 +133,13 @@ void CollisionSystem::reverse()
 {
     while (!eventQueue.empty())eventQueue.pop();//清空
     OUTPUT << eventQueue;
-
     for (auto &i : balls)
         i->rev();
 }
 
-void CollisionSystem::move(float t)
-{
-    for (auto &i : balls)
-        i->move(t);
-    currentTime += t;
-}
-
+//#############
+//private
+//#############
 void CollisionSystem::init()
 {
     while (!eventQueue.empty())eventQueue.pop();
@@ -152,6 +155,16 @@ void CollisionSystem::init()
     }
 }
 
+void CollisionSystem::move(float t)
+{
+    for (auto &i : balls)
+        i->move(t);
+    currentTime += t;
+}
+
+//#############
+//operator
+//#############
 std::istream &operator>>(std::istream &is, CollisionSystem &system)
 {
     char identifier;
