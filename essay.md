@@ -11,14 +11,14 @@
 ## Note:编辑前请先阅读
 
 * 一些常用工具：
-	* [Latex公式编辑器](https://www.codecogs.com/latex/eqneditor.php)
-	* [Latex公式编辑器2](https://latex.91maths.com/)
-	* [参考文献生成器](http://wenxian.aazz.cn/)
+  * [Latex公式编辑器](https://www.codecogs.com/latex/eqneditor.php)
+  * [Latex公式编辑器2](https://latex.91maths.com/)
+  * [参考文献生成器](http://wenxian.aazz.cn/)
   * [物理化学实验数据参考(Handbook of Chemistry and Physics)](https://hbcp.chemnetbase.com/faces/contents/ContentsSearch.xhtml)
   * [Wikipedia镜像站](https://chi.jinzhao.wiki/)
   * [Wikipedia镜像站2](https://zhwiki.netlify.app/)
   * [Wikipedia英文镜像](https://en.jinzhao.wiki/wiki/Main_Page)
-  * []()
+  * [物理学常数(NIST Physics Data)](https://www.nist.gov/pml/productsservices/physical-reference-data)
 
 * 参考文献请使用`参考文献生成器`生成统一格式的参考文献附于文件结尾参考文献部分。参考文献请按在文中的引用顺序放置，`[]`部分留空，截稿时再填写序号。
 * 当文献在文中引用时，请在引用文献处添加标记：`<ref>`，转换为word文档时重新编号
@@ -29,6 +29,8 @@
 已经完成球与球之间的碰撞
 
 等待做的：
+
+* Event类型的开发进度可能因为当时操作不当而丢失了许多。已经发现当初使用的动态指针映射消失了，现在想不起来当时还做了哪些更改
 
 * 循环全部使用迭代器
 * 全部改成智能指针
@@ -50,6 +52,7 @@
 在现代科学研究中，计算机已经成为不可或缺的一环。计算机凭借其强大的性能和高效的算法，能够快速处理海量数据并得到准确的结果。利用可视化技术，研究人员得以实时观察数据情况，获得直观感受
 
 ### 1.2 研究目的与意义
+
 通过此次研究，我们希望深入探索小球碰撞这一经典模型，学习物理研究的基本方法；探索在计算机上模拟物理过程，学习使用算法处理大量数据；学习使用图形库将研究结果可视化；学习运用科学研究方法探索、分析并解决问题，实际体验科学研究过程。这将极大地培养我们的和科学研究能力，为我们将来从事科学研究工作打下坚实基础。
 
 ### 1.3 研究内容
@@ -61,6 +64,7 @@
 可视化：OpenGL库的使用
 
 ### 1.4 研究方法
+
 实验法、文献研究法、模型方法、信息研究方法
 
 ## 第2章 物理分析
@@ -72,9 +76,9 @@
 我们需要建立模型可以分为：实体物理模型、状态物理模型和过程物理模型。
 
 * 实体及其状态的物理模型：
-	* 小球：质量$m$，半径$r$，位置$\vec{p}$，速度$\vec{v}$
-	* 平面：位置（平面上一点）$\vec{p}$，法向量$\vec{n}$
-	* 长方体容器：容器由三对分别与$x,y,z$坐标平面平行的平面构成，它们的位置$t_{max/min}, t=x,y,z$。
+  * 小球：质量$m$，半径$r$，位置$\vec{p}$，速度$\vec{v}$
+  * 平面：位置（平面上一点）$\vec{p}$，法向量$\vec{n}$
+  * 长方体容器：容器由三对分别与$x,y,z$坐标平面平行的平面构成，它们的位置$t_{max/min}, t=x,y,z$。
 
 系统中只有小球运动，小球与其它物体的相互作用（碰撞）可以分成三类问题：碰撞预测、检测和处理。所有碰撞均为弹性碰撞，不考虑摩擦和自旋。
 
@@ -116,20 +120,17 @@ $$\left|\Delta\vec{r}\right|<r_1+r_2$$
 若该式为真，则小球相交。
 
 * 相离运动检测：
-  $$\left(\Delta\vec{r}\cdot\vec{v_2}<0\right)\land\left(\Delta\vec{r}\cdot\vec{v_1}>0\right)$$
-  若该式为真，则小球相离，不可能发生碰撞，可跳过求解碰撞事件的过程。
+$$\left(\Delta\vec{r}\cdot\vec{v_2}<0\right)\land\left(\Delta\vec{r}\cdot\vec{v_1}>0\right)$$
 
-  ##### 2.1.1.2 球-平面
+若该式为真，则小球相离，不可能发生碰撞，可跳过求解碰撞事件的过程。
 
-  设平面位置$\vec{p_0}$，法向量$\vec{n}$；小球半径$r$，位置$\vec{p}$，速度$\vec{v}$。通过计算小球速度在平面法向量的分量可以得到小球和平面碰撞的时间：
+##### 2.1.1.2 球-平面
 
-  $$t=$$
+设平面位置$\vec{p_0}$，法向量$\vec{n}$；小球半径$r$，位置$\vec{p}$，速度$\vec{v}$。通过计算小球速度在平面法向量的分量可以得到小球和平面碰撞的时间：
 
-  同样可以在计算前进行相交和相离检测：
+$$t=$$
 
-  
-
-  
+同样可以在计算前进行相交和相离检测：
 
 #### 2.1.2 碰撞处理
 
@@ -168,6 +169,7 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 #### 2.2.1 理想气体
 
 数据汇总整理：
+
 * 默认标准状态： (273.15 K, 100 kPa)
 * [理想气体摩尔体积$V_m$](https://physics.nist.gov/cgi-bin/cuu/Value?mvol)=22.710 954 64...  x 10-3 m3 mol-1（molar volume of ideal gas）【来自】
 * 氧气分子直径d=0.346nm（常用气体分子直径表）
@@ -176,12 +178,16 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 * 氧气分子质量m=5.3 x 10^-26 kg
 
 * 标准状态下气体分子间距$\sqrt[3]{\frac{V_m}{N_A}}$=3.353473e-09m
-> printf("%e",pow(22.71095464e-3/6.02214076e23,1.0/3.0));
-* 一微米长度上可排列气体分子数2.981983e+02取为298个
-> printf("%e",1e-6/pow(22.71095464e-3/6.02214076e23,1.0/3.0));
-* 方差
-> printf("%e",sqrt(1.380649e-23*273.15/5.3e-26));
 
+> printf("%e",pow(22.71095464e-3/6.02214076e23,1.0/3.0));
+
+* 一微米长度上可排列气体分子数2.981983e+02取为298个
+
+> printf("%e",1e-6/pow(22.71095464e-3/6.02214076e23,1.0/3.0));
+
+* 方差
+
+> printf("%e",sqrt(1.380649e-23*273.15/5.3e-26));
 
 #### 2.2.2 布朗运动
 
@@ -191,12 +197,15 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 * 颗粒物直径：2.5e-6m=2.5um
 * 空气分子直径：0.3-.04nm
-* 
+
+*
 
 ## 第3章 程序设计
+
 在这一章，我们主要使用UML(Unified Modeling Language，统一建模语言)来描述我们的程序设计过程。我们采取顶向下的思路来设计程序，再用自底向上方法开发程序，从系统内元素开始，一步步向上实现整个系统。
 
 ### 3.1 面向对象分析和设计
+
 为了使用计算机实现对上述物理过程的模拟，并将其运用到更多场景中，我们这些物理模型抽象为程序中的对象，物理过程抽象为这些对象的操作。
 
 * 碰撞系统对象：
@@ -214,6 +223,7 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 > 图片3.2 碰撞系统中的类图
 
 ### 3.2 基础类型API
+
 类型的实现，首先应当设计好API。下文展示了CollisionSystem类和Ball类的API
 
 > 表格3.1 CollisionSystem类型的API
@@ -221,7 +231,6 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 |返回类型|函数名和参数列表|说明|
 |-|-|-|
 ||CollisionSystem(istream &is)|从给定输入流创建一个碰撞系统|
-
 |void|run(float t)|让系统运行指定时长|
 |void|reverse()|使系统反向运动|
 |istream &|operator>>(istream &is, CollisionSystem &system)|（友元）从输入流中读取数据|
@@ -232,19 +241,64 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 |返回类型|函数名和参数列表|说明|
 |-|-|-|
-||Event(shared_ptr<Ball>, shared_ptr<Object>, const float)|根据给定数据创建事件|
+||Event(shared_ptr\<Ball>, shared_ptr\<Object>, const float)|根据给定数据创建事件|
 |float|t()|返回该事件发生的时刻|
 |void|handle()|处理事件|
 |bool|operator<(const Event &)|比较两个事件发生的先后|
 |ostream &|operator<<(ostream &, const Event &)|（友元）输出事件信息|
-|ostream &|operator<<(ostream &, priority_queue<Event, vector<Event>>)|（友元）输出事件队列|
-
-小球和墙类：储存数据，并具体处理相关操作。为了简化运算，我们在Ball类中使用了GLM数学库中的向量vec3类表示小球在世界空间中的位置和速度。
+|ostream &|operator<<(ostream &, priority_queue<Event, vector\<Event>>)|（友元）输出事件队列|
 
 > 表格3.3 Ball类型的API
 
+|返回类型|函数名和参数列表|说明|
+|-|-|-|
+||Ball(istream &)|从输入流中创建一个Ball并递增该类的计数器|
+|glm::vec3 |loc()|位置|
+|glm::vec3 |vel()|速度|
+|float |r()|半径|
+|float |m()|质量|
+|unsigned int |cnt()|碰撞次数|
+|Object_type |type()|物体类型|
+|unsigned int|num()|编号|
+|float|predict(Object &)|预测碰撞|
+|void|bounce(Object &)|处理碰撞|
+|bool |examine(Object &)|检测重叠|
+|istream &|operator>>(std::istream &, Ball &)||
+|ostream &|operator<<(std::ostream &, const Ball &)||
+|ostream &|operator<<(std::ostream &, const std::vector<std::shared_ptr\<Ball>> &)||
 
+为了简化运算，我们在Ball类中使用了GLM数学库中的向量vec3类表示小球在世界空间中的位置和速度。
 
+在实现碰撞操作接口时，我们碰到了类继承的问题。在Event类型中，我们只储存第二碰撞物体的基类指针（如果为每一种物体都创建指针将影响将来程序的拓展，使Event类与Object类不能相互独立。如果开发了新的Object子类型，那么Event也要作出相应的更改）。在调用Event.handle()函数时，该函数无法确定调用Ball.bounce()的哪个版本。最终，我们为Object类实现了一个统一的type接口，这样可以确切地知道当前对象是Object的哪一个子类，然后使用动态绑定来转换指针。
+
+```C++
+void Ball::bounce(Object &object)
+{
+    count++;
+    switch (object.type())
+    {
+    case Object_type::FIXEDBALL:
+
+    {
+        FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
+        this->bounce(fixedBall);
+        break;
+    }
+    case Object_type::BALL:
+    {
+        Ball &ball = dynamic_cast<Ball &>(object);
+        this->bounce(ball);
+        break;
+    }
+    case Object_type::WALL:
+    {
+        Wall &wall = dynamic_cast<Wall &>(object);
+        this->bounce(wall);
+        break;
+    }
+    }
+}
+```
 
 事件有效性有两种处理方法：
 
@@ -256,6 +310,7 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 事件时间：ball类中的predict方法返回当前时刻距离碰撞发生的时长，而在优先队列中事件按从t=0的初状态开始的时间从小到大排序。因此在创建事件时应当传递predict+currentTime。
 
 ### 3.3 碰撞系统程序流程图
+
 图3-4详细地展示了碰撞系统程序的运行流程。总共分为4个模块：主循环，更新循环，处理模块，预测模块。后3个模块都由CollisionSystem类管理，对用户隐藏。
 
 ## 第4章 算法分析和实现
@@ -265,6 +320,7 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 ### 4.2 算法探究2：包围盒检测
 
 ### 4.3 算法探究3：索引优先队列
+
 若系统较为密集，则短时间内可能发生较多碰撞事件。为了防止内存溢出，又要保证效率最大，应当合理设计优先队列的长度
 
 ## 第5章 OpenGL可视化
@@ -290,15 +346,14 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 1. 提出问题：计算机浮点运算不可避免地产生舍入误差。在小球碰撞系统中，如何衡量这一误差的大小？这一误差可能与那些因素有关？
 
-2. 测量误差：系统运行一段时间后将所有小球速度反向，再运动相同的时间，小球本应回到原来的位置，但由于碰撞计算过程中的浮点舍入误差会造成偏离。统计所有小球的偏离位移长度并取平均，可以以此来衡量系统误差的大小。
-
-系统误差$$\delta = \frac{\Sigma{\vec{\Delta p}}}{n}$$
+2. 测量误差：系统运行一段时间后将所有小球速度反向，再运动相同的时间，小球本应回到原来的状态，但由于碰撞计算过程中的浮点舍入误差会造成偏离。统计所有小球的偏离位移长度和速度改变量并取平均，可以以此来衡量系统误差的大小：
+$$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}{n}$$
 
 3. 提出猜想：在同一台计算机上运行程序，浮点舍入误差的大小可能与以下因素有关：
-  * 总碰撞次数
-  * 系统运动时长（时长增加最终表现为总碰撞次数增加）
-  * 碰撞处理方法（预测还是检测，猜想检测造成的误差更大，因为会产生微小重叠，这又与检测的时间步长有关）
-  * 系统中小球的个数、小球密集程度（最终表现为总碰撞次数增加）
+   * 总碰撞次数
+   * 系统运动时长（时长增加最终表现为总碰撞次数增加）
+   * 碰撞处理方法（预测还是检测，猜想检测造成的误差更大，因为会产生微小重叠，这又与检测的时间步长有关）
+   * 系统中小球的个数、小球密集程度（最终表现为总碰撞次数增加）
 
 #### 6.1.2 实验过程
 
@@ -316,8 +371,8 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 实验组数据：
 
-|实验组|验证因素|数据变化|
-|-|-|-|-|
+|实验组|验证因素|变量|
+|-|-|-|
 |1|总碰撞次数|运行时间t=10s,30s,1min,10min,30min|
 |2|检测时间步长|预测，检测步长$\Delta T=1ms,10ms,100ms,1s$|
 
