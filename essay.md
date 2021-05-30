@@ -168,6 +168,8 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 #### 2.2.1 理想气体
 
+
+
 数据汇总整理：
 
 * 默认标准状态： (273.15 K, 100 kPa)
@@ -198,7 +200,15 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 * 颗粒物直径：2.5e-6m=2.5um
 * 空气分子直径：0.3-.04nm
 
-*
+#### 2.2.3 其他应用
+
+小球碰撞模型还在物理学的其他领域有着广泛的应用，这里作一些简要介绍。
+
+##### 2.2.3.1 行星环稳定性
+
+1859年，麦克斯韦发表论文《论土星环运动的稳定性》（On the stability of the motion of Saturn's rings），证明土星环是由大量独立的小颗粒构成的。历史上对于行星环的研究主要有两种方法：一种把行星环当做N体系统，一种使用流体力学方法。如今，“流线表示法”等新的理论研究方法不断被提出，同时数值模拟也飞速发展。尽管刚体粒子模型已经被证明为是行星环不太恰当的近似，但它仍是重要的研究方法，引文《行星环动力学》就是基于该模型展开分析。
+
+##### 2.2.3.2
 
 ## 第3章 程序设计
 
@@ -319,9 +329,19 @@ void Ball::bounce(Object &object)
 
 ### 4.2 算法探究2：包围盒检测
 
+> 原命题：尝试将大片区域分割为长方形的小格，并在一种新的事件类型中仅预测某个例子在某一时刻和相邻9个方格中所有粒子的碰撞。改进CollisionSystem的simulate方法，减少了碰撞预测数量，代价是监测粒子在方格之间的运动
+
+
+
 ### 4.3 算法探究3：索引优先队列
 
-若系统较为密集，则短时间内可能发生较多碰撞事件。为了防止内存溢出，又要保证效率最大，应当合理设计优先队列的长度
+若系统较为密集，则短时间内可能发生较多碰撞事件。为了防止内存溢出，又要保证效率最大，应当合理设计优先队列的长度。
+
+索引优先队列的思想是：用对象的索引代替对象作为优先队列。这样，我们可以快速访问优先队列中的特定对象，并且可以减少堆上浮下沉操作所使用的时间。
+
+实现：
+
+在CollisionSystem中，定义vector<Event>用于储存事件对象，定义index_prioriti_queue<>
 
 ## 第5章 OpenGL可视化
 
@@ -338,6 +358,7 @@ void Ball::bounce(Object &object)
 
 本章在前文设计的物理系统的基础上进行模拟实验，验证该系统的有效性。
 
+> 原命题：引入熵的概念并验证信息论中的经典结论
 ### 6.1 时间倒流：浮点舍入误差
 
 如果系统设计合理，那么如果让时间倒退，系统应当可以回到原来的状态。我们按照这一思路来统计观察处理过程中产生的浮点数舍入误差产生的影响。
@@ -384,6 +405,11 @@ $$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}
 
 ### 6.2 理想气体：增大数据量、统计宏观状态量
 
+> 原命题：
+> 1.添加一个temperature方法，周期性采集温度绘制图表，检查温度是否恒定
+> 2.刚性球体模型中的粒子分布遵循麦克斯韦分布，分布形状取决于稳定。编写方法计算粒子速度直方图并在各种温度下测试
+> 
+
 #### 6.2.1 实验方案
 
 实验目的：使用前文设计的刚性小球系统模拟程序模拟$1μm^3$体积内的理想气体分子的运动。监测其宏观状态参量温度和压强是否稳定，以此来验证碰撞系统模拟的有效性。
@@ -401,5 +427,15 @@ $$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}
 ## 附录1 参考文献
 
 ```ref
-[].Maxwell速率分布的推导[EB/OL].https://wenku.baidu.com/view/d4a07478cfc789eb172dc8f6.html,2014-06-21.
+[]舒幼生.力学 : 物理类[M].北京大学出版社:北京,2005:1-2.
+[1]Robert Sedgewick, Kevin Wayne.算法（第4版）[M].人民邮电出版社:北京,2012:1-2.
+[1]Graham Sellers, Richard S. Wright, Jr.,etc.OpenGl超级宝典（第7版）[M].人民邮电出版社:北京,2020:1-2.
+[1]John Kessenich, Graham Sellers, Dave Shreiner.OpenGL编程指南（原书第9版）[M].机械工业出版社:北京,2017:1-2.
+[1]Gordon V. Scott, Clevenger John.计算机图形学编程: 使用OpenGL和C++[M].人民邮电出版社:北京,2020:1-2.
+
+[2.2.3.1]School of Mathematics and Statistics University of St Andrews, Scotland.James Clerk Maxwell on the nature of Saturn's rings[EB/OL].https://mathshistory.st-andrews.ac.uk/Extras/Maxwell_Saturn/,2006-03.
+[2.2.3.1]James Clerk Maxwell Foundation.Saturn's Rings[EB/OL].https://www.clerkmaxwellfoundation.org/Saturn-s_Rings.pdf,2015.
+[2.2.3.1]周济林, 孙义燧.行星环动力学[J].天文学进展,1996,第2期:P130-138.
+[2.2.3.1]陈道汉.行星环(Ⅱ)[J].天文学进展,1984,第2期:P102-110.
+[]王裕平.Maxwell速率分布的推导[EB/OL].https://wenku.baidu.com/view/d4a07478cfc789eb172dc8f6.html,2014-06-21.
 ```
