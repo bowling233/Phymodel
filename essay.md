@@ -191,6 +191,15 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 > printf("%e",sqrt(1.380649e-23*273.15/5.3e-26));
 
+* 水分子直径0.38nm
+* 水的密度0.99987×103 kg/m3（标况）
+* 水的摩尔质量18.01524 g·mol⁻¹
+
+>     printf("%e",pow(18.01524e-3/0.99987e3/6.02214076e23,1.0/3.0));
+
+* 立方体模型：水分子间距3.104430e-10即0.31nm
+* 球体模型则有3.851669e-10即0.385nm
+
 #### 2.2.2 布朗运动
 
 花粉粒子在水中的无规则运动。液体不方便建模，改为熟悉的气体分子：PM2.5
@@ -200,11 +209,7 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 * 颗粒物直径：2.5e-6m=2.5um
 * 空气分子直径：0.3-.04nm
 
-#### 2.2.3 其他应用
-
-小球碰撞模型还在物理学的其他领域有着广泛的应用，这里作一些简要介绍。
-
-##### 2.2.3.1 行星环稳定性
+#### 2.2.3 行星环稳定性
 
 1859年，麦克斯韦发表论文《论土星环运动的稳定性》（On the stability of the motion of Saturn's rings），证明土星环是由大量独立的小颗粒构成的。历史上对于行星环的研究主要有两种方法：一种把行星环当做N体系统，一种使用流体力学方法。如今，“流线表示法”等新的理论研究方法不断被提出，同时数值模拟也飞速发展。尽管刚体粒子模型已经被证明为是行星环不太恰当的近似，但它仍是重要的研究方法，引文《行星环动力学》就是基于该模型展开分析。
 
@@ -331,9 +336,9 @@ void Ball::bounce(Object &object)
 
 > 原命题：尝试将大片区域分割为长方形的小格，并在一种新的事件类型中仅预测某个例子在某一时刻和相邻9个方格中所有粒子的碰撞。改进CollisionSystem的simulate方法，减少了碰撞预测数量，代价是监测粒子在方格之间的运动
 
-
-
 ### 4.3 算法探究3：索引优先队列
+
+> 原命题：使用索引优先队列来保证优先队列的长度最多与例子数量呈线性关系，而非平方级别或者更糟
 
 若系统较为密集，则短时间内可能发生较多碰撞事件。为了防止内存溢出，又要保证效率最大，应当合理设计优先队列的长度。
 
@@ -341,7 +346,7 @@ void Ball::bounce(Object &object)
 
 实现：
 
-在CollisionSystem中，定义vector<Event>用于储存事件对象，定义index_prioriti_queue<>
+在CollisionSystem中，定义vector\<Event>用于储存事件对象，定义index_prioriti_queue<>
 
 ## 第5章 OpenGL可视化
 
@@ -359,9 +364,12 @@ void Ball::bounce(Object &object)
 本章在前文设计的物理系统的基础上进行模拟实验，验证该系统的有效性。
 
 > 原命题：引入熵的概念并验证信息论中的经典结论
+
 ### 6.1 时间倒流：浮点舍入误差
 
 如果系统设计合理，那么如果让时间倒退，系统应当可以回到原来的状态。我们按照这一思路来统计观察处理过程中产生的浮点数舍入误差产生的影响。
+
+> 原命题：将所有速度变为相反的方向并继续模拟，它应该能够回到最初的状态。测量状态差异来估计四舍五入造成的误差
 
 #### 6.1.1 实验方案
 
@@ -407,8 +415,9 @@ $$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}
 
 > 原命题：
 > 1.添加一个temperature方法，周期性采集温度绘制图表，检查温度是否恒定
-> 2.刚性球体模型中的粒子分布遵循麦克斯韦分布，分布形状取决于稳定。编写方法计算粒子速度直方图并在各种温度下测试
-> 
+> 2.刚性球体模型中的粒子分布遵循麦克斯韦分布，分布形状取决于温度。编写方法计算粒子速度直方图并在各种温度下测试
+> 3.添加一个pressure()方法来测量大量例子和墙体碰撞造成的压强。系统压强为所有粒子冲击力之和。验证等式pv=nRT
+
 
 #### 6.2.1 实验方案
 
@@ -427,15 +436,23 @@ $$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}
 ## 附录1 参考文献
 
 ```ref
+==书籍==
 []舒幼生.力学 : 物理类[M].北京大学出版社:北京,2005:1-2.
 [1]Robert Sedgewick, Kevin Wayne.算法（第4版）[M].人民邮电出版社:北京,2012:1-2.
 [1]Graham Sellers, Richard S. Wright, Jr.,etc.OpenGl超级宝典（第7版）[M].人民邮电出版社:北京,2020:1-2.
 [1]John Kessenich, Graham Sellers, Dave Shreiner.OpenGL编程指南（原书第9版）[M].机械工业出版社:北京,2017:1-2.
 [1]Gordon V. Scott, Clevenger John.计算机图形学编程: 使用OpenGL和C++[M].人民邮电出版社:北京,2020:1-2.
 
+==行星环==
 [2.2.3.1]School of Mathematics and Statistics University of St Andrews, Scotland.James Clerk Maxwell on the nature of Saturn's rings[EB/OL].https://mathshistory.st-andrews.ac.uk/Extras/Maxwell_Saturn/,2006-03.
 [2.2.3.1]James Clerk Maxwell Foundation.Saturn's Rings[EB/OL].https://www.clerkmaxwellfoundation.org/Saturn-s_Rings.pdf,2015.
 [2.2.3.1]周济林, 孙义燧.行星环动力学[J].天文学进展,1996,第2期:P130-138.
 [2.2.3.1]陈道汉.行星环(Ⅱ)[J].天文学进展,1984,第2期:P102-110.
+
+==布朗运动==
+[]爱因斯坦.爱因斯坦文集 第2卷[M].商务印书馆:北京,2017:.
+[]丛伟.深度探究“布朗运动”演示教具的设计与实现[D].哈尔滨:哈尔滨师范大学,2020.
+[]付文玉,侯锡苗,贺丽霞,等.少体硬球系统的动力学与统计研究[J].物理学报,2005,第6期:P2552-2556.
+
 []王裕平.Maxwell速率分布的推导[EB/OL].https://wenku.baidu.com/view/d4a07478cfc789eb172dc8f6.html,2014-06-21.
 ```
