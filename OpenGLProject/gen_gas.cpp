@@ -4,12 +4,12 @@
 
 using namespace std;
 
-#define NUM 298//边个数
-#define DISTANCE 3.353473e-9//间距
-#define MASS 5.3e-26//质量
-#define RADIUS 0.173e-9//半径
+#define NUM 25//边个数
+#define DISTANCE 2//间距
+#define MASS 1//质量
+#define RADIUS 0.5//半径
 #define MEAN 0//均值
-#define DELTA 2.667499e+02//方差
+#define DELTA 1//方差
 
 int main()
 {

@@ -13,10 +13,10 @@ class Ball;
 //definition
 enum class Object_type
 {
-    NUL,
     FIXEDBALL,
     BALL,
-    WALL
+    WALL,
+    CONTAINER
 };
 
 //tools
@@ -43,13 +43,14 @@ public:
 
     //information
     glm::vec3 loc() const { return location; }
+
+    //virtual
     virtual unsigned int cnt() = 0;
     virtual Object_type type() = 0;
     virtual unsigned int num() = 0;
 
 protected:
     glm::vec3 location;
-    unsigned int count = 0;
 };
 //说明：默认创建一个在原点的物体
 
@@ -187,7 +188,7 @@ public:
 private:
     glm::vec3 velocity;
     float mass;
-    static unsigned int sum;
+    static unsigned int sum;//extern
     unsigned int number = 0, count = 0;
 };
 

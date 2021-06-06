@@ -63,7 +63,7 @@ float* matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 
 Sphere mySphere = Sphere(48);
-glm::vec3 lightLoc = glm::vec3(20.5f, 7.5f, 7.5f);
+glm::vec3 lightLoc = glm::vec3(10.0f, 10.0f, 10.0f);
 
 //小工具函数
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
@@ -132,7 +132,7 @@ void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 	}
 
 	for (auto const & i:balls)
-		scales.push_back(i->r());
+		scales.push_back(i->r()*2);
 
 	glGenBuffers(4, sphereVbo);
 
@@ -215,9 +215,9 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	
 
 	clog << "init passed" << endl;
-	cameraX = 20.0f;
-	cameraY = 20.0f;
-	cameraZ = 20.0f;
+	cameraX = 10.0f;
+	cameraY = 10.0f;
+	cameraZ = 15.0f;
 
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
@@ -407,7 +407,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 	//draw_skybox();
 	draw_sphere(system.balls);
 	//draw_sphere(system.fixedBalls);
-	draw_coord();
+	//draw_coord();
 	//draw_wall();
 }
 
@@ -449,8 +449,8 @@ int main(void)
 
 	
 //创建碰撞系统
-	ifstream ifstrm("testdata\\1000ballnormal.txt");
-	ofstream ofstrm("out.txt");
+	ifstream ifstrm("10000ball_1.txt");
+	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
 	auto last = system_clock::now();
@@ -471,19 +471,19 @@ int main(void)
 			cout << "fps::"
 				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl
-				<< "bounce persecond::" 
+				/* << "bounce persecond::"
 				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
 				<< endl
 				<< "exam persecond::"
 				<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
-				<< endl;
+				<< endl*/;
 			count = 0;
-			sumbounce = 0;
-			sumexam = 0;
+			//sumbounce = 0;
+			//sumexam = 0;
 
 		}
 		
-		system.run(1.0f/60.0f);
+		system.move(1.0f/60.0f);
 
 //显示
 	display(window, glfwGetTime(), system);

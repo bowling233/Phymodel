@@ -84,7 +84,7 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
         }
     }
     std::clog << "System read in over::::::::::::::::" << std::endl;
-    system.init();
+    //system.init();
     return is;
 }
 

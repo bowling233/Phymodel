@@ -74,6 +74,7 @@ Wall::Wall(std::istream &is) : Wall()
 std::istream &operator>>(std::istream &is, Wall &wall)
 {
     is >> wall.location >> wall.normalVector;
+    wall.normalVector = glm::normalize(wall.normalVector);//预先归一化
     return is;
 }
 

@@ -7,7 +7,7 @@
 #include <memory>
 #include <queue>
 #include <GLFW\glfw3.h>
-constexpr auto DELTATIME = 0.1f;
+constexpr auto DELTATIME = 1.0f / 60.0f;
 extern int sumbounce;
 extern int sumexam;
 
