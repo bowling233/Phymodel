@@ -9,7 +9,7 @@
 
 
 //definition
-unsigned int FixedBall::sum = 0;
+
 unsigned int Wall::sum = 0;
 unsigned int Ball::sum = 0;
 
@@ -28,40 +28,6 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
 {
     is >> v.x >> v.y >> v.z;
     return is;
-}
-
-//fixedBall ---------------------------------------------------------------------------------------------
-FixedBall::FixedBall(std::istream &is) : FixedBall()
-{
-    is >> *this;
-    number = ++sum;
-}
-
-std::istream &operator>>(std::istream &is, FixedBall &fixedBall)
-{
-    is >> fixedBall.location >> fixedBall.radius;
-    return is;
-}
-
-std::ostream &operator<<(std::ostream &os, const FixedBall &fixedBall)
-{
-    os << std::setprecision(3) << std::fixed;
-    os << std::setw(8) << fixedBall.number << " |"
-       << fixedBall.location
-       << std::setw(8) << fixedBall.radius << std::endl
-       << std::defaultfloat;
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<FixedBall>> &fixedBalls)
-{
-    os << "-----------FixedBalls------------------------------" << std::endl;
-    os << "   Ball  | locX    | loxY    | locZ    | Radius  |"
-       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
-       << std::endl;
-    for (auto const &i : fixedBalls)
-        os << *i << std::endl;
-    return os;
 }
 
 //Wall---------------------------------------------------------------------------------------------
@@ -106,52 +72,6 @@ Ball::Ball(std::istream &is) : Ball()
 }
 
 //predict------------------------------------------------------------------------------------------------------------
-/*no need
-float Ball::predict(Object &object)
-{
-    switch (object.type())
-    {
-    case Object_type::FIXEDBALL:
-
-    {
-        FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
-        return this->predict(fixedBall);
-    }
-    case Object_type::BALL:
-    {
-        Ball &ball = dynamic_cast<Ball &>(object);
-        return this->predict(ball);
-    }
-    case Object_type::WALL:
-    {
-        Wall &wall = dynamic_cast<Wall &>(object);
-        return this->predict(wall);
-    }
-    }
-}
-*/
-
-float Ball::predict(const FixedBall &fixedBall) //tochk
-{
-    glm::vec3 dLoc = location - fixedBall.loc();
-    float a = square(glm::length(velocity)),
-          b = 2 * glm::dot(velocity, dLoc),
-          c = square(glm::length(dLoc)) - square(radius + fixedBall.r());
-
-    float delta = square(b) - 4.0 * a * c;
-    if (delta < 0.0)
-        return -1.0;
-
-    float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
-    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
-
-    if (x2 > 0)
-        return x2;
-    if (x1 > 0)
-        return x1;
-    return -1.0;
-}
-
 float Ball::predict(const Wall &wall) //tochk
 {
     glm::vec3 r = location - wall.loc();
@@ -177,6 +97,7 @@ float Ball::predict(const Ball &ball) //tochk
 {
     if (number == ball.number) //防止自预测
         return -1.0f;
+
     glm::vec3 r = location - ball.location, //以ball为中心
         dv = velocity - ball.velocity;
 
@@ -196,12 +117,13 @@ float Ball::predict(const Ball &ball) //tochk
     //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
 
     //question:小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
-
+    /*
     if (x2 > 0)
         return x2;
     if (x1 > 0)
         return x1;
-    return -1.0;
+        */
+    return x1;
 }
 
 //bounce------------------------------------------------------------------------------------------------------------
@@ -210,13 +132,6 @@ void Ball::bounce(Object &object)
     count++;
     switch (object.type())
     {
-    case Object_type::FIXEDBALL:
-
-    {
-        FixedBall &fixedBall = dynamic_cast<FixedBall &>(object);
-        this->bounce(fixedBall);
-        break;
-    }
     case Object_type::BALL:
     {
         Ball &ball = dynamic_cast<Ball &>(object);
@@ -232,13 +147,7 @@ void Ball::bounce(Object &object)
     }
 }
 
-void Ball::bounce(const FixedBall &fixedBall) //tochk
-{
-    glm::vec3 r = location - fixedBall.loc();
-    velocity += -2 * glm::dot(velocity, r) * r; //速度反两倍
-}
-
-void Ball::bounce(const Wall &wall) //tochk
+void Ball::bounce(Wall &wall) //tochk
 {
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
@@ -266,7 +175,12 @@ void Ball::bounce(Ball &ball)
 
 bool Ball::examine(const Ball &ball)
 {
-    return (glm::length(location - ball.location) < (radius + ball.radius) * 1.0001f);
+    return (glm::length(location - ball.location) < (radius + ball.radius));
+}
+
+bool Ball::examine(const Wall &wall)
+{
+    return (abs(glm::dot(location-wall.loc(),wall.norm())) < radius);
 }
 
 bool Ball::back(const Ball& ball)
@@ -277,7 +191,6 @@ bool Ball::back(const Ball& ball)
         return true;
     }
     return false;
-
 }
 
 //io------------------------------------------------------------------------------------------------------------

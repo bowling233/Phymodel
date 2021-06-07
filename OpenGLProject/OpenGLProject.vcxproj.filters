@@ -48,16 +48,10 @@
     <None Include="fs_coord.glsl">
       <Filter>源文件</Filter>
     </None>
-    <None Include="fs_skybox.glsl">
-      <Filter>源文件</Filter>
-    </None>
     <None Include="fs_sphere.glsl">
       <Filter>源文件</Filter>
     </None>
     <None Include="vs_coord.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_skybox.glsl">
       <Filter>源文件</Filter>
     </None>
     <None Include="vs_sphere.glsl">

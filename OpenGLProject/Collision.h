@@ -1,7 +1,7 @@
 ﻿#ifndef COLLISION_H
 #define COLLISION_H
 
-#define TIME_DRIVEN
+#define EVENT_DRIVEN
 
 #include "Object.h"
 #include <vector>
@@ -19,7 +19,6 @@ constexpr auto DELTATIME = 1.0f / 60.0f; //时间驱动专用
 //预先声明所有用到的外部类
 class Object;
 class MovableObject;
-class FixedBall;
 class Wall;
 class Ball;
 
@@ -34,6 +33,7 @@ class Event
 {
     //io
     friend std::ostream &operator<<(std::ostream &, const Event &);
+    friend CollisionSystem;
 
 public:
     //construct
@@ -47,13 +47,14 @@ public:
     ~Event() = default;
 
     //information
-    float t() { return time; }
+    float t() const { return time; }
 
     //action
-    void handle();
+    void handle () const;
 
     //compare
     bool operator<(const Event &event) const { return time < event.time; }
+    bool valid() const;
 
 private:
     std::shared_ptr<Ball> ball;
@@ -67,7 +68,7 @@ std::ostream &operator<<(std::ostream &, std::priority_queue<Event, std::vector<
 
 class CollisionSystem
 {
-    friend void display(GLFWwindow *window, double currentTime, CollisionSystem &system);
+    //friend void display(GLFWwindow *window, double currentTime, CollisionSystem &system);
     friend std::istream &operator>>(std::istream &, CollisionSystem &);
     friend std::ostream &operator<<(std::ostream &, CollisionSystem &);
 
@@ -81,14 +82,12 @@ public:
     void run(float);
     void reverse();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
-    std::vector<std::shared_ptr<FixedBall>> &fb() { return fixedBalls; }
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     void move(float);
 
 private:
     void init();
     std::vector<std::shared_ptr<Ball>> balls;
-    std::vector<std::shared_ptr<FixedBall>> fixedBalls;
     std::vector<std::shared_ptr<Wall>> walls;
     float currentTime = 0;
 
