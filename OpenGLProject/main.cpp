@@ -21,7 +21,7 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include "Object.h"
-#include "Collision_time.h"
+#include "Collision.h"
 using namespace chrono;
 //关闭vs studio错误提示
 //#define _CRT_SECURE_NO_DEPRECATE
@@ -109,8 +109,9 @@ void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
 }
 
 
-
-//设置顶点-----------------------------------------------------------------------------------------------------------
+//############
+//设置顶点
+//############
 void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 {//VBO:0.顶点1.法向量2.缩放3.位置
 	std::vector<int> ind = mySphere.getIndices();
@@ -159,26 +160,6 @@ void setupVert_coord(void)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCoordPositions), vertCoordPositions, GL_STATIC_DRAW);
 }
 
-void setupVert_skybox(void)
-{
-	float cubeVertexPositions[108] =
-		{-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-		 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-		 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-		 -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-		 -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-		 -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-		 -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
-		 -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
-		 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f};
-
-	glGenBuffers(1, skyboxVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertexPositions), cubeVertexPositions, GL_STATIC_DRAW);
-}
 
 void setupVert_plane(void)
 {
@@ -199,26 +180,23 @@ void setupVert_plane(void)
 
 
 
-
-//OpenGL初始化-----------------------------------------------------------------------------------------------------------
+//############
+//OpenGL初始化
+//############
 void init(GLFWwindow *window,CollisionSystem& system)
 {
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 
-	//skyboxRenderingProgram = Utils::createShaderProgram("vs_skybox.glsl", "fs_skybox.glsl");
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl","tcs_plane.glsl","tes_plane.glsl", "fs_plane.glsl");
 	lightRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 
-	
-
-	clog << "init passed" << endl;
+//构建视口矩阵
 	cameraX = 10.0f;
 	cameraY = 10.0f;
 	cameraZ = 15.0f;
-
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
@@ -226,14 +204,17 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	//rMat = buildRotate();
 	//lMat = lMat * rMat;
 
+//设置模型顶点
 	setupVert_sphere(system.b());
-	//setupVert_skybox();
 	setupVert_coord();
 	setupVert_plane();
 
+//设置光照
 	glGenBuffers(1, &lightVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightLoc), GL_STATIC_DRAW);
+
+	clog << "Success:OpenGL init" << endl;
 }
 
 
@@ -249,34 +230,6 @@ void init(GLFWwindow *window,CollisionSystem& system)
 
 
 //OpenGL绘制函数-----------------------------------------------------------------------------------------------------------
-void draw_skybox(void)
-{
-	// draw cube map
-
-	glUseProgram(skyboxRenderingProgram);
-
-	vLoc = glGetUniformLocation(skyboxRenderingProgram, "v_matrix");
-	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
-
-	projLoc = glGetUniformLocation(skyboxRenderingProgram, "p_matrix");
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVbo[0]);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-
-	glEnable(GL_CULL_FACE);
-	glFrontFace(GL_CCW); // cube is CW, but we are viewing the inside
-	glDisable(GL_DEPTH_TEST);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-
-}
-
 void draw_coord(void)
 {
 	//glLineWidth(5.0f);
@@ -407,7 +360,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 	//draw_skybox();
 	draw_sphere(system.balls);
 	//draw_sphere(system.fixedBalls);
-	//draw_coord();
+	draw_coord();
 	//draw_wall();
 }
 
@@ -449,7 +402,7 @@ int main(void)
 
 	
 //创建碰撞系统
-	ifstream ifstrm("10000ball_1.txt");
+	ifstream ifstrm("simple_system_6b1w.txt");
 	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
@@ -471,19 +424,19 @@ int main(void)
 			cout << "fps::"
 				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl
-				/* << "bounce persecond::"
+				<< "bounce persecond::"
 				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
 				<< endl
 				<< "exam persecond::"
 				<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
-				<< endl*/;
+				<< endl;
 			count = 0;
-			//sumbounce = 0;
-			//sumexam = 0;
+			sumbounce = 0;
+			sumexam = 0;
 
 		}
 		
-		system.move(1.0f/60.0f);
+		system.run(1.0f/60.0f);
 
 //显示
 	display(window, glfwGetTime(), system);
@@ -492,7 +445,8 @@ int main(void)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	
+	cout << system;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

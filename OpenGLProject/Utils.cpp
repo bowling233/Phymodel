@@ -1,4 +1,4 @@
-//Prog6_1_sphere
+﻿//Prog6_1_sphere
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <SOIL2\soil2.h>

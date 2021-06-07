@@ -1,4 +1,4 @@
-//Prog6_1_sphere
+﻿//Prog6_1_sphere
 #include <cmath>
 #include <vector>
 #include <iostream>
