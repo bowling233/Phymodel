@@ -8,8 +8,6 @@
 
 >从[bilibili](https://www.bilibili.com/video/BV1MJ411u7Bc)学到的\_(:з」∠)\_
 
-~~将`OpenGLtemplate`文件夹复制到`C:\`~~
-
 ## 依赖项
 
 * [GLFW:Graphics Library Framework](https://github.com/glfw/glfw)

@@ -141,33 +141,6 @@ $$\vec{v_2}=\vec{v_{20}}+\left(v_2-v_{20}\right)\cdot\vec{p}$$
 
 #### 2.4.1 理想气体
 
-
-
-数据汇总整理：
-
-* 默认标准状态： (273.15 K, 100 kPa)
-* [理想气体摩尔体积$V_m$](https://physics.nist.gov/cgi-bin/cuu/Value?mvol)=22.710 954 64...  x 10-3 m3 mol-1（molar volume of ideal gas）【来自】
-* 氧气分子直径d=0.346nm（常用气体分子直径表）
-* [阿伏伽德罗常数$N_A$](https://physics.nist.gov/cgi-bin/cuu/Value?na)=6.022 140 76  x 1023 mol-1
-* [玻尔兹曼常数$k_B$](https://physics.nist.gov/cgi-bin/cuu/Value?k)=1.380 649  x 10-23 J K-1
-* 氧气分子质量m=5.3 x 10^-26 kg
-
-* 标准状态下气体分子间距$\sqrt[3]{\frac{V_m}{N_A}}$=3.353473e-09m
-
-> printf("%e",pow(22.71095464e-3/6.02214076e23,1.0/3.0));
-
-* 一微米长度上可排列气体分子数2.981983e+02取为298个
-
-> printf("%e",1e-6/pow(22.71095464e-3/6.02214076e23,1.0/3.0));
-
-* 方差
-
-> printf("%e",sqrt(1.380649e-23*273.15/5.3e-26));
-
-理想气体模型被广泛应用于研究气体性质。理想气体模型中，气体分子被理想化为质点或刚性小球，与其他分子无相互作用。理想气体分子在各个方向上的运动速率服从正态分布：
-
-$$p(v_t)=\frac{1}{\sqrt{2\pi \sigma ^2}}\exp[-\frac{(v_t-\mu)^2}{2\sigma_t^2}]$$
-
 <todo>
 
 #### 2.2.2 布朗运动
