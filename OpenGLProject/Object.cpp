@@ -74,13 +74,13 @@ Ball::Ball(std::istream &is) : Ball()
 //predict------------------------------------------------------------------------------------------------------------
 float Ball::predict(const Wall &wall) //tochk
 {
-    glm::vec3 r = location - wall.loc();
-    float r_l = glm::dot(r, wall.norm());        //球到平面的垂直距离
-    float v_l = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
+    glm::vec3 p = location - wall.loc();
+    float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
+    float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
 
-    if (v_l * r_l >= 0)
+    if (v_n * p_n >= 0)
         return -1.0f;
-    return -r_l / v_l;
+    return -p_n / v_n;
     //another solution
     /*
     glm::vec3 r = location - wall.loc();
@@ -134,14 +134,12 @@ void Ball::bounce(Object &object)
     {
     case Object_type::BALL:
     {
-        Ball &ball = dynamic_cast<Ball &>(object);
-        this->bounce(ball);
+        this->bounce(dynamic_cast<Ball &>(object));
         break;
     }
     case Object_type::WALL:
     {
-        Wall &wall = dynamic_cast<Wall &>(object);
-        this->bounce(wall);
+        this->bounce(dynamic_cast<Wall &>(object));
         break;
     }
     }
