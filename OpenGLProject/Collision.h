@@ -83,12 +83,14 @@ public:
     void reverse();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
+    std::vector<std::shared_ptr<Container>> &c() { return containers; }
     void move(float);
 
 private:
     void init();
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Wall>> walls;
+    std::vector<std::shared_ptr<Container>> containers;
     float currentTime = 0;
 
 #ifdef EVENT_DRIVEN

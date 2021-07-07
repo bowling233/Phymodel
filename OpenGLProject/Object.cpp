@@ -7,19 +7,19 @@
 #include <glm\glm.hpp>
 #include <memory>
 
-
 //definition
 
 unsigned int Wall::sum = 0;
 unsigned int Ball::sum = 0;
+unsigned int Container::sum = 0;
 
 //tools---------------------------------------------------------------------------------------------
 std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
 {
     os << std::setprecision(3) << std::fixed;
-    os << std::setw(8) << v.x << " |"
-       << std::setw(8) << v.y << " |"
-       << std::setw(8) << v.z << " |"
+    os << v.x << '\t'
+       << v.y << '\t'
+       << v.z << '\t'
        << std::defaultfloat;
     return os;
 }
@@ -28,6 +28,14 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
 {
     is >> v.x >> v.y >> v.z;
     return is;
+}
+
+float max(float a, float b)
+{
+    if (a >= b)
+        return a;
+    else
+        return b;
 }
 
 //Wall---------------------------------------------------------------------------------------------
@@ -40,14 +48,14 @@ Wall::Wall(std::istream &is) : Wall()
 std::istream &operator>>(std::istream &is, Wall &wall)
 {
     is >> wall.location >> wall.normalVector;
-    wall.normalVector = glm::normalize(wall.normalVector);//预先归一化
+    wall.normalVector = glm::normalize(wall.normalVector); //预先归一化
     return is;
 }
 
 std::ostream &operator<<(std::ostream &os, const Wall &wall)
 {
     os << std::setprecision(3) << std::fixed;
-    os << std::setw(8) << wall.number << " |"
+    os << wall.number << '\t'
        << wall.location << wall.normalVector << std::endl
        << std::defaultfloat;
     return os;
@@ -71,7 +79,10 @@ Ball::Ball(std::istream &is) : Ball()
     number = ++sum;
 }
 
-//predict------------------------------------------------------------------------------------------------------------
+//################
+//predict
+//################
+
 float Ball::predict(const Wall &wall) //tochk
 {
     glm::vec3 p = location - wall.loc();
@@ -126,7 +137,41 @@ float Ball::predict(const Ball &ball) //tochk
     return x1;
 }
 
-//bounce------------------------------------------------------------------------------------------------------------
+float Ball::predict(const Container &container) //tochk
+{
+    float x, y, z;
+
+    if (velocity.x = 0)
+        x = -1.0;
+    else if (velocity.x > 0)
+        x = (container.x_p() - location.x) / velocity.x;
+    else if (velocity.x < 0)
+        x = (location.x - container.x_n()) / velocity.x;
+
+    if (velocity.y = 0)
+        y = -1.0;
+    else if (velocity.y > 0)
+        y = (container.y_p() - location.y) / velocity.y;
+    else if (velocity.y < 0)
+        y = (location.y - container.y_n()) / velocity.y;
+
+    if (velocity.z = 0)
+        z = -1.0;
+    else if (velocity.z > 0)
+        z = (container.z_p() - location.z) / velocity.z;
+    else if (velocity.z < 0)
+        z = (location.z - container.z_n()) / velocity.z;
+
+    if (x < 0 && y < 0 && z < 0)
+        return -1.0;
+    else
+        return max(max(x, y), z); //返回最大值
+}
+
+//################
+//bounce
+//################
+
 void Ball::bounce(Object &object)
 {
     count++;
@@ -142,6 +187,11 @@ void Ball::bounce(Object &object)
         this->bounce(dynamic_cast<Wall &>(object));
         break;
     }
+    case Object_type::CONTAINER:
+    {
+        this->bounce(dynamic_cast<Container &>(object));
+        break;
+    }
     }
 }
 
@@ -153,7 +203,8 @@ void Ball::bounce(Wall &wall) //tochk
 
 void Ball::bounce(Ball &ball)
 {
-    if (this->back(ball))return;
+    if (this->back(ball))
+        return;
 
     glm::vec3 r = glm::normalize(location - ball.location);
 
@@ -170,6 +221,44 @@ void Ball::bounce(Ball &ball)
     ball.count++;
 }
 
+void Ball::bounce(Container &container) //tochk
+{
+    float x, y, z;
+
+    if (velocity.x = 0)
+        x = -1.0;
+    else if (velocity.x > 0)
+        x = (container.x_p() - location.x) / velocity.x;
+    else if (velocity.x < 0)
+        x = (location.x - container.x_n()) / velocity.x;
+
+    if (velocity.y = 0)
+        y = -1.0;
+    else if (velocity.y > 0)
+        y = (container.y_p() - location.y) / velocity.y;
+    else if (velocity.y < 0)
+        y = (location.y - container.y_n()) / velocity.y;
+
+    if (velocity.z = 0)
+        z = -1.0;
+    else if (velocity.z > 0)
+        z = (container.z_p() - location.z) / velocity.z;
+    else if (velocity.z < 0)
+        z = (location.z - container.z_n()) / velocity.z;
+
+    if (x < y && x < z)
+        velocity.x = -velocity.x;
+    else if (y < x && y < z)
+        velocity.y = -velocity.y;
+    else if (z < x && z < y)
+        velocity.z = -velocity.z;
+    else
+        std::cerr << "bounce to container error" << std::endl;
+}
+
+//################
+//examine
+//################
 
 bool Ball::examine(const Ball &ball)
 {
@@ -178,14 +267,21 @@ bool Ball::examine(const Ball &ball)
 
 bool Ball::examine(const Wall &wall)
 {
-    return (abs(glm::dot(location-wall.loc(),wall.norm())) < radius);
+    return (abs(glm::dot(location - wall.loc(), wall.norm())) < radius);
 }
 
-bool Ball::back(const Ball& ball)
+bool Ball::examine(const Container &container) //tochk
+{
+    return ((location.x + radius < container.x_p()) && (location.x - radius > container.x_n())) && ((location.y + radius < container.y_p()) && (location.y - radius > container.y_n())) && ((location.z + radius < container.z_p()) && (location.z - radius > container.z_n()));
+}
+
+bool Ball::back(const Ball &ball)
 {
     if ((glm::dot(-(location - ball.location), velocity) < 0) && (glm::dot(location - ball.location, ball.velocity) < 0))
     {
+#ifdef DEBUG
         std::cout << "back error" << std::endl;
+#endif
         return true;
     }
     return false;
@@ -201,22 +297,47 @@ std::istream &operator>>(std::istream &is, Ball &ball)
 std::ostream &operator<<(std::ostream &os, const Ball &ball)
 {
     os << std::setprecision(3) << std::fixed;
-    os << std::setw(8) << ball.number << " |"
+    os << ball.number << '\t'
        << ball.location << ball.velocity
-       << std::setw(8) << ball.mass << " |"
-       << std::setw(8) << ball.radius << " |"
-       << std::setw(8) << ball.count << " |"
+       << ball.mass << '\t'
+       << ball.radius << '\t'
+       << ball.count << '\t'
        << std::defaultfloat;
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Ball>> &balls)
 {
-    os << "-----------Balls------------------------------------------------------------------------------------" << std::endl;
-    os << "   Ball  | locX    | loxY    | locZ    | velX    | velY    | velZ    |  Mass   | Radius  | cnt     |"
-       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+    os << "Balls-----------------------------------------------------------------------------------------------" << std::endl;
+    os << "Ball\tlocX\tloxY\tlocZ\tvelX\tvelY\tvelZ\tMass\tRadius\tCount"
        << std::endl;
     for (auto const &i : balls)
         os << *i << std::endl;
+    return os;
+}
+
+//container
+
+Container::Container(std::istream &is)
+{
+    is >> *this;
+    number = ++sum;
+}
+
+//io
+std::istream &operator>>(std::istream &is, Container &container)
+{
+    is >> container.location >> container.a >> container.b >> container.c;
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, const Container &container)
+{
+    //todo
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Container>> &containers)
+{
     return os;
 }

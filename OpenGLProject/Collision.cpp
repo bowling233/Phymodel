@@ -6,8 +6,6 @@
 int sumbounce = 0;
 int sumexam = 0;
 
-
-
 //#############
 //Event
 //#############
@@ -38,6 +36,9 @@ std::ostream &operator<<(std::ostream &os, const Event &event)
         break;
     case Object_type::WALL:
         os << "wall";
+        break;
+    case Object_type::CONTAINER:
+        os << "cont";
         break;
     }
     os << " | " << std::setw(3) << event.object->num()
@@ -82,10 +83,10 @@ void CollisionSystem::run(float t)
                     sumbounce++;
                 }
             }
-            for (auto j = walls.cbegin(); j != walls.cend();j++)
+            for (auto j = walls.cbegin(); j != walls.cend(); j++)
             {
                 sumexam++;
-                if((**i).examine(**j))
+                if ((**i).examine(**j))
                 {
                     std::cout << "！！！！！！！！！！！！！！！！！！！！exam passed" << std::endl;
                     (**i).bounce(**j);
@@ -98,31 +99,31 @@ void CollisionSystem::run(float t)
 #endif
 
 #ifdef EVENT_DRIVEN
-    while (!(eventQueue.empty()) &&  (targetTime >= eventQueue.top().time)) //队列非空、事件有效且发生
-    {//notice:处理事件以后记得刷新小球位置
+    while (!(eventQueue.empty()) && (targetTime >= eventQueue.top().time)) //队列非空、事件有效且发生
+    {                                                                      //notice:处理事件以后记得刷新小球位置
         if (!eventQueue.top().valid())
         {
             eventQueue.pop();
             continue;
         }
         move(eventQueue.top().t() - currentTime); //跳转到事件发生时间
-        Event temp = eventQueue.top();//提出放置，因为需要检测对应物体
-        eventQueue.top().handle(); //处理事件，处理时小球自动递增计数器
+        Event temp = eventQueue.top();            //提出放置，因为需要检测对应物体
+        eventQueue.top().handle();                //处理事件，处理时小球自动递增计数器
         eventQueue.pop();
         std::cout << currentTime << std::endl;
 
         { //主小球检测
             for (auto const &i : balls)
-                if ((t = (temp.ball->predict(*i)) >= 0))//predict内置重复检测
+                if ((t = (temp.ball->predict(*i)) >= 0)) //predict内置重复检测
                     eventQueue.push(Event(temp.ball, i, t + currentTime));
             for (auto const &i : walls)
-                if ((temp.object!=i)&&(t = (temp.ball->predict(*i)) >= 0))//智能指针重复检测
+                if ((temp.object != i) && (t = (temp.ball->predict(*i)) >= 0)) //智能指针重复检测
                     eventQueue.push(Event(temp.ball, i, t + currentTime));
         }
 
         if (temp.object->type() == Object_type::BALL) //副小球检测
         {
-            std::shared_ptr<Ball> ball = std::dynamic_pointer_cast<Ball>(temp.object);//智能指针转换
+            std::shared_ptr<Ball> ball = std::dynamic_pointer_cast<Ball>(temp.object); //智能指针转换
             for (auto const &i : balls)
                 if ((t = (ball->predict(*i)) > 0))
                     eventQueue.push(Event(ball, i, t + currentTime));
@@ -146,9 +147,9 @@ void CollisionSystem::reverse()
 #ifdef EVENT_DRIVEN
     while (!eventQueue.empty())
         eventQueue.pop(); //清空
-    #ifdef DEBUG
-        OUTPUT << eventQueue;
-    #endif
+#ifdef DEBUG
+    OUTPUT << eventQueue;
+#endif
 #endif
 
     for (auto &i : balls)
@@ -158,9 +159,6 @@ void CollisionSystem::reverse()
     this->init();
 #endif
 }
-
-
-
 
 //#############
 //private
@@ -185,7 +183,7 @@ void CollisionSystem::init()
             if ((t = ((**i).predict(**j)) >= 0))
                 eventQueue.push(Event(*i, *j, t + currentTime));
         }
-        for (auto const& j : walls)
+        for (auto const &j : walls)
             if ((t = ((**i).predict(*j)) >= 0))
                 eventQueue.push(Event(*i, j, t + currentTime));
     }
@@ -218,26 +216,31 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
             exit(EXIT_FAILURE);
         }
 
-        for (int i = 0; i != num; i++)
+        switch (identifier)
         {
-            switch (identifier)
-            {
-            case 'B':
-            {
+        case 'B':
+        {
+            for (int i = 0; i != num; i++)
                 system.balls.push_back(std::make_shared<Ball>(is));
-                break;
-            }
-            case 'W':
-            {
+            break;
+        }
+        case 'W':
+        {
+            for (int i = 0; i != num; i++)
                 system.walls.push_back(std::make_shared<Wall>(is));
-                break;
-            }
-            }
+            break;
+        }
+        case 'C':
+        {
+            for (int i = 0; i != num; i++)
+                system.containers.push_back(std::make_shared<Container>(is));
+            break;
+        }
         }
     }
     std::clog << "Success:systen read in" << std::endl;
-    
-    system.init();//notice
+
+    system.init(); //notice
     return is;
 }
 
@@ -247,9 +250,11 @@ std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
         os << system.balls;
     if (!system.walls.empty())
         os << system.walls;
+    if (!system.containers.empty())
+        os << system.containers;
 #ifdef EVENT_DRIVEN
-    if(!system.eventQueue.empty())
-    os << system.eventQueue;
+    if (!system.eventQueue.empty())
+        os << system.eventQueue;
 #endif
     return os;
 }
