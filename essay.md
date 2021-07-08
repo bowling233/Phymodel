@@ -67,7 +67,7 @@ $$\left|\left(\vec{p_1}+t\vec{v_1}\right)-\left(\vec{p_2}+t\vec{v_2}\right)\righ
 
 令 $\Delta\vec{v}=\vec{v_1}-\vec{v_2},\Delta\vec{p}=\vec{p_1}-\vec{p_2}$ 可得一元二次方程：
 
-$$\left|\Delta\vec{v}\right|^2+2\cdot\Delta\vec{v}\cdot\Delta\vec{p}\cdot t+\left|\Delta\vec{p}\right|^2–(r_1+r_2)^2=0$$
+$$\left|\Delta\vec{v}\right|^2 t^2+2(\Delta\vec{v}\cdot\Delta\vec{p})t+\left|\Delta\vec{p}\right|^2–(r_1+r_2)^2=0$$
 
 $$\Delta=2\sqrt{\left(\Delta\vec{v}\cdot\Delta\vec{p}\right)^2-\left|\Delta\vec{v}\right|^2\left[\left|\Delta\vec{p}\right|^2-\left(r_1+r_2\right)^2\right]}$$
 

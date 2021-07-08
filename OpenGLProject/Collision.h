@@ -88,6 +88,9 @@ public:
 
 private:
     void init();
+#ifdef EVENT_DRIVEN
+    std::shared_ptr<Ball> ball;//temp
+#endif
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;

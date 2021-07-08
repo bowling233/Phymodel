@@ -421,7 +421,7 @@ int main(void)
 
 	
 //创建碰撞系统
-	ifstream ifstrm("simple_system_6b1w.txt");
+	ifstream ifstrm("E:\\Coding\\testdata\\simple_system_6b1w.txt");
 	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
@@ -455,7 +455,7 @@ int main(void)
 
 		}
 		
-		system.run(1.0f/600.0f);
+		system.run(1.0f/60.0f);
 
 //显示
 	display(window, glfwGetTime(), system);

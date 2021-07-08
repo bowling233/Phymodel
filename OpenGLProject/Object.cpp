@@ -42,7 +42,6 @@ float max(float a, float b)
 Wall::Wall(std::istream &is) : Wall()
 {
     is >> *this;
-    number = ++sum;
 }
 
 std::istream &operator>>(std::istream &is, Wall &wall)
@@ -63,9 +62,8 @@ std::ostream &operator<<(std::ostream &os, const Wall &wall)
 
 std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wall>> &walls)
 {
-    os << "-----------Walls------------------------------------------------------" << std::endl;
-    os << "   Wall  | locX    | loxY    | locZ    | norX    | norY    | norZ    |"
-       // "       1 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 | 1111.00 |"
+    os << "Walls-----------------------------------------------------------------" << std::endl;
+    os << "Wall\tlocX\tloxY\tlocZ\tnorX\tnorY\tnorZ"
        << std::endl;
     for (auto const &i : walls)
         os << *i << std::endl;
@@ -76,7 +74,6 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wal
 Ball::Ball(std::istream &is) : Ball()
 {
     is >> *this;
-    number = ++sum;
 }
 
 //################
@@ -115,6 +112,9 @@ float Ball::predict(const Ball &ball) //tochk
     if (this->back(ball))
         return -1.0;
 
+    std::cout << "predict calculation" << dv << r << this->radius << '\t' << ball.radius << std::endl;
+    //getchar();
+
     float a = square(glm::length(dv));
     float b = 2.0 * glm::dot(dv, r);
     float c = square(glm::length(r)) - square(radius + ball.radius);
@@ -125,6 +125,9 @@ float Ball::predict(const Ball &ball) //tochk
 
     float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
     float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
+
+    if (x2 < 0 || x1 < 0)//事实上，这里小球已经相交
+        return -1.0;
     //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
 
     //question:小根大于0必定返回小根吗？是这样的，我们要求离当前时刻最近的一次碰撞解，因此返回最小正根
@@ -134,6 +137,7 @@ float Ball::predict(const Ball &ball) //tochk
     if (x1 > 0)
         return x1;
         */
+    std::cout << "calculation passed" << std::endl;
     return x1;
 }
 
@@ -174,7 +178,7 @@ float Ball::predict(const Container &container) //tochk
 
 void Ball::bounce(Object &object)
 {
-    count++;
+    count++;//不管和哪一个物体碰撞，球自身都递增
     switch (object.type())
     {
     case Object_type::BALL:
@@ -203,8 +207,8 @@ void Ball::bounce(Wall &wall) //tochk
 
 void Ball::bounce(Ball &ball)
 {
-    if (this->back(ball))
-        return;
+    //if (this->back(ball))
+      //  return;
 
     glm::vec3 r = glm::normalize(location - ball.location);
 
@@ -260,6 +264,7 @@ void Ball::bounce(Container &container) //tochk
 //examine
 //################
 
+
 bool Ball::examine(const Ball &ball)
 {
     return (glm::length(location - ball.location) < (radius + ball.radius));
@@ -308,7 +313,7 @@ std::ostream &operator<<(std::ostream &os, const Ball &ball)
 
 std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Ball>> &balls)
 {
-    os << "Balls-----------------------------------------------------------------------------------------------" << std::endl;
+    os << "Balls---------------------------------------------------------------------------" << std::endl;
     os << "Ball\tlocX\tloxY\tlocZ\tvelX\tvelY\tvelZ\tMass\tRadius\tCount"
        << std::endl;
     for (auto const &i : balls)
@@ -321,23 +326,31 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Bal
 Container::Container(std::istream &is)
 {
     is >> *this;
-    number = ++sum;
 }
 
 //io
 std::istream &operator>>(std::istream &is, Container &container)
 {
-    is >> container.location >> container.a >> container.b >> container.c;
+    is >> container.location >> container.length;
     return is;
 }
 
 std::ostream &operator<<(std::ostream &os, const Container &container)
 {
-    //todo
+    os << std::setprecision(3) << std::fixed
+    << container.number << '\t'
+    << container.location << container.length
+    << std::defaultfloat;
     return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Container>> &containers)
 {
+    os << "Containers-----------------------------------------------------------------" << std::endl;
+    os << "Cont\tlocX\tloxY\tlocZ\tlenX\tlenY\tlenZ"
+        << std::endl;
+    for (auto const& i : containers)
+        os << *i << std::endl;
+    return os;
     return os;
 }

@@ -64,7 +64,7 @@ class Wall final : public Object //private:normalVector
 public:
     //construct
     Wall() : Wall(glm::vec3(0.0f),glm::vec3(0.0f, 0.0f, 1.0f)) {}
-    Wall(const glm::vec3 &loc, const glm::vec3 &norv) : Object(loc), normalVector(norv) {}
+    Wall(const glm::vec3 &loc, const glm::vec3 &norv) : Object(loc), normalVector(norv), number(++sum) {}
     Wall(std::istream &);
     //copy move destruct
     Wall(const Wall &) = default;
@@ -99,7 +99,7 @@ class Ball final : public Object //velocity,mass
 public:
     //construct
     Ball() : Ball(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f) {}//radius(), velocity(), mass() {} //说明：默认拥有向x轴正方向的速度1，质量1
-    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), velocity(vel), mass(m), radius(r) {}
+    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), velocity(vel), mass(m), radius(r) ,number(++sum){}
     Ball(std::istream &);
     //Ball递增自己的计数器
 
@@ -159,9 +159,9 @@ class Container final : public Object//private:a,b,c
     friend std::ostream& operator<<(std::ostream&, const Container&);
 public:
     //construct
-    Container() :Container(glm::vec3(0.0f),1.0f, 1.0f, 1.0f) {}
-    Container(glm::vec3 loc, float x, float y, float z) : Object(loc), a(x), b(y), c(z) {}
-    Container(std::istream&);//todo
+    Container() :Container(glm::vec3(0.0f),glm::vec3(1.0f)) { }
+    Container(glm::vec3 loc, glm::vec3 len) : Object(loc), length(len) ,number(++sum) { }
+    Container(std::istream&);
 
     //copy move destruct
     Container(const Container&) = default;
@@ -174,19 +174,19 @@ public:
     unsigned int cnt() { return 0; }
     Object_type type() { return Object_type::CONTAINER; }
     unsigned int num() { return number; }
-    float x_p() const { return location.x + a / 2; }//positive
-    float x_n() const { return location.x - a / 2; }//negative
-    float y_p() const { return location.y + b / 2; }
-    float y_n() const { return location.y - b / 2; }
-    float z_p() const { return location.z + c / 2; }
-    float z_n() const { return location.z - c / 2; }
+    float x_p() const { return location.x + length.x / 2; }//positive
+    float x_n() const { return location.x - length.x / 2; }//negative
+    float y_p() const { return location.y + length.y / 2; }
+    float y_n() const { return location.y - length.y / 2; }
+    float z_p() const { return location.z + length.z / 2; }
+    float z_n() const { return location.z - length.z / 2; }
 
-    glm::mat4 sMat() { return glm::scale(glm::mat4(1.0f), glm::vec3(a, b, c)); }
+    glm::vec3 sMat() { return length; }
 
 private:
-    float a, b, c;
+    glm::vec3 length;
     static unsigned int sum; //extern
-    unsigned int number = 0, count = 0;
+    unsigned int number = 0, count = 0;//默认为0
 };
 
 std::istream& operator>>(std::istream&, Container&);
