@@ -45,9 +45,9 @@ public:
     glm::vec3 loc() const { return location; }
 
     //virtual
-    virtual unsigned int cnt() = 0;
-    virtual Object_type type() = 0;
-    virtual unsigned int num() = 0;
+    virtual unsigned int cnt() const = 0;
+    virtual Object_type type() const = 0;
+    virtual unsigned int num() const = 0;
 
 protected:
     glm::vec3 location;
@@ -75,9 +75,9 @@ public:
 
     //information
     glm::vec3 norm() const{ return normalVector; }
-    unsigned int cnt() { return 0; }
-    Object_type type() { return Object_type::WALL; }
-    unsigned int num() { return number; }
+    unsigned int cnt() const { return 0; }
+    Object_type type() const { return Object_type::WALL; }
+    unsigned int num() const { return number; }
 
 private:
     glm::vec3 normalVector;
@@ -115,9 +115,9 @@ public:
     glm::vec3 vel() const { return velocity; }
     float m() const { return mass; }
     float ek() const { return 0.5f * mass * square(glm::length(velocity)); }
-    unsigned int cnt() { return count; }
-    Object_type type() { return Object_type::BALL; }
-    unsigned int num() { return number; }
+    unsigned int cnt() const { return count; }
+    Object_type type() const { return Object_type::BALL; }
+    unsigned int num() const { return number; }
 
     //action
     void move(float t) { location += velocity * t; }
@@ -171,9 +171,9 @@ public:
     ~Container() = default;
 
     //information
-    unsigned int cnt() { return 0; }
-    Object_type type() { return Object_type::CONTAINER; }
-    unsigned int num() { return number; }
+    unsigned int cnt() const { return 0; }
+    Object_type type() const { return Object_type::CONTAINER; }
+    unsigned int num() const { return number; }
     float x_p() const { return location.x + length.x / 2; }//positive
     float x_n() const { return location.x - length.x / 2; }//negative
     float y_p() const { return location.y + length.y / 2; }

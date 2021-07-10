@@ -53,7 +53,7 @@ public:
     void handle () const;
 
     //compare
-    bool operator<(const Event &event) const { return time < event.time; }
+    bool operator<(const Event &event) const { return time > event.time; }
     bool valid() const;
 
 private:
@@ -76,7 +76,7 @@ public:
     //construct and destruct
     CollisionSystem() = default;
     ~CollisionSystem() = default;
-    CollisionSystem(std::istream &is) : CollisionSystem() { is >> *this; }
+    CollisionSystem(std::istream &is) : CollisionSystem() { is >> *this; this->init();}//输入后自动初始化
 
     //action
     void run(float);
@@ -85,16 +85,17 @@ public:
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
     void move(float);
+    void init();
 
 private:
-    void init();
+
 #ifdef EVENT_DRIVEN
     std::shared_ptr<Ball> ball;//temp
 #endif
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
-    float currentTime = 0;
+    float currentTime = 0.0, temp = 0.0;
 
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用

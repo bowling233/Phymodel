@@ -82,6 +82,7 @@ Ball::Ball(std::istream &is) : Ball()
 
 float Ball::predict(const Wall &wall) //tochk
 {
+    //std::clog << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
     glm::vec3 p = location - wall.loc();
     float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
     float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
@@ -103,21 +104,22 @@ float Ball::predict(const Wall &wall) //tochk
 
 float Ball::predict(const Ball &ball) //tochk
 {
+    //std::clog << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
+
     if (number == ball.number) //防止自预测
         return -1.0f;
 
-    glm::vec3 r = location - ball.location, //以ball为中心
+    glm::vec3 dp = location - ball.location, //以ball为中心
         dv = velocity - ball.velocity;
 
     if (this->back(ball))
         return -1.0;
 
-    std::cout << "predict calculation" << dv << r << this->radius << '\t' << ball.radius << std::endl;
-    //getchar();
+    //std::cout << "predict:计算信息 dv dp r1 r2\n" << dv << dp << this->radius << '\t' << ball.radius << std::endl;//<debug>
 
     float a = square(glm::length(dv));
-    float b = 2.0 * glm::dot(dv, r);
-    float c = square(glm::length(r)) - square(radius + ball.radius);
+    float b = 2.0 * glm::dot(dv, dp);
+    float c = square(glm::length(dp)) - square(radius + ball.radius);
     float delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
@@ -137,12 +139,13 @@ float Ball::predict(const Ball &ball) //tochk
     if (x1 > 0)
         return x1;
         */
-    std::cout << "calculation passed" << std::endl;
-    return x1;
+    //std::cout << "predict:球体预测通过\t" << "x1:" << x1 << "x2\t" << x2 << std::endl;//<debug>
+    return x2;//返回小根
 }
 
 float Ball::predict(const Container &container) //tochk
 {
+    //std::clog << "predict:容器" << this->number << "|" << container.num() <<std::endl;//<debug>
     float x, y, z;
 
     if (velocity.x = 0)
@@ -178,7 +181,7 @@ float Ball::predict(const Container &container) //tochk
 
 void Ball::bounce(Object &object)
 {
-    count++;//不管和哪一个物体碰撞，球自身都递增
+    //为了兼容time驱动，在传递后递增计数器
     switch (object.type())
     {
     case Object_type::BALL:
@@ -201,12 +204,15 @@ void Ball::bounce(Object &object)
 
 void Ball::bounce(Wall &wall) //tochk
 {
+    std::clog << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
+    count++;
 }
 
 void Ball::bounce(Ball &ball)
 {
+    std::clog << "info:碰撞处理前\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;
     //if (this->back(ball))
       //  return;
 
@@ -222,11 +228,14 @@ void Ball::bounce(Ball &ball)
 
     velocity += (v1 - v10) * r;
     ball.velocity += (v2 - v20) * r;
+    count++;
     ball.count++;
+    std::clog << "info:碰撞处理后\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;
 }
 
 void Ball::bounce(Container &container) //tochk
 {
+    
     float x, y, z;
 
     if (velocity.x = 0)
@@ -257,7 +266,11 @@ void Ball::bounce(Container &container) //tochk
     else if (z < x && z < y)
         velocity.z = -velocity.z;
     else
-        std::cerr << "bounce to container error" << std::endl;
+        {
+            std::cerr << "error:容器碰撞错误" << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+    count++;
 }
 
 //################
@@ -285,7 +298,7 @@ bool Ball::back(const Ball &ball)
     if ((glm::dot(-(location - ball.location), velocity) < 0) && (glm::dot(location - ball.location, ball.velocity) < 0))
     {
 #ifdef DEBUG
-        std::cout << "back error" << std::endl;
+        std::cout << "error:背向运动" << std::endl;
 #endif
         return true;
     }

@@ -24,9 +24,9 @@ using namespace std;
 #include "Collision.h"
 using namespace chrono;
 //关闭vs studio错误提示
-//#define _CRT_SECURE_NO_DEPRECATE
-//#define _CRT_SECURE_NO_WARNINGS
-//#pragma warning(disable : 4996)
+#define _CRT_SECURE_NO_DEPRECATE
+#define _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable : 4996)
 
 //变量预分配部分
 #define numVAOs 1
@@ -223,7 +223,7 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightLoc), GL_STATIC_DRAW);
 
-	clog << "OK:OpenGL init" << endl;
+	clog << "log:OpenGL初始化成功" << endl;
 }
 
 
@@ -405,7 +405,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 
 int main(void)
 {
-	//freopen("out.txt", "w", stdout);
+	freopen("event_out.txt", "w", stdout);
 //OpenGL初始化
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
@@ -430,12 +430,12 @@ int main(void)
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;
 	bool flag = true;
-	init(window,system);
+	init(window,system);//提供system的相关信息为OpenGL绘制预先存储数据
 
 //程序主循环	
 	while (!glfwWindowShouldClose(window))
 	{
-		
+		/*
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -454,7 +454,7 @@ int main(void)
 			sumexam = 0;
 
 		}
-		
+		*/
 		system.run(1.0f/60.0f);
 
 //显示
