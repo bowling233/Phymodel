@@ -223,7 +223,7 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightLoc), GL_STATIC_DRAW);
 
-	clog << "log:OpenGL初始化成功" << endl;
+	cout << "log:OpenGL初始化成功" << endl;
 }
 
 
@@ -405,7 +405,7 @@ void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
 
 int main(void)
 {
-	freopen("event_out.txt", "w", stdout);
+	//freopen("event_out.txt", "w", stdout);
 //OpenGL初始化
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
@@ -419,9 +419,8 @@ int main(void)
 	glfwSwapInterval(1);//垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
-	
 //创建碰撞系统
-	ifstream ifstrm("E:\\Coding\\testdata\\simple_system_6b1w.txt");
+	ifstream ifstrm("E:\\Coding\\testdata\\605ball.txt");
 	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
@@ -435,8 +434,8 @@ int main(void)
 //程序主循环	
 	while (!glfwWindowShouldClose(window))
 	{
-		/*
-		if (count++ == 30) {
+		
+		/*if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
 			duration = duration_cast<microseconds>(current - last);
@@ -453,14 +452,15 @@ int main(void)
 			sumbounce = 0;
 			sumexam = 0;
 
-		}
-		*/
+		}*/
+		
 		system.run(1.0f/60.0f);
+
+		if (system.time() >= 10)
+			break;
 
 //显示
 	display(window, glfwGetTime(), system);
-
-
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

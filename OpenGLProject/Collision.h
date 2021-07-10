@@ -13,7 +13,7 @@ extern int sumbounce;
 extern int sumexam;
 
 #ifdef TIME_DRIVEN
-constexpr auto DELTATIME = 1.0f / 60.0f; //时间驱动专用
+constexpr auto DELTATIME = 1.0f / 360.0f; //时间驱动专用
 #endif
 
 //预先声明所有用到的外部类
@@ -86,6 +86,7 @@ public:
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
     void move(float);
     void init();
+    float time() { return currentTime; }
 
 private:
 
@@ -95,7 +96,7 @@ private:
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
-    float currentTime = 0.0, temp = 0.0;
+    float currentTime = 0.0, targetTime=0.0, temp = 0.0;
 
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用

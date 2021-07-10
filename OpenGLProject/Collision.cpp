@@ -12,14 +12,14 @@ int sumexam = 0;
 #ifdef EVENT_DRIVEN
 void Event::handle() const //notice
 {
-    std::cout << "info:事件处理信息：" << std::endl << *this << std::endl;//<debug>
+    //std::cout << "info:事件处理信息：" << std::endl << *this << std::endl;//<debug>
     if ((ball->cnt() == countBall) && (object->cnt() == countObject))
         ball->bounce(*object); //从指针变成对象的引用，交给ball类运行时绑定
 }
 
 bool Event::valid() const
 {
-    //std::clog << "info:事件有效性检测\n" << *this << '\t' << ball->cnt() << '\t' << object->cnt() << std::endl;//debug
+    //std::cout << "info:事件有效性检测\n" << *this << '\t' << ball->cnt() << '\t' << object->cnt() << std::endl;//debug
     return ((ball->cnt() == countBall) && (object->cnt() == countObject));
 }
 
@@ -66,9 +66,17 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 //CollisionSystem
 //#############
 
+//int flag = 1;
+
 void CollisionSystem::run(float t)
 {
-    float targetTime = currentTime + t;
+    /*float targetTime = currentTime + t;
+    if ((flag==1) &&(targetTime >= 10))
+    {
+        targetTime = 10;
+        flag = 0;
+    }*/
+    targetTime = currentTime + t;
 #ifdef TIME_DRIVEN
     while (currentTime < targetTime)
     {
@@ -79,7 +87,7 @@ void CollisionSystem::run(float t)
                 sumexam++;
                 if ((**i).examine(**j))
                 {
-                    std::clog << "log:###ball bounce\t当前系统时间" << currentTime << std::endl;
+                    //std::cout << "log:###ball bounce\t当前系统时间" << currentTime <<"\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
                     (**i).bounce(**j);
                     sumbounce++;
                 }
@@ -89,7 +97,7 @@ void CollisionSystem::run(float t)
                 sumexam++;
                 if ((**i).examine(**j))
                 {
-                    std::cout << "log:###wall bounce\t当前系统时间" << currentTime << std::endl;
+                    //std::cout << "log:###wall bounce\t当前系统时间" << currentTime << "\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
                     (**i).bounce(**j);
                     sumbounce++;
                 }
@@ -107,12 +115,12 @@ void CollisionSystem::run(float t)
             eventQueue.pop();
             continue;
         }//逻辑：第一次进入必定有效，不检测。循环尾清除后必定有效，不检测。因此这个模块可以删除<delete>*/
-        //std::clog << "log:事件队列处理前" << eventQueue;//<debug>
+        //std::cout << "log:事件队列处理前" << eventQueue;//<debug>
         move(eventQueue.top().t() - currentTime); //有效，跳转到事件发生时间
         Event tempEvent = eventQueue.top();            //提出放置，因为需要检测对应物体
         eventQueue.pop();
 
-        std::cout << "当前系统时间：" << currentTime << std::endl;//<debug>
+        //std::cout << "当前系统时间：" << currentTime << std::endl;//<debug>
         tempEvent.handle();                //处理事件，处理时小球自动递增计数器
 
         { //主小球检测
@@ -144,43 +152,42 @@ void CollisionSystem::run(float t)
                     if (((t = ball->predict(*i)) >= 0))
                         eventQueue.push(Event(ball, i, t + currentTime));
         }
-        //std::clog << "log:事件队列处理后" << std::endl << eventQueue;//<debug>
+        //std::cout << "log:事件队列处理后" << std::endl << eventQueue;//<debug>
         while((!eventQueue.empty()) && (!eventQueue.top().valid()))//队列非空且队首事件无效
             eventQueue.pop();
-        //std::clog << "log:事件队列清理后" << std::endl << eventQueue;//<debug>
+        //std::cout << "log:事件队列清理后" << std::endl << eventQueue;//<debug>
     }
     //发生的事件全部处理完成
     move(targetTime - currentTime);
+    /*if (flag == 0)
+    {
+        this->reverse();
+        flag = -1;
+    }*/
 #endif
 }
 
 void CollisionSystem::reverse()
 {
-#ifdef EVENT_DRIVEN
-    while (!eventQueue.empty())
-        eventQueue.pop(); //清空
-#ifdef DEBUG
-    OUTPUT << eventQueue;
-#endif
-#endif
-
     for (auto &i : balls)
         i->rev();
 
 #ifdef EVENT_DRIVEN
+    while (!eventQueue.empty())
+        eventQueue.pop(); //清空
     this->init();
 #endif
 }
 
 void CollisionSystem::init()
 {
-    std::clog << "log:system初始化调用" << std::endl;
+    std::cout << "log:system初始化调用" << std::endl;//<debug>
     for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
             if ((**i).examine(**j))
             {
-                std::cerr << "error:system初始化检测重叠" << std::endl;
+                std::cout << "error:system初始化检测重叠" << std::endl;
                 exit(EXIT_FAILURE);
             }
     }
@@ -201,10 +208,10 @@ void CollisionSystem::init()
                 if (((temp = (**i).predict(*j)) >= 0))
                     eventQueue.push(Event(*i, j, temp + currentTime));
     }
-    std::clog << "log:当前使用事件驱动方式：" << std::endl;
-    std::clog << eventQueue;
+    //std::cout << "log:当前使用事件驱动方式：" << std::endl;
+    //std::cout << eventQueue;
 #endif
-    std::clog << "log:system 初始化成功" << std::endl;
+    std::cout << "log:system 初始化成功" << std::endl;
 }
 
 //#############
@@ -229,9 +236,9 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 
         if (!(is >> num)) //num
         {
-            std::cerr << "error:system输入错误" << std::endl;
+            std::cout << "error:system输入错误" << std::endl;
 #ifdef DEBUG
-            std::cerr << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
+            std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
 #endif
             exit(EXIT_FAILURE);
         }
@@ -258,13 +265,6 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
         }
         }
     }
-    std::clog << "log:system输入成功" << std::endl;
-    if (!system.balls.empty())
-        std::clog << system.balls;
-    if (!system.walls.empty())
-        std::clog << system.walls;
-    if (!system.containers.empty())
-        std::clog << system.containers;
     return is;
 }
 
@@ -277,8 +277,8 @@ std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
     if (!system.containers.empty())
         os << system.containers;
 #ifdef EVENT_DRIVEN
-    if (!system.eventQueue.empty())
-        os << system.eventQueue;
+    //if (!system.eventQueue.empty())
+        //os << system.eventQueue;
 #endif
     return os;
 }

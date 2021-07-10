@@ -82,7 +82,7 @@ Ball::Ball(std::istream &is) : Ball()
 
 float Ball::predict(const Wall &wall) //tochk
 {
-    //std::clog << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
+    //std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
     glm::vec3 p = location - wall.loc();
     float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
     float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
@@ -104,7 +104,7 @@ float Ball::predict(const Wall &wall) //tochk
 
 float Ball::predict(const Ball &ball) //tochk
 {
-    //std::clog << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
+    //std::cout << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
 
     if (number == ball.number) //防止自预测
         return -1.0f;
@@ -145,7 +145,7 @@ float Ball::predict(const Ball &ball) //tochk
 
 float Ball::predict(const Container &container) //tochk
 {
-    //std::clog << "predict:容器" << this->number << "|" << container.num() <<std::endl;//<debug>
+    //std::cout << "predict:容器" << this->number << "|" << container.num() <<std::endl;//<debug>
     float x, y, z;
 
     if (velocity.x = 0)
@@ -204,7 +204,7 @@ void Ball::bounce(Object &object)
 
 void Ball::bounce(Wall &wall) //tochk
 {
-    std::clog << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;
+    //std::cout << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;//<debug>
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
     count++;
@@ -212,7 +212,7 @@ void Ball::bounce(Wall &wall) //tochk
 
 void Ball::bounce(Ball &ball)
 {
-    std::clog << "info:碰撞处理前\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;
+    //std::cout << "info:碰撞处理前\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;//<debug>
     //if (this->back(ball))
       //  return;
 
@@ -230,7 +230,7 @@ void Ball::bounce(Ball &ball)
     ball.velocity += (v2 - v20) * r;
     count++;
     ball.count++;
-    std::clog << "info:碰撞处理后\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;
+    //std::cout << "info:碰撞处理后\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;//<debug>
 }
 
 void Ball::bounce(Container &container) //tochk
@@ -267,7 +267,7 @@ void Ball::bounce(Container &container) //tochk
         velocity.z = -velocity.z;
     else
         {
-            std::cerr << "error:容器碰撞错误" << std::endl;
+            std::cout << "error:容器碰撞错误" << std::endl;
             exit(EXIT_SUCCESS);
         }
     count++;
