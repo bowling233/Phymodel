@@ -68,9 +68,9 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 
 //int flag = 1;
 
-void CollisionSystem::run(float t)
+void CollisionSystem::run(double t)
 {
-    /*float targetTime = currentTime + t;
+    /*double targetTime = currentTime + t;
     if ((flag==1) &&(targetTime >= 10))
     {
         targetTime = 10;
@@ -217,7 +217,7 @@ void CollisionSystem::init()
 //#############
 //private
 //#############
-void CollisionSystem::move(float t)
+void CollisionSystem::move(double t)
 {
     for (auto &i : balls)
         i->move(t);

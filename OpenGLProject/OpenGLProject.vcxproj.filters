@@ -24,12 +24,6 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sphere.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Object.h">
@@ -38,36 +32,5 @@
     <ClInclude Include="Collision.h">
       <Filter>头文件</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="in.txt">
-      <Filter>源文件</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="fs_coord.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="fs_sphere.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_coord.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_sphere.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="fs_plane.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="vs_plane.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="tcs_plane.glsl">
-      <Filter>源文件</Filter>
-    </None>
-    <None Include="tes_plane.glsl">
-      <Filter>源文件</Filter>
-    </None>
   </ItemGroup>
 </Project>

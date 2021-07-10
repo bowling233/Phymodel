@@ -13,7 +13,7 @@ extern int sumbounce;
 extern int sumexam;
 
 #ifdef TIME_DRIVEN
-constexpr auto DELTATIME = 1.0f / 360.0f; //时间驱动专用
+constexpr auto DELTATIME = 1.0f / 120.0f; //时间驱动专用
 #endif
 
 //预先声明所有用到的外部类
@@ -37,7 +37,7 @@ class Event
 
 public:
     //construct
-    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const double t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
 
     //copy move destruct
     Event(const Event &) = default;
@@ -47,7 +47,7 @@ public:
     ~Event() = default;
 
     //information
-    float t() const { return time; }
+    double t() const { return time; }
 
     //action
     void handle () const;
@@ -59,7 +59,7 @@ public:
 private:
     std::shared_ptr<Ball> ball;
     std::shared_ptr<Object> object;
-    float time;
+    double time;
     unsigned int countBall, countObject;
 };
 std::ostream &operator<<(std::ostream &, const Event &);
@@ -79,14 +79,14 @@ public:
     CollisionSystem(std::istream &is) : CollisionSystem() { is >> *this; this->init();}//输入后自动初始化
 
     //action
-    void run(float);
+    void run(double);
     void reverse();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
-    void move(float);
+    void move(double);
     void init();
-    float time() { return currentTime; }
+    double time() { return currentTime; }
 
 private:
 
@@ -96,7 +96,7 @@ private:
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
-    float currentTime = 0.0, targetTime=0.0, temp = 0.0;
+    double currentTime = 0.0, targetTime=0.0, temp = 0.0;
 
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用

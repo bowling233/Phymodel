@@ -21,10 +21,10 @@ enum class Object_type
 
 //tools
 #define square(x) ((x) * (x))
-std::ostream &operator<<(std::ostream &, const glm::vec3 &);
-std::istream &operator>>(std::istream &, glm::vec3 &);
+std::ostream &operator<<(std::ostream &, const glm::dvec3 &);
+std::istream &operator>>(std::istream &, glm::dvec3 &);
 
-//全部使用float类型
+//全部使用double类型
 //名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
 
 //Abstract base class--------------------------------------------------------------------------------
@@ -32,8 +32,8 @@ class Object //protected:location
 {
 public:
     //construct
-    Object() : Object(glm::vec3(0.0f)) {}
-    Object(const glm::vec3 &loc) : location(loc) {}
+    Object() : Object(glm::dvec3(0.0f)) {}
+    Object(const glm::dvec3 &loc) : location(loc) {}
     //copy move destruct
     Object(const Object &) = default;
     Object(Object &&) = default;
@@ -42,7 +42,7 @@ public:
     virtual ~Object() = default;
 
     //information
-    glm::vec3 loc() const { return location; }
+    glm::dvec3 loc() const { return location; }
 
     //virtual
     virtual unsigned int cnt() const = 0;
@@ -50,7 +50,7 @@ public:
     virtual unsigned int num() const = 0;
 
 protected:
-    glm::vec3 location;
+    glm::dvec3 location;
 };
 //说明：默认创建一个在原点的物体
 
@@ -63,8 +63,8 @@ class Wall final : public Object //private:normalVector
 
 public:
     //construct
-    Wall() : Wall(glm::vec3(0.0f),glm::vec3(0.0f, 0.0f, 1.0f)) {}
-    Wall(const glm::vec3 &loc, const glm::vec3 &norv) : Object(loc), normalVector(norv), number(++sum) {}
+    Wall() : Wall(glm::dvec3(0.0f),glm::dvec3(0.0f, 0.0f, 1.0f)) {}
+    Wall(const glm::dvec3 &loc, const glm::dvec3 &norv) : Object(loc), normalVector(norv), number(++sum) {}
     Wall(std::istream &);
     //copy move destruct
     Wall(const Wall &) = default;
@@ -74,13 +74,13 @@ public:
     ~Wall() = default;
 
     //information
-    glm::vec3 norm() const{ return normalVector; }
+    glm::dvec3 norm() const{ return normalVector; }
     unsigned int cnt() const { return 0; }
     Object_type type() const { return Object_type::WALL; }
     unsigned int num() const { return number; }
 
 private:
-    glm::vec3 normalVector;
+    glm::dvec3 normalVector;
     static unsigned int sum;
     unsigned int number = 0;
 };
@@ -98,8 +98,8 @@ class Ball final : public Object //velocity,mass
 
 public:
     //construct
-    Ball() : Ball(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f) {}//radius(), velocity(), mass() {} //说明：默认拥有向x轴正方向的速度1，质量1
-    Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), velocity(vel), mass(m), radius(r) ,number(++sum){}
+    Ball() : Ball(glm::dvec3(0.0f), glm::dvec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f) {}//radius(), velocity(), mass() {} //说明：默认拥有向x轴正方向的速度1，质量1
+    Ball(glm::dvec3 loc, glm::dvec3 vel, double m, double r) : Object(loc), velocity(vel), mass(m), radius(r) ,number(++sum){}
     Ball(std::istream &);
     //Ball递增自己的计数器
 
@@ -111,22 +111,22 @@ public:
     ~Ball() = default;
 
     //information
-    float r() const { return radius; }
-    glm::vec3 vel() const { return velocity; }
-    float m() const { return mass; }
-    float ek() const { return 0.5f * mass * square(glm::length(velocity)); }
+    double r() const { return radius; }
+    glm::dvec3 vel() const { return velocity; }
+    double m() const { return mass; }
+    double ek() const { return 0.5f * mass * square(glm::length(velocity)); }
     unsigned int cnt() const { return count; }
     Object_type type() const { return Object_type::BALL; }
     unsigned int num() const { return number; }
 
     //action
-    void move(float t) { location += velocity * t; }
+    void move(double t) { location += velocity * t; }
     void rev() { velocity = -velocity; }
 
     //predict
-    float predict(const Wall &);
-    float predict(const Ball &);
-    float predict(const Container &);
+    double predict(const Wall &);
+    double predict(const Ball &);
+    double predict(const Container &);
 
     //bounce
     void bounce(Object &);
@@ -141,8 +141,8 @@ public:
     bool back(const Ball &);
 
 private:
-    glm::vec3 velocity;
-    float mass, radius;
+    glm::dvec3 velocity;
+    double mass, radius;
     static unsigned int sum; //extern
     unsigned int number = 0, count = 0;
 };
@@ -159,8 +159,8 @@ class Container final : public Object//private:a,b,c
     friend std::ostream& operator<<(std::ostream&, const Container&);
 public:
     //construct
-    Container() :Container(glm::vec3(0.0f),glm::vec3(1.0f)) { }
-    Container(glm::vec3 loc, glm::vec3 len) : Object(loc), length(len) ,number(++sum) { }
+    Container() :Container(glm::dvec3(0.0f),glm::dvec3(1.0f)) { }
+    Container(glm::dvec3 loc, glm::dvec3 len) : Object(loc), length(len) ,number(++sum) { }
     Container(std::istream&);
 
     //copy move destruct
@@ -174,17 +174,17 @@ public:
     unsigned int cnt() const { return 0; }
     Object_type type() const { return Object_type::CONTAINER; }
     unsigned int num() const { return number; }
-    float x_p() const { return location.x + length.x / 2; }//positive
-    float x_n() const { return location.x - length.x / 2; }//negative
-    float y_p() const { return location.y + length.y / 2; }
-    float y_n() const { return location.y - length.y / 2; }
-    float z_p() const { return location.z + length.z / 2; }
-    float z_n() const { return location.z - length.z / 2; }
+    double x_p() const { return location.x + length.x / 2; }//positive
+    double x_n() const { return location.x - length.x / 2; }//negative
+    double y_p() const { return location.y + length.y / 2; }
+    double y_n() const { return location.y - length.y / 2; }
+    double z_p() const { return location.z + length.z / 2; }
+    double z_n() const { return location.z - length.z / 2; }
 
-    glm::vec3 sMat() { return length; }
+    glm::dvec3 sMat() { return length; }
 
 private:
-    glm::vec3 length;
+    glm::dvec3 length;
     static unsigned int sum; //extern
     unsigned int number = 0, count = 0;//默认为0
 };

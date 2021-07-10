@@ -14,9 +14,9 @@ unsigned int Ball::sum = 0;
 unsigned int Container::sum = 0;
 
 //tools---------------------------------------------------------------------------------------------
-std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
+std::ostream &operator<<(std::ostream &os, const glm::dvec3 &v)
 {
-    os << std::setprecision(3) << std::fixed;
+    os << std::setprecision(16) << std::fixed;
     os << v.x << '\t'
        << v.y << '\t'
        << v.z << '\t'
@@ -24,13 +24,13 @@ std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
     return os;
 }
 
-std::istream &operator>>(std::istream &is, glm::vec3 &v)
+std::istream &operator>>(std::istream &is, glm::dvec3 &v)
 {
     is >> v.x >> v.y >> v.z;
     return is;
 }
 
-float max(float a, float b)
+double max(double a, double b)
 {
     if (a >= b)
         return a;
@@ -80,36 +80,36 @@ Ball::Ball(std::istream &is) : Ball()
 //predict
 //################
 
-float Ball::predict(const Wall &wall) //tochk
+double Ball::predict(const Wall &wall) //tochk
 {
     //std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
-    glm::vec3 p = location - wall.loc();
-    float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
-    float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
+    glm::dvec3 p = location - wall.loc();
+    double p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
+    double v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
 
     if (v_n * p_n >= 0)
         return -1.0f;
     return -p_n / v_n;
     //another solution
     /*
-    glm::vec3 r = location - wall.loc();
-    glm::vec3 chk_nor = (glm::dot(r, wall.norm())) > 0 ? wall.norm() : -wall.norm(); //选择一个背向球的法向量
-    float v_l = glm::dot(velocity, chk_nor);//速度在平面法向量方向上的分量
+    glm::dvec3 r = location - wall.loc();
+    glm::dvec3 chk_nor = (glm::dot(r, wall.norm())) > 0 ? wall.norm() : -wall.norm(); //选择一个背向球的法向量
+    double v_l = glm::dot(velocity, chk_nor);//速度在平面法向量方向上的分量
     if (v_1 < 0)
         return -1.0f;                 //背向运动
-    float r_l = glm::dot(r, chk_nor); //球到平面的垂直距离
+    double r_l = glm::dot(r, chk_nor); //球到平面的垂直距离
     return r_l / v_l;
     /*/
 }
 
-float Ball::predict(const Ball &ball) //tochk
+double Ball::predict(const Ball &ball) //tochk
 {
     //std::cout << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
 
     if (number == ball.number) //防止自预测
         return -1.0f;
 
-    glm::vec3 dp = location - ball.location, //以ball为中心
+    glm::dvec3 dp = location - ball.location, //以ball为中心
         dv = velocity - ball.velocity;
 
     if (this->back(ball))
@@ -117,16 +117,16 @@ float Ball::predict(const Ball &ball) //tochk
 
     //std::cout << "predict:计算信息 dv dp r1 r2\n" << dv << dp << this->radius << '\t' << ball.radius << std::endl;//<debug>
 
-    float a = square(glm::length(dv));
-    float b = 2.0 * glm::dot(dv, dp);
-    float c = square(glm::length(dp)) - square(radius + ball.radius);
-    float delta = square(b) - 4.0 * a * c;
+    double a = square(glm::length(dv));
+    double b = 2.0 * glm::dot(dv, dp);
+    double c = square(glm::length(dp)) - square(radius + ball.radius);
+    double delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
         return -1.0;
 
-    float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
-    float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
+    double x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
+    double x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
 
     if (x2 < 0 || x1 < 0)//事实上，这里小球已经相交
         return -1.0;
@@ -143,10 +143,10 @@ float Ball::predict(const Ball &ball) //tochk
     return x2;//返回小根
 }
 
-float Ball::predict(const Container &container) //tochk
+double Ball::predict(const Container &container) //tochk
 {
     //std::cout << "predict:容器" << this->number << "|" << container.num() <<std::endl;//<debug>
-    float x, y, z;
+    double x, y, z;
 
     if (velocity.x = 0)
         x = -1.0;
@@ -205,7 +205,7 @@ void Ball::bounce(Object &object)
 void Ball::bounce(Wall &wall) //tochk
 {
     //std::cout << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;//<debug>
-    glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
+    glm::dvec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
     count++;
 }
@@ -216,14 +216,14 @@ void Ball::bounce(Ball &ball)
     //if (this->back(ball))
       //  return;
 
-    glm::vec3 r = glm::normalize(location - ball.location);
+    glm::dvec3 r = glm::normalize(location - ball.location);
 
-    float v10 = glm::dot(r, velocity),
+    double v10 = glm::dot(r, velocity),
           v20 = glm::dot(r, ball.velocity),
           m1 = mass,
           m2 = ball.mass;
 
-    float v1 = ((m1 - m2) * v10 + 2 * m2 * v20) / (m1 + m2),
+    double v1 = ((m1 - m2) * v10 + 2 * m2 * v20) / (m1 + m2),
           v2 = ((m2 - m1) * v20 + 2 * m1 * v10) / (m1 + m2);
 
     velocity += (v1 - v10) * r;
@@ -236,7 +236,7 @@ void Ball::bounce(Ball &ball)
 void Ball::bounce(Container &container) //tochk
 {
     
-    float x, y, z;
+    double x, y, z;
 
     if (velocity.x = 0)
         x = -1.0;
