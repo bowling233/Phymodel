@@ -87,16 +87,16 @@ void CollisionSystem::run(const float t)
                 }
             }
             if (!walls.empty())
-            for (auto j = walls.cbegin(); j != walls.cend(); j++)
-            {
-                sumexam++;
-                if ((**i).examine(**j))
+                for (auto j = walls.cbegin(); j != walls.cend(); j++)
                 {
-                    std::cout << "log:###wall bounce\t当前系统时间" << currentTime << "\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
-                    (**i).bounce(**j);
-                    sumbounce++;
+                    sumexam++;
+                    if ((**i).examine(**j))
+                    {
+                        std::cout << "log:###wall bounce\t当前系统时间" << currentTime << "\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl; //<debug>
+                        (**i).bounce(**j);
+                        sumbounce++;
+                    }
                 }
-            }
         }
         move(DELTATIME);
     }
@@ -104,35 +104,34 @@ void CollisionSystem::run(const float t)
 
 #ifdef EVENT_DRIVEN
     while (!(eventQueue.empty()) && (targetTime >= eventQueue.top().time)) //队列非空、事件发生
-    {                   //notice:处理事件以后记得刷新小球位置
+    {                                                                      //notice:处理事件以后记得刷新小球位置
         /*if (!eventQueue.top().valid())//首先判断是否有效，否则清除并检查下一个
         {
             eventQueue.pop();
             continue;
         }//逻辑：第一次进入必定有效，不检测。循环尾清除后必定有效，不检测。因此这个模块可以删除<delete>*/
         //std::cout << "log:事件队列处理前" << eventQueue;//<debug>
-        getchar();
         move(eventQueue.top().t() - currentTime); //有效，跳转到事件发生时间
-        Event tempEvent = eventQueue.top();            //提出放置，因为需要检测对应物体
+        Event tempEvent = eventQueue.top();       //提出放置，因为需要检测对应物体
         eventQueue.pop();
-        sumbounce++;//<info>
+        sumbounce++; //<info>
         //std::cout << "当前系统时间：" << currentTime << std::endl;//<debug>
-        tempEvent.handle();                //处理事件，处理时小球自动递增计数器
+        tempEvent.handle(); //处理事件，处理时小球自动递增计数器
 
         { //主小球检测note:只要碰撞处理得好就不应该出现再次预测的情况
             for (auto const &i : balls)
                 if ((temp = tempEvent.ball->predict(*i)) >= 0) //predict内置防重复
                     eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
             if (!hidden_balls.empty())
-                for (auto const& i : hidden_balls)
+                for (auto const &i : hidden_balls)
                     if ((temp = tempEvent.ball->predict(*i)) >= 0) //predict内置防重复
                         eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
             if (!walls.empty())
-                for (auto const& i : walls)
+                for (auto const &i : walls)
                     if ((temp = tempEvent.ball->predict(*i)) >= 0) //平面无需防重复
                         eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
             if (!containers.empty())
-                for (auto const& i : containers)
+                for (auto const &i : containers)
                     if ((temp = tempEvent.ball->predict(*i)) >= 0) //容器无需防重复
                         eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
         }
@@ -144,20 +143,20 @@ void CollisionSystem::run(const float t)
                 if ((temp = tempball->predict(*i)) >= 0)
                     eventQueue.push(Event(tempball, i, temp + currentTime));
             if (!hidden_balls.empty())
-                for (auto const& i : hidden_balls)
+                for (auto const &i : hidden_balls)
                     if ((temp = tempball->predict(*i)) >= 0) //predict内置防重复
                         eventQueue.push(Event(tempball, i, temp + currentTime));
             if (!walls.empty())
-                for (auto const& i : walls)
+                for (auto const &i : walls)
                     if ((temp = tempball->predict(*i)) >= 0)
                         eventQueue.push(Event(tempball, i, temp + currentTime));
             if (!containers.empty())
-                for (auto const& i : containers)
+                for (auto const &i : containers)
                     if ((temp = tempball->predict(*i)) >= 0)
                         eventQueue.push(Event(tempball, i, temp + currentTime));
         }
         //std::cout << "log:事件队列处理后" << std::endl << eventQueue;//<debug>
-        while((!eventQueue.empty()) && (!eventQueue.top().valid()))//队列非空且队首事件无效
+        while ((!eventQueue.empty()) && (!eventQueue.top().valid())) //队列非空且队首事件无效
             eventQueue.pop();
         //std::cout << "log:事件队列清理后" << std::endl << eventQueue;//<debug>
     }
@@ -169,7 +168,6 @@ void CollisionSystem::run(const float t)
         flag = -1;
     }*/
 #endif
-    
 }
 
 void CollisionSystem::reverse()
@@ -186,7 +184,7 @@ void CollisionSystem::reverse()
 
 void CollisionSystem::init()
 {
-    std::cout << "log:system初始化调用" << std::endl;//<debug>
+    std::cout << "log:system初始化调用" << std::endl; //<debug>
     /*for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
@@ -197,7 +195,7 @@ void CollisionSystem::init()
             }
     }*/
 #ifdef EVENT_DRIVEN
-    for (auto i = balls.cbegin(); i != balls.cend(); i++)//遍历初始化
+    for (auto i = balls.cbegin(); i != balls.cend(); i++) //遍历初始化
     {
         for (auto j = i + 1; j != balls.cend(); j++)
         {
@@ -205,7 +203,7 @@ void CollisionSystem::init()
                 eventQueue.push(Event(*i, *j, temp + currentTime));
         }
         if (!hidden_balls.empty())
-            for (auto const& j : hidden_balls)
+            for (auto const &j : hidden_balls)
                 if ((temp = (**i).predict(*j)) >= 0)
                     eventQueue.push(Event(*i, j, temp + currentTime));
         if (!walls.empty())
@@ -223,9 +221,15 @@ void CollisionSystem::init()
     std::cout << "log:system 初始化成功" << std::endl;
 }
 
-float CollisionSystem::ek() {
-    temp = 0.0f; for (auto const i : balls)temp += i->ek();
-    if (!hidden_balls.empty()) for (auto const i : hidden_balls)temp += i->ek(); return temp;
+float CollisionSystem::ek()
+{
+    temp = 0.0f;
+    for (auto const i : balls)
+        temp += i->ek();
+    if (!hidden_balls.empty())
+        for (auto const i : hidden_balls)
+            temp += i->ek();
+    return temp;
 }
 
 //#############
@@ -243,6 +247,11 @@ void CollisionSystem::move(float t)
 //#############
 std::istream &operator>>(std::istream &is, CollisionSystem &system)
 {
+    if (!is) {
+        std::cout << "error:is输入错误" << std::endl;
+        std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
+        exit(EXIT_FAILURE);
+    }
     char identifier;
     int num;
     while (is >> identifier) //iden//如果读到文件结尾eof自动离开主循环
@@ -298,7 +307,7 @@ std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
     if (!system.containers.empty())
         os << system.containers;
 #ifdef EVENT_DRIVEN
-    //if (!system.eventQueue.empty())
+        //if (!system.eventQueue.empty())
         //os << system.eventQueue;
 #endif
     return os;

@@ -34,7 +34,7 @@ using namespace chrono;
 //OpenGL数据
 #define numVAOs 1
 GLuint vao[numVAOs];
-GLuint coordVbo[1], sphereVbo[5], planeVbo[3], containerVbo[3];
+GLuint coordVbo[1], sphereVbo[4], planeVbo[3], containerVbo[3];
 //OpenGL着色器和计算
 GLuint coordRenderingProgram,
 	sphereRenderingProgram,
@@ -197,6 +197,7 @@ void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
 
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, normalVectors.size() * sizeof(float), &normalVectors[0], GL_STATIC_DRAW);
+	cout << "log:OpenGL初始化成功plane" << endl;
 }
 
 void setupVert_container(std::vector<std::shared_ptr<Container>> const &containers)
@@ -237,6 +238,7 @@ void setupVert_container(std::vector<std::shared_ptr<Container>> const &containe
 
 	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, scale.size() * sizeof(float), &scale[0], GL_STATIC_DRAW);
+	cout << "log:OpenGL初始化成功container" << endl;
 }
 
 //############
@@ -331,7 +333,7 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 	glEnable(GL_CULL_FACE); //背面消除，加快速度
 	glFrontFace(GL_CCW);
 	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LEQUAL);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
 	glDisable(GL_CULL_FACE);
 }
@@ -414,6 +416,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 		draw_wall(system.w());
 	if (!system.c().empty())
 		draw_container(system.c());
+	//cout << "OpenGL render success" << endl;//<debug>
 }
 
 //############
@@ -430,7 +433,6 @@ int main(void)
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK)
 		exit(EXIT_FAILURE);
-
 	glfwSwapInterval(1); //垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
@@ -439,7 +441,7 @@ int main(void)
 	//string file;
 	//cin >> file;
 	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\testdata\\test.txt");
+	ifstream ifstrm("E:\\Coding\\testdata\\605ball.txt");
 
 	//创建碰撞系统
 	ifstrm >> cameraLoc >> lookAt >> rot_v;
@@ -447,16 +449,16 @@ int main(void)
 	//cout << system;
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 
-	//帧率
-	/*auto last = system_clock::now();
+	//*帧率
+	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
-	unsigned int count = 0;*/
+	unsigned int count = 0;//*/
 
 	//程序主循环
 	while (!glfwWindowShouldClose(window))
 	{
-		/*/帧率
+		//*/帧率
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -475,8 +477,8 @@ int main(void)
 			//sumexam = 0;
 		}//*/
 
-		system.run(1.0f / 60.0f);
-		//cout << system.ek();
+		system.run(1.0f/6);
+		//cout << system.ek()<<endl;
 		//cout << system.e().size() << endl;
 
 		//显示

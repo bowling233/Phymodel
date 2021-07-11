@@ -86,7 +86,7 @@ Ball::Ball(std::istream &is) : Ball()
 
 float Ball::predict(const Wall &wall) //tochk
 {
-    std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
+    std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl; //<debug>
     glm::vec3 p = location - wall.loc();
     float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
     float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
@@ -133,7 +133,7 @@ float Ball::predict(const Ball &ball) //tochk
     float x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
     float x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
 
-    if (x2 < 0 || x1 < 0)//事实上，这里小球已经相交
+    if (x2 < 0 || x1 < 0) //事实上，这里小球已经相交
         return -1.0;
     //question:x2是较小的根吗？是的，因为sqrt(delta)一定是个正数，所以减去该项的一定更小。我们应该传回最小实根
 
@@ -145,7 +145,7 @@ float Ball::predict(const Ball &ball) //tochk
         return x1;
         */
     //std::cout << "predict:球体预测通过\t" << "x1:" << x1 << "x2\t" << x2 << std::endl;//<debug>
-    return x2;//返回小根
+    return x2; //返回小根
 }
 
 float Ball::predict(const Container &container) //tochk
@@ -207,7 +207,8 @@ void Ball::bounce(Object &object)
 
 void Ball::bounce(Wall &wall) //tochk
 {
-    std::cout << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;//<debug>
+    std::cout << "info:碰撞wall处理" << std::endl
+              << "主小球：\t" << *this << std::endl; //<debug>
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
     count++;
@@ -217,7 +218,7 @@ void Ball::bounce(Ball &ball)
 {
     //std::cout << "info:碰撞处理前\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;//<debug>
     //if (this->back(ball))
-      //  return;
+    //  return;
 
     glm::vec3 r = glm::normalize(location - ball.location);
 
@@ -238,7 +239,7 @@ void Ball::bounce(Ball &ball)
 
 void Ball::bounce(Container &container) //tochk
 {
-    
+
     float x = INFINITY, y = INFINITY, z = INFINITY;
 
     if (velocity.x > 0)
@@ -261,35 +262,39 @@ void Ball::bounce(Container &container) //tochk
             velocity = -velocity;
         else if (y < z)
         {
-            velocity.x = -velocity.x; velocity.y = -velocity.y;
+            velocity.x = -velocity.x;
+            velocity.y = -velocity.y;
         }
         else
             velocity.z = -velocity.z;
     else if (x < y)
         if (x == z)
         {
-            velocity.x = -velocity.x; velocity.z = -velocity.z;
+            velocity.x = -velocity.x;
+            velocity.z = -velocity.z;
         }
         else if (x < z)
             velocity.x = -velocity.x;
         else
             velocity.z = -velocity.z;
     else
+    {
         if (y == z)
         {
-            velocity.y = -velocity.y; velocity.z = -velocity.z;
+            velocity.y = -velocity.y;
+            velocity.z = -velocity.z;
         }
-        else if (x < y)
+        else if (z < y)
             velocity.z = -velocity.z;
         else
             velocity.y = -velocity.y;
+    }
     count++;
 }
 
 //################
 //examine
 //################
-
 
 bool Ball::examine(const Ball &ball)
 {
@@ -362,9 +367,9 @@ std::istream &operator>>(std::istream &is, Container &container)
 std::ostream &operator<<(std::ostream &os, const Container &container)
 {
     os << std::setprecision(3) << std::fixed
-    << container.number << '\t'
-    << container.location << container.length
-    << std::defaultfloat;
+       << container.number << '\t'
+       << container.location << container.length
+       << std::defaultfloat;
     return os;
 }
 
@@ -372,8 +377,8 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Con
 {
     os << "Containers-----------------------------------------------------------------" << std::endl;
     os << "Cont\tlocX\tloxY\tlocZ\tlenX\tlenY\tlenZ"
-        << std::endl;
-    for (auto const& i : containers)
+       << std::endl;
+    for (auto const &i : containers)
         os << *i << std::endl;
     return os;
     return os;
