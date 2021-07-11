@@ -78,7 +78,7 @@ glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
 }
 
 void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
-	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));
+	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));//currentLightPos不用传递，只需更改
 	lightPos[0] = transformed.x;
 	lightPos[1] = transformed.y;
 	lightPos[2] = transformed.z;
@@ -165,8 +165,8 @@ void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
 	vector<float> normalVectors;
 	vector<float> locations;
 	float planeVertexPositions[18] =
-		{100.0f, -100.0f, 0.0f, 100.0f, 100.0f, 0.0f, -100.0f, -100.0f, 0.0f,
-		 -100.0f, -100.0f, 0.0f, -100.0f, 100.0f, 0.0f, 100.0f, 100.0f, 0.0f};
+		{5.0f, -5.0f, 0.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f,
+		 -5.0f, -5.0f, 0.0f, -5.0f, 5.0f, 0.0f, 5.0f, 5.0f, 0.0f};
 
 	for (auto const &i : walls)
 	{
@@ -203,9 +203,9 @@ void init(GLFWwindow *window,CollisionSystem& system)
 	lightRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 
 //构建视口矩阵
-	cameraX = 20.0f;
-	cameraY = 20.0f;
-	cameraZ = 20.0f;
+	cameraX = 7.0f;
+	cameraY = 7.0f;
+	cameraZ = 7.0f;
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
@@ -278,10 +278,11 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 	glUseProgram(sphereRenderingProgram);
 
 //light
-	currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
-	amt += 0.5f;//配置光源旋转
-	rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
-	currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
+	//currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
+	currentLightPos = glm::vec3(cameraX, cameraY, cameraZ);
+	//amt += 0.5f;//配置光源旋转
+	//rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
+	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
 	installLights(sphereRenderingProgram, lMat);
 
 //uniform
@@ -330,16 +331,6 @@ void draw_wall(std::vector<std::shared_ptr<Wall>> const & walls)
 	glUseProgram(planeRenderingProgram);
 	glLineWidth(1.0f);
 
-	/*
-	for (auto const& i : walls)
-	{
-		//uniform
-		//rMat = buildRotate(glm::vec3(1.0, 1.0, 1.0), i->norm());
-	}
-	mMat = glm::translate(glm::mat4(1.0f),glm::vec3(-5.0,0.0,-5.0));//yes
-	vMat = lMat * glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.0)) * buildRotate(glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, 0.0, 1.0));
-	*/
-
 	//uniform
 	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
 	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "p_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
@@ -378,7 +369,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
 	
 
 	draw_sphere(system.b());
-	//draw_sphere(system.fb());
+	//draw_sphere(system.hb());
 	draw_coord();
 	draw_wall(system.w());
 }
@@ -420,10 +411,11 @@ int main(void)
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
 //创建碰撞系统
-	ifstream ifstrm("E:\\Coding\\testdata\\605ball.txt");
+	ifstream ifstrm("E:\\Coding\\testdata\\simple_system_6b1w.txt");
 	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
+	cout << system;
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
@@ -434,8 +426,7 @@ int main(void)
 //程序主循环	
 	while (!glfwWindowShouldClose(window))
 	{
-		
-		/*if (count++ == 30) {
+		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
 			duration = duration_cast<microseconds>(current - last);
@@ -444,20 +435,19 @@ int main(void)
 				<< endl
 				<< "bounce persecond::"
 				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
-				<< endl
-				<< "exam persecond::"
-				<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
+				//<< endl
+				//<< "exam persecond::"
+				//<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl;
 			count = 0;
 			sumbounce = 0;
-			sumexam = 0;
+			//sumexam = 0;
 
-		}*/
+		}
 		
 		system.run(1.0f/60.0f);
 
-		if (system.time() >= 10)
-			break;
+
 
 //显示
 	display(window, glfwGetTime(), system);
@@ -465,7 +455,7 @@ int main(void)
 		glfwPollEvents();
 	}
 	
-	cout << system;
+	//cout << system;
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

@@ -66,7 +66,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wal
     os << "Wall\tlocX\tloxY\tlocZ\tnorX\tnorY\tnorZ"
        << std::endl;
     for (auto const &i : walls)
-        os << *i << std::endl;
+        os << *i;
     return os;
 }
 
@@ -82,13 +82,14 @@ Ball::Ball(std::istream &is) : Ball()
 
 float Ball::predict(const Wall &wall) //tochk
 {
-    //std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
+    std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl;//<debug>
     glm::vec3 p = location - wall.loc();
     float p_n = glm::dot(p, wall.norm());        //球到平面的垂直距离
     float v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
 
     if (v_n * p_n >= 0)
         return -1.0f;
+    std::cout << "pass" << std::endl;
     return -p_n / v_n;
     //another solution
     /*
@@ -204,7 +205,7 @@ void Ball::bounce(Object &object)
 
 void Ball::bounce(Wall &wall) //tochk
 {
-    //std::cout << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;//<debug>
+    std::cout << "info:碰撞wall处理" << std::endl << "主小球：\t" << *this << std::endl;//<debug>
     glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
     velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
     count++;

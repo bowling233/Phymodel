@@ -82,6 +82,7 @@ public:
     void run(float);
     void reverse();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
+    std::vector<std::shared_ptr<Ball>> &hb() { return hidden_balls; }
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
     void move(float);
@@ -91,12 +92,13 @@ public:
 private:
 
 #ifdef EVENT_DRIVEN
-    std::shared_ptr<Ball> ball;//temp
+    std::shared_ptr<Ball> tempball;//temp:副小球检测
 #endif
-    std::vector<std::shared_ptr<Ball>> balls;
+
+    std::vector<std::shared_ptr<Ball>> balls, hidden_balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
-    float currentTime = 0.0, targetTime=0.0, temp = 0.0;
+    float currentTime = 0.0, targetTime=0.0, temp = 0.0;//temp:各种计算
 
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用
