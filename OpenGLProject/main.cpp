@@ -27,13 +27,13 @@ using namespace chrono;
 
 int main(void)
 {
-	freopen("time_out.txt", "w", stdout);
+	freopen("event_out.txt", "w", stdout);
 //OpenGL初始化
 	
 
 	
 //创建碰撞系统
-	ifstream ifstrm("E:\\Coding\\testdata\\605ball.txt");
+	ifstream ifstrm("E:\\Coding\\testdata\\3375ball_1.txt");
 	//ofstream ofstrm("out.txt");
 
 	CollisionSystem system(ifstrm);
