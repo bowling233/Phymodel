@@ -69,5 +69,8 @@
     <None Include="tes_plane.glsl">
       <Filter>源文件</Filter>
     </None>
+    <None Include="vs_container.glsl">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

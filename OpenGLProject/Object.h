@@ -6,12 +6,12 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+//definition
 class Object;
 class Wall;
 class Ball;
 class Container;
 
-    //definition
 enum class Object_type
 {
     BALL,
@@ -24,10 +24,8 @@ enum class Object_type
 std::ostream &operator<<(std::ostream &, const glm::vec3 &);
 std::istream &operator>>(std::istream &, glm::vec3 &);
 
-//全部使用float类型
-//名称约定：私有数据用全名，接口函数简写，大写分隔单词，尽量不使用下划线
 
-//Abstract base class--------------------------------------------------------------------------------
+
 class Object //protected:location
 {
 public:
@@ -52,9 +50,9 @@ public:
 protected:
     glm::vec3 location;
 };
-//说明：默认创建一个在原点的物体
 
-//Wall ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 class Wall final : public Object //private:normalVector
 {
     //friend io
@@ -86,10 +84,10 @@ private:
 };
 std::istream &operator>>(std::istream &, Wall &);
 std::ostream &operator<<(std::ostream &, const Wall &);
-
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Wall>> &);
 
-//Ball ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
 class Ball final : public Object //velocity,mass
 {
     //friend io
@@ -98,11 +96,9 @@ class Ball final : public Object //velocity,mass
 
 public:
     //construct
-    Ball() : Ball(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f) {}//radius(), velocity(), mass() {} //说明：默认拥有向x轴正方向的速度1，质量1
+    Ball() : Ball(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f) {}
     Ball(glm::vec3 loc, glm::vec3 vel, float m, float r) : Object(loc), velocity(vel), mass(m), radius(r) ,number(++sum){}
     Ball(std::istream &);
-    //Ball递增自己的计数器
-
     //copy move destruct
     Ball(const Ball &) = default;
     Ball(Ball &&) = default;
@@ -121,7 +117,7 @@ public:
 
     //action
     void move(float t) { location += velocity * t; }
-    void rev() { velocity = -velocity; }
+    void reverse() { velocity = -velocity; }
 
     //predict
     float predict(const Wall &);
@@ -181,7 +177,7 @@ public:
     float z_p() const { return location.z + length.z / 2; }
     float z_n() const { return location.z - length.z / 2; }
 
-    glm::vec3 sMat() { return length; }
+    glm::vec3 scale() { return length; }
 
 private:
     glm::vec3 length;

@@ -38,6 +38,7 @@
     <None Include="fs_sphere.glsl" />
     <None Include="tcs_plane.glsl" />
     <None Include="tes_plane.glsl" />
+    <None Include="vs_container.glsl" />
     <None Include="vs_coord.glsl" />
     <None Include="vs_plane.glsl" />
     <None Include="vs_sphere.glsl" />

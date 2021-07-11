@@ -76,25 +76,28 @@ public:
     //construct and destruct
     CollisionSystem() = default;
     ~CollisionSystem() = default;
-    CollisionSystem(std::istream &is) : CollisionSystem() { is >> *this; this->init();}//输入后自动初始化
+    CollisionSystem(std::istream& is) : CollisionSystem() { is >> *this; this->init(); }//输入后自动初始化
 
     //action
     void run(float);
     void reverse();
-    std::vector<std::shared_ptr<Ball>> &b() { return balls; }
-    std::vector<std::shared_ptr<Ball>> &hb() { return hidden_balls; }
-    std::vector<std::shared_ptr<Wall>> &w() { return walls; }
-    std::vector<std::shared_ptr<Container>> &c() { return containers; }
-    void move(float);
-    void init();
+    
+    //information
     float time() { return currentTime; }
+    float ek();
+    std::vector<std::shared_ptr<Ball>>& b() { return balls; }
+    std::vector<std::shared_ptr<Ball>>& hb() { return hidden_balls; }
+    std::vector<std::shared_ptr<Wall>>& w() { return walls; }
+    std::vector<std::shared_ptr<Container>>& c() { return containers; }
+    std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
 
 private:
+    void move(float);
+    void init();
 
 #ifdef EVENT_DRIVEN
     std::shared_ptr<Ball> tempball;//temp:副小球检测
 #endif
-
     std::vector<std::shared_ptr<Ball>> balls, hidden_balls;
     std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;

@@ -1,4 +1,7 @@
-﻿//OpenGL使用的头文件
+﻿//################
+//头文件
+//################
+//OpenGL
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <SOIL2\soil2.h>
@@ -11,59 +14,59 @@
 #include "Sphere.h"
 #include "Utils.h"
 using namespace std;
-
-//自己选用的头文件
+//自选用的头文件
 #include <cmath>
-#include <sstream>
 #include <cstdlib>
 #include <chrono>
-//#include <iomanip>
 #include <vector>
 #include <queue>
 #include "Object.h"
 #include "Collision.h"
 using namespace chrono;
-//关闭vs studio错误提示
+//为freopen()关闭visual studio错误提示
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
 
-//变量预分配部分
+//################
+//预分配变量
+//################
+//OpenGL数据
 #define numVAOs 1
-float cameraX, cameraY, cameraZ;
+GLuint vao[numVAOs];
+GLuint coordVbo[1], sphereVbo[5], planeVbo[3], containerVbo[3];
+//OpenGL着色器和计算
 GLuint coordRenderingProgram,
 	sphereRenderingProgram,
 	planeRenderingProgram,
-	lightRenderingProgram;
-GLuint vao[numVAOs];
-GLuint coordVbo[1], sphereVbo[5], planeVbo[3], lightVbo;
-float amt = 0.0f; 
-//allocation
-GLuint mvLoc, projLoc, vLoc, sLoc, nLoc;
+	containerRenderingProgram;
+// 光照
 GLuint globalAmbLoc, ambLoc, diffLoc, specLoc,
 	posLoc, mambLoc, mdiffLoc, mspecLoc, mshiLoc;
-int width, height;
-float aspect;
-glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
-glm::vec3 currentLightPos, transformed;
 float lightPos[3];
-
+glm::vec3 currentLightPos, transformed;
+// 窗口、视角、位置、变换
+int width, height;
+float aspect, rot_v, amt = 0.0f;
+glm::vec3 cameraLoc, lookAt;
+glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
+//OpenGL材质和模型
 // white light
-float globalAmbient[4] = { 0.7f, 0.7f, 0.7f, 1.0f };
-float lightAmbient[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-float lightDiffuse[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-float lightSpecular[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
+float globalAmbient[4] = {0.7f, 0.7f, 0.7f, 1.0f};
+float lightAmbient[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+float lightDiffuse[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+float lightSpecular[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 // gold material
-float* matAmb = Utils::goldAmbient();
-float* matDif = Utils::goldDiffuse();
-float* matSpe = Utils::goldSpecular();
+float *matAmb = Utils::goldAmbient();
+float *matDif = Utils::goldDiffuse();
+float *matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
-
+// 球体模型
 Sphere mySphere = Sphere(48);
-glm::vec3 lightLoc = glm::vec3(10.0f, 10.0f, 10.0f);
 
+//################
 //小工具函数
+//################
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
@@ -77,8 +80,9 @@ glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
 	return rotationMatrix;
 }
 
-void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
-	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0));//currentLightPos不用传递，只需更改
+void installLights(GLuint renderingProgram, glm::mat4 vMatrix)
+{
+	transformed = glm::vec3(vMatrix * glm::vec4(currentLightPos, 1.0)); //currentLightPos不用传递，只需更改
 	lightPos[0] = transformed.x;
 	lightPos[1] = transformed.y;
 	lightPos[2] = transformed.z;
@@ -106,12 +110,18 @@ void installLights(GLuint renderingProgram,glm::mat4 vMatrix) {
 	glProgramUniform1f(renderingProgram, mshiLoc, matShi);
 }
 
+void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
+{
+	aspect = (float)newWidth / (float)newHeight;
+	glViewport(0, 0, newWidth, newHeight);
+	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+}
 
 //############
 //设置顶点
 //############
-void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
-{//VBO:0.顶点1.法向量2.缩放3.位置
+void setupVert_sphere(vector<shared_ptr<Ball>> &balls)
+{
 	glUseProgram(sphereRenderingProgram);
 	std::vector<int> ind = mySphere.getIndices();
 	std::vector<glm::vec3> vert = mySphere.getVertices();
@@ -122,7 +132,8 @@ void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 	std::vector<float> scales;
 
 	int numIndices = mySphere.getNumIndices();
-	for (int i = 0; i < numIndices; i++) {
+	for (int i = 0; i < numIndices; i++)
+	{
 		pvalues.push_back((vert[ind[i]]).x);
 		pvalues.push_back((vert[ind[i]]).y);
 		pvalues.push_back((vert[ind[i]]).z);
@@ -131,17 +142,17 @@ void setupVert_sphere(vector<shared_ptr<Ball>>& balls)
 		nvalues.push_back((norm[ind[i]]).z);
 	}
 
-	for (auto const & i:balls)
+	for (auto const &i : balls)
 		scales.push_back(i->r());
 
 	glGenBuffers(4, sphereVbo);
-
+	//VBO:0.顶点1.法向量2.缩放3.位置
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, pvalues.size()*4, &pvalues[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pvalues.size() * 4, &pvalues[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, nvalues.size()*4, &nvalues[0], GL_STATIC_DRAW);
-	
+	glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
+
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, scales.size() * sizeof(float), &scales[0], GL_STATIC_DRAW);
 }
@@ -150,9 +161,9 @@ void setupVert_coord(void)
 {
 	glUseProgram(coordRenderingProgram);
 	float vertCoordPositions[18] = {
-		-100.f, 0.0f, 0.0f, 100.f, 0.0f, 0.0f,
-		0.0f, -100.0f, 0.0f, 0.0f, 100.0f, 0.0f,
-		0.0f, 0.0f, -100.0f, 0.0f, 0.0f, 100.0f};
+		-1000.f, 0.0f, 0.0f, 1000.f, 0.0f, 0.0f,
+		0.0f, -1000.0f, 0.0f, 0.0f, 1000.0f, 0.0f,
+		0.0f, 0.0f, -1000.0f, 0.0f, 0.0f, 1000.0f};
 	glGenBuffers(1, coordVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
@@ -167,7 +178,6 @@ void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
 	float planeVertexPositions[18] =
 		{5.0f, -5.0f, 0.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f,
 		 -5.0f, -5.0f, 0.0f, -5.0f, 5.0f, 0.0f, 5.0f, 5.0f, 0.0f};
-
 	for (auto const &i : walls)
 	{
 		locations.push_back(i->loc().x);
@@ -177,156 +187,156 @@ void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
 		normalVectors.push_back(i->norm().y);
 		normalVectors.push_back(i->norm().z);
 	}
-	
+
 	glGenBuffers(3, planeVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertexPositions), planeVertexPositions, GL_STATIC_DRAW);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[1]);
 	glBufferData(GL_ARRAY_BUFFER, locations.size() * sizeof(float), &locations[0], GL_STATIC_DRAW);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, normalVectors.size()*sizeof(float), &normalVectors[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, normalVectors.size() * sizeof(float), &normalVectors[0], GL_STATIC_DRAW);
+}
+
+void setupVert_container(std::vector<std::shared_ptr<Container>> const &containers)
+{
+	glUseProgram(containerRenderingProgram);
+	vector<float> locations;
+	vector<float> scale;
+	float containerVertexPositions[108] = {
+		-0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,
+		0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f};
+
+	for (auto const &i : containers)
+	{
+		locations.push_back(i->loc().x);
+		locations.push_back(i->loc().y);
+		locations.push_back(i->loc().z);
+		scale.push_back(i->scale().x);
+		scale.push_back(i->scale().y);
+		scale.push_back(i->scale().z);
+	}
+
+	glGenBuffers(3, containerVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(containerVertexPositions), containerVertexPositions, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[1]);
+	glBufferData(GL_ARRAY_BUFFER, locations.size() * sizeof(float), &locations[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[2]);
+	glBufferData(GL_ARRAY_BUFFER, scale.size() * sizeof(float), &scale[0], GL_STATIC_DRAW);
 }
 
 //############
 //OpenGL初始化
 //############
-void init(GLFWwindow *window,CollisionSystem& system)
+void init(GLFWwindow *window, CollisionSystem &system)
 {
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 
 	coordRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
-	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl","tcs_plane.glsl","tes_plane.glsl", "fs_plane.glsl");
-	lightRenderingProgram = Utils::createShaderProgram("vs_coord.glsl", "fs_coord.glsl");
+	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "tcs_plane.glsl", "tes_plane.glsl", "fs_plane.glsl");
+	containerRenderingProgram = Utils::createShaderProgram("vs_container.glsl", "tcs_plane.glsl", "tes_plane.glsl", "fs_plane.glsl");
 
-//构建视口矩阵
-	cameraX = 7.0f;
-	cameraY = 7.0f;
-	cameraZ = 7.0f;
+	//构建视口矩阵
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
 	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-	lMat = glm::lookAt(glm::vec3(cameraX, cameraY, cameraZ), glm::vec3(0.0f), glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
-	//rMat = buildRotate();
-	//lMat = lMat * rMat;
+	lMat = glm::lookAt(cameraLoc, lookAt, glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 
-//设置模型顶点
-	setupVert_sphere(system.b());
+	//设置模型顶点
 	setupVert_coord();
-	setupVert_plane(system.w());
-
-//设置光照
-	glGenBuffers(1, &lightVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightLoc), GL_STATIC_DRAW);
+	setupVert_sphere(system.b());
+	if(!system.w().empty())
+		setupVert_plane(system.w());
+	if(!system.c().empty())
+		setupVert_container(system.c());
 
 	cout << "log:OpenGL初始化成功" << endl;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-//OpenGL绘制函数-----------------------------------------------------------------------------------------------------------
+//############
+//OpenGL绘制
+//############
 void draw_coord(void)
 {
-	glLineWidth(5.0f);
 	glUseProgram(coordRenderingProgram);
+	glLineWidth(5.0f);
 
-	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
-	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
-
-	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+	glUniformMatrix4fv(glGetUniformLocation(coordRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
+	glUniformMatrix4fv(glGetUniformLocation(coordRenderingProgram, "p_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
 
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
 	glDrawArrays(GL_LINES, 0, 6);
-
-	//--------------------------------------------LIGHT
-		
-	glPointSize(5.0f);
-	glUseProgram(lightRenderingProgram);
-	vLoc = glGetUniformLocation(coordRenderingProgram, "v_matrix");
-	glUniformMatrix4fv(vLoc, 1, GL_FALSE, glm::value_ptr(lMat));
-
-	projLoc = glGetUniformLocation(coordRenderingProgram, "p_matrix");
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
-
-	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	glDrawArrays(GL_POINTS, 0, 1);
 }
 
 void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 {
 	glUseProgram(sphereRenderingProgram);
 
-//light
-	//currentLightPos = glm::vec3(lightLoc.x, lightLoc.y, lightLoc.z);
-	currentLightPos = glm::vec3(cameraX, cameraY, cameraZ);
-	//amt += 0.5f;//配置光源旋转
-	//rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
+	//light
+	currentLightPos = cameraLoc;
 	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
 	installLights(sphereRenderingProgram, lMat);
 
-//uniform
+	//uniform
 	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
 	glUniformMatrix4fv(glGetUniformLocation(sphereRenderingProgram, "proj_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
 
-//VBO0:vert
+	//VBO0:vert
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-//VBO1:norm
+	//VBO1:norm
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[1]);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribDivisor(1, 0);
 
-//VBO3:model
-	std::vector<glm::vec3> models;//vec3
-	for (auto const&i:balls) 
-		models.push_back(i->loc());
-
-	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);//传送模型位置
-	glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::vec3), &models[0], GL_DYNAMIC_DRAW);//直接刷新缓冲区
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(3);
-	glVertexAttribDivisor(3, 1);//配置实例化更新数据
-
-//VBO2:scale
+	//VBO2:scale
 	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[2]);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 1);//第一个参数是location地址，第二个参数表示几个实例化更新一次
-	
-//draw
-	glEnable(GL_CULL_FACE);
+	glVertexAttribDivisor(2, 1); //第一个参数是location地址，第二个参数表示几个实例化更新一次
+
+	//VBO3:model
+	std::vector<glm::vec3> models; //vec3
+	for (auto const &i : balls)
+		models.push_back(i->loc());
+	glBindBuffer(GL_ARRAY_BUFFER, sphereVbo[3]);												   //传送模型位置
+	glBufferData(GL_ARRAY_BUFFER, models.size() * sizeof(glm::vec3), &models[0], GL_DYNAMIC_DRAW); //直接刷新缓冲区
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(3);
+	glVertexAttribDivisor(3, 1); //配置实例化更新数据
+
+	//draw
+	glEnable(GL_CULL_FACE); //背面消除，加快速度
 	glFrontFace(GL_CCW);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LEQUAL);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
 	glDisable(GL_CULL_FACE);
 }
 
-void draw_wall(std::vector<std::shared_ptr<Wall>> const & walls)
+void draw_wall(vector<shared_ptr<Wall>> const &walls)
 {
 	glUseProgram(planeRenderingProgram);
 	glLineWidth(1.0f);
@@ -335,69 +345,83 @@ void draw_wall(std::vector<std::shared_ptr<Wall>> const & walls)
 	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
 	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "p_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
 
-//VBO1:model
+	//VBO1:model
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-//VBO:location
+	//VBO:location
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[1]);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribDivisor(1, 1);
 
-//VBO3:normal
+	//VBO3:normal
 	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[2]);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(2);
 	glVertexAttribDivisor(2, 1);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//glDisable(GL_DEPTH_TEST);
 	glDrawArraysInstanced(GL_PATCHES, 0, 6, walls.size());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glEnable(GL_DEPTH_TEST);
-
 }
 
-void display(GLFWwindow *window, double currentTime, CollisionSystem&system)
+void draw_container(vector<shared_ptr<Container>> const &containers)
+{
+	glUseProgram(containerRenderingProgram);
+	glLineWidth(1.0f);
+
+	//uniform
+	glUniformMatrix4fv(glGetUniformLocation(containerRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
+	glUniformMatrix4fv(glGetUniformLocation(containerRenderingProgram, "p_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
+
+	//VBO1:model
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	//VBO:location
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[1]);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribDivisor(1, 1);
+
+	//VBO3:scale
+	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[2]);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribDivisor(2, 1);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArraysInstanced(GL_PATCHES, 0, 108, containers.size());
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
-	
 
-	draw_sphere(system.b());
-	//draw_sphere(system.hb());
+	amt += rot_v; //配置旋转
+	rMat = glm::rotate(glm::mat4(1.0f), toRadians(amt), glm::vec3(0.0f, 0.0f, 1.0f));
+	lMat = glm::lookAt(glm::vec3(rMat * glm::vec4(cameraLoc, 1.0f)), lookAt, glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
+
 	draw_coord();
-	draw_wall(system.w());
+	draw_sphere(system.b());
+	if (!system.w().empty())
+		draw_wall(system.w());
+	if (!system.c().empty())
+		draw_container(system.c());
 }
 
-void window_size_callback(GLFWwindow *win, int newWidth, int newHeight)
-{
-	aspect = (float)newWidth / (float)newHeight;
-	glViewport(0, 0, newWidth, newHeight);
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//############
+//主程序
+//############
 int main(void)
 {
-	//freopen("event_out.txt", "w", stdout);
-//OpenGL初始化
+	//OpenGL初始化
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -407,25 +431,32 @@ int main(void)
 	if (glewInit() != GLEW_OK)
 		exit(EXIT_FAILURE);
 
-	glfwSwapInterval(1);//垂直同步
+	glfwSwapInterval(1); //垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
 
-//创建碰撞系统
-	ifstream ifstrm("E:\\Coding\\testdata\\simple_system_6b1w.txt");
-	//ofstream ofstrm("out.txt");
+	//输入输出
+	//cout << "请输入您的数据文件名（其它路径记得转义）：";
+	//string file;
+	//cin >> file;
+	//freopen("event_out.txt", "w", stdout);
+	ifstream ifstrm("E:\\Coding\\testdata\\test.txt");
 
+	//创建碰撞系统
+	ifstrm >> cameraLoc >> lookAt >> rot_v;
 	CollisionSystem system(ifstrm);
-	cout << system;
-	auto last = system_clock::now();
+	//cout << system;
+	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
+
+	//帧率
+	/*auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
-	unsigned int count = 0;
-	bool flag = true;
-	init(window,system);//提供system的相关信息为OpenGL绘制预先存储数据
+	unsigned int count = 0;*/
 
-//程序主循环	
+	//程序主循环
 	while (!glfwWindowShouldClose(window))
 	{
+		/*/帧率
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -442,19 +473,18 @@ int main(void)
 			count = 0;
 			sumbounce = 0;
 			//sumexam = 0;
+		}//*/
 
-		}
-		
-		system.run(1.0f/60.0f);
+		system.run(1.0f / 60.0f);
+		//cout << system.ek();
+		//cout << system.e().size() << endl;
 
-
-
-//显示
-	display(window, glfwGetTime(), system);
+		//显示
+		display(window, glfwGetTime(), system);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	
+
 	//cout << system;
 	glfwDestroyWindow(window);
 	glfwTerminate();

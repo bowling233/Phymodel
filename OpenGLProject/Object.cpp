@@ -30,12 +30,16 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
     return is;
 }
 
-float max(float a, float b)
+float positive_min(float a, float b, float c)
 {
-    if (a >= b)
-        return a;
-    else
-        return b;
+    float temp = INFINITY;
+    if ((a > 0) && (a < temp))
+        temp = a;
+    if ((b > 0) && (b < temp))
+        temp = b;
+    if ((c > 0) && (c < temp))
+        temp = c;
+    return temp;
 }
 
 //Wall---------------------------------------------------------------------------------------------
@@ -146,34 +150,32 @@ float Ball::predict(const Ball &ball) //tochk
 
 float Ball::predict(const Container &container) //tochk
 {
-    //std::cout << "predict:容器" << this->number << "|" << container.num() <<std::endl;//<debug>
-    float x, y, z;
+    //std::cout << "predict:容器" << container << '\n' << *this << std::endl;//<debug>
+    float x = -1.0, y = -1.0, z = -1.0;
 
-    if (velocity.x = 0)
-        x = -1.0;
-    else if (velocity.x > 0)
-        x = (container.x_p() - location.x) / velocity.x;
+    //根据速度方向选择判断墙面
+
+    if (velocity.x > 0)
+        x = (container.x_p() - radius - location.x) / velocity.x;
     else if (velocity.x < 0)
-        x = (location.x - container.x_n()) / velocity.x;
+        x = (container.x_n() + radius - location.x) / velocity.x;
 
-    if (velocity.y = 0)
-        y = -1.0;
-    else if (velocity.y > 0)
-        y = (container.y_p() - location.y) / velocity.y;
+    if (velocity.y > 0)
+        y = (container.y_p() - radius - location.y) / velocity.y;
     else if (velocity.y < 0)
-        y = (location.y - container.y_n()) / velocity.y;
+        y = (container.y_n() + radius - location.y) / velocity.y;
 
-    if (velocity.z = 0)
-        z = -1.0;
-    else if (velocity.z > 0)
-        z = (container.z_p() - location.z) / velocity.z;
+    if (velocity.z > 0)
+        z = (container.z_p() - radius - location.z) / velocity.z;
     else if (velocity.z < 0)
-        z = (location.z - container.z_n()) / velocity.z;
+        z = (container.z_n() + radius - location.z) / velocity.z;
+
+    //std::cout << x << '\t' << y << '\t' << z << '\t' << std::endl;//<debug>
 
     if (x < 0 && y < 0 && z < 0)
         return -1.0;
     else
-        return max(max(x, y), z); //返回最大值
+        return positive_min(x, y, z); //返回最小值
 }
 
 //################
@@ -237,40 +239,50 @@ void Ball::bounce(Ball &ball)
 void Ball::bounce(Container &container) //tochk
 {
     
-    float x, y, z;
+    float x = INFINITY, y = INFINITY, z = INFINITY;
 
-    if (velocity.x = 0)
-        x = -1.0;
-    else if (velocity.x > 0)
-        x = (container.x_p() - location.x) / velocity.x;
+    if (velocity.x > 0)
+        x = abs(container.x_p() - radius - location.x);
     else if (velocity.x < 0)
-        x = (location.x - container.x_n()) / velocity.x;
+        x = abs(container.x_n() + radius - location.x);
 
-    if (velocity.y = 0)
-        y = -1.0;
-    else if (velocity.y > 0)
-        y = (container.y_p() - location.y) / velocity.y;
+    if (velocity.y > 0)
+        y = abs(container.y_p() - radius - location.y);
     else if (velocity.y < 0)
-        y = (location.y - container.y_n()) / velocity.y;
+        y = abs(container.y_n() + radius - location.y);
 
-    if (velocity.z = 0)
-        z = -1.0;
-    else if (velocity.z > 0)
-        z = (container.z_p() - location.z) / velocity.z;
+    if (velocity.z > 0)
+        z = abs(container.z_p() - radius - location.z);
     else if (velocity.z < 0)
-        z = (location.z - container.z_n()) / velocity.z;
+        z = abs(container.z_n() + radius - location.z);
 
-    if (x < y && x < z)
-        velocity.x = -velocity.x;
-    else if (y < x && y < z)
-        velocity.y = -velocity.y;
-    else if (z < x && z < y)
-        velocity.z = -velocity.z;
-    else
+    if (x == y)
+        if (y == z)
+            velocity = -velocity;
+        else if (y < z)
         {
-            std::cout << "error:容器碰撞错误" << std::endl;
-            exit(EXIT_SUCCESS);
+            velocity.x = -velocity.x; velocity.y = -velocity.y;
         }
+        else
+            velocity.z = -velocity.z;
+    else if (x < y)
+        if (x == z)
+        {
+            velocity.x = -velocity.x; velocity.z = -velocity.z;
+        }
+        else if (x < z)
+            velocity.x = -velocity.x;
+        else
+            velocity.z = -velocity.z;
+    else
+        if (y == z)
+        {
+            velocity.y = -velocity.y; velocity.z = -velocity.z;
+        }
+        else if (x < y)
+            velocity.z = -velocity.z;
+        else
+            velocity.y = -velocity.y;
     count++;
 }
 
@@ -298,9 +310,7 @@ bool Ball::back(const Ball &ball)
 {
     if ((glm::dot(-(location - ball.location), velocity) < 0) && (glm::dot(location - ball.location, ball.velocity) < 0))
     {
-#ifdef DEBUG
-        std::cout << "error:背向运动" << std::endl;
-#endif
+        //std::cout << "error:背向运动" << std::endl;
         return true;
     }
     return false;
