@@ -13,7 +13,7 @@ extern int sumbounce;
 extern int sumexam;
 
 #ifdef TIME_DRIVEN
-constexpr auto DELTATIME = 1.0f / 360.0f; //时间驱动专用
+constexpr auto DELTATIME = 1.0f / 120.0f; //时间驱动专用
 #endif
 
 #ifdef EVENT_DRIVEN
@@ -42,6 +42,7 @@ class Event
 public:
     //construct
     Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+    Event() = default;
 
     //copy move destruct
     Event(const Event &) = default;
@@ -97,7 +98,9 @@ public:
     std::vector<std::shared_ptr<Ball>> &hb() { return hidden_balls; }
     std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
-    std::priority_queue<Event, std::vector<Event>> &e() { return eventQueue; }
+#ifdef EVENT_DRIVEN
+    std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
+#endif // EVENT_DRIVEN
 
 private:
     void move(float);
@@ -105,6 +108,7 @@ private:
 
 #ifdef EVENT_DRIVEN
     std::shared_ptr<Ball> tempball; //temp:副小球检测
+    Event tempEvent;
 #endif
     std::vector<std::shared_ptr<Ball>> balls, hidden_balls;
     std::vector<std::shared_ptr<Wall>> walls;

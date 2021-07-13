@@ -20,28 +20,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_test.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Sphere.cpp" />
-    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Object.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="in.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="fs_coord.glsl" />
-    <None Include="fs_plane.glsl" />
-    <None Include="fs_sphere.glsl" />
-    <None Include="tcs_plane.glsl" />
-    <None Include="tes_plane.glsl" />
-    <None Include="vs_container.glsl" />
-    <None Include="vs_coord.glsl" />
-    <None Include="vs_plane.glsl" />
-    <None Include="vs_sphere.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

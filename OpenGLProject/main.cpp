@@ -1,18 +1,21 @@
-﻿//################
+﻿//#define OPENGL_CLOSE
+//################
 //头文件
 //################
 //OpenGL
+#ifndef OPENGL_CLOSE
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
-#include <SOIL2\soil2.h>
-#include <string>
-#include <iostream>
-#include <fstream>
+//#include <SOIL2\soil2.h>
+#include "Utils.h"
+#include "Sphere.h"
+#endif
 #include <glm\glm.hpp>
 #include <glm\gtc\type_ptr.hpp>			// glm::value_ptr
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
-#include "Sphere.h"
-#include "Utils.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 using namespace std;
 //自选用的头文件
 #include <cmath>
@@ -31,6 +34,10 @@ using namespace chrono;
 //################
 //预分配变量
 //################
+float aspect, rot_v, amt = 0.0f;
+glm::vec3 cameraLoc, lookAt;
+
+#ifndef OPENGL_CLOSE
 //OpenGL数据
 #define numVAOs 1
 GLuint vao[numVAOs];
@@ -47,8 +54,6 @@ float lightPos[3];
 glm::vec3 currentLightPos, transformed;
 // 窗口、视角、位置、变换
 int width, height;
-float aspect, rot_v, amt = 0.0f;
-glm::vec3 cameraLoc, lookAt;
 glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
 //OpenGL材质和模型
 // white light
@@ -63,10 +68,12 @@ float *matSpe = Utils::goldSpecular();
 float matShi = Utils::goldShininess();
 // 球体模型
 Sphere mySphere = Sphere(48);
+#endif
 
 //################
 //小工具函数
 //################
+#ifndef OPENGL_CLOSE
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
 glm::mat4 buildRotate(glm::vec3 vectorBefore, glm::vec3 vectorAfter)
@@ -238,7 +245,6 @@ void setupVert_container(std::vector<std::shared_ptr<Container>> const &containe
 
 	glBindBuffer(GL_ARRAY_BUFFER, containerVbo[2]);
 	glBufferData(GL_ARRAY_BUFFER, scale.size() * sizeof(float), &scale[0], GL_STATIC_DRAW);
-	cout << "log:OpenGL初始化成功container" << endl;
 }
 
 //############
@@ -403,7 +409,7 @@ void draw_container(vector<shared_ptr<Container>> const &containers)
 void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	amt += rot_v; //配置旋转
@@ -418,6 +424,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 		draw_container(system.c());
 	//cout << "OpenGL render success" << endl;//<debug>
 }
+#endif
 
 //############
 //主程序
@@ -425,6 +432,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 int main(void)
 {
 	//OpenGL初始化
+#ifndef OPENGL_CLOSE
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -435,30 +443,43 @@ int main(void)
 		exit(EXIT_FAILURE);
 	glfwSwapInterval(1); //垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
+#endif
 
 	//输入输出
 	//cout << "请输入您的数据文件名（其它路径记得转义）：";
 	//string file;
 	//cin >> file;
 	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\testdata\\605ball.txt");
+	ifstream ifstrm("testdata.txt");
 
 	//创建碰撞系统
-	ifstrm >> cameraLoc >> lookAt >> rot_v;
+	//ifstrm >> cameraLoc >> lookAt >> rot_v;
+	cameraLoc = glm::vec3(10, 10, 5);
+	lookAt = glm::vec3(0.0f);
+	rot_v = 0.05f;
 	CollisionSystem system(ifstrm);
+	//ofstream ofstrm("out.txt");
 	//cout << system;
-	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 
+#ifndef OPENGL_CLOSE
+	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
+#endif
 	//*帧率
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;//*/
 
+
 	//程序主循环
+#ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
+#endif
+#ifdef OPENGL_CLOSE
+	while(1)
+#endif
 	{
-		//*/帧率
+		/*帧率
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -466,7 +487,7 @@ int main(void)
 			cout << "fps::"
 				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl
-				<< "bounce persecond::"
+				<< "每秒碰撞::"
 				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
 				//<< endl
 				//<< "exam persecond::"
@@ -474,21 +495,30 @@ int main(void)
 				<< endl;
 			count = 0;
 			sumbounce = 0;
+			cout << "系统动能：" << system.ek() << endl;
+			//cout << "事件队列长度：" << system.e().size() << endl;
+			cout << "当前系统时间：" << system.time() << std::endl;//<debug>
 			//sumexam = 0;
 		}//*/
 
-		system.run(1.0f/6);
-		//cout << system.ek()<<endl;
-		//cout << system.e().size() << endl;
+		system.run(1.0f/30.0f);
+
+
+		//if (system.time() > 30)
+			//break;
 
 		//显示
+		#ifndef OPENGL_CLOSE
 		display(window, glfwGetTime(), system);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		#endif
 	}
 
-	//cout << system;
+	//ofstrm << system;
+#ifndef OPENGL_CLOSE
 	glfwDestroyWindow(window);
 	glfwTerminate();
+#endif
 	exit(EXIT_SUCCESS);
 }

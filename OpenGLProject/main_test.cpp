@@ -2,21 +2,23 @@
 //#include <GL\glew.h>
 //#include <GLFW\glfw3.h>
 //#include <SOIL2\soil2.h>
-#include <string>
+//#include <string>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 //#include <glm\glm.hpp>
 //#include <glm\gtc\type_ptr.hpp>			// glm::value_ptr
 //#include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 //#include "Sphere.h"
 //#include "Utils.h"
 using namespace std;
+using namespace chrono;
 
 //自己选用的头文件
-#include <cmath>
+//#include <cmath>
 //#include <sstream>
 //#include <cstdlib>
-//#include <chrono>
+
 //#include <iomanip>
 //#include <vector>
 //#include <queue>
@@ -25,10 +27,14 @@ using namespace std;
 
 int main()
 {
-//	ifstream ifstrm("E:\\Coding\\testdata\\test.txt");
+	ifstream ifstrm("testdata.txt");
 
-	std::vector<std::shared_ptr<Container>> balls;
-	balls.push_back(std::make_shared<Container>());
-	cout << balls;
+
+	CollisionSystem system(ifstrm);
+	auto start = system_clock::now();
+	system.run(1.0f);
+	auto end = system_clock::now();
+	auto duration = duration_cast<milliseconds>(end - start);
+	cout << duration.count();
 	return 0;
 }

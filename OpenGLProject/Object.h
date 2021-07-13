@@ -24,6 +24,8 @@ enum class Object_type
 std::ostream &operator<<(std::ostream &, const glm::vec3 &);
 std::istream &operator>>(std::istream &, glm::vec3 &);
 
+
+
 class Object //protected:location
 {
 public:
@@ -101,8 +103,8 @@ public:
     ~Ball() = default;
 
     //information
+    glm::vec3 v() const { return velocity; }
     float r() const { return radius; }
-    glm::vec3 vel() const { return velocity; }
     float m() const { return mass; }
     float ek() const { return 0.5f * mass * square(glm::length(velocity)); }
     unsigned int cnt() const { return count; }
@@ -128,9 +130,10 @@ public:
     bool examine(const Wall &);
     bool examine(const Ball &);
     bool examine(const Container &);
-    bool back(const Ball &);
+
 
 private:
+    bool back(const Ball&);
     glm::vec3 velocity;
     float mass, radius;
     static unsigned int sum; //extern
