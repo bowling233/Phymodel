@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define NUM 16//边个数
+#define NUM 30//边个数
 #define DISTANCE 0.5//间距
 #define MASS 1//质量
 #define RADIUS 0.5//半径
@@ -13,7 +13,7 @@ using namespace std;
 
 int main()
 {
-    ofstream ofstrm("testdata.txt");
+    ofstream ofstrm("4.1.10.3.txt");
     std::default_random_engine e;                        //引擎
     std::normal_distribution<double> n(MEAN,DELTA);
     e.seed(time(0));

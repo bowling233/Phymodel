@@ -1,7 +1,7 @@
 ﻿#ifndef COLLISION_H
 #define COLLISION_H
 
-#define EVENT_DRIVEN
+#define TIME_DRIVEN
 
 #include "Object.h"
 #include <vector>
@@ -13,17 +13,16 @@ extern int sumbounce;
 extern int sumexam;
 
 #ifdef TIME_DRIVEN
-constexpr auto DELTATIME = 1.0f / 120.0f; //时间驱动专用
+constexpr auto DELTATIME = 1.0f / 60.0f; //时间驱动专用
 #endif
 
 #ifdef EVENT_DRIVEN
-constexpr auto TIME_LIMIT = 100.f;
+constexpr auto TIME_LIMIT = 10.1f;
 #endif
 
 //预先声明所有用到的外部类
 class Object;
 class MovableObject;
-class Wall;
 class Ball;
 
 #ifdef EVENT_DRIVEN
@@ -95,8 +94,6 @@ public:
     float time() { return currentTime; }
     float ek();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
-    std::vector<std::shared_ptr<Ball>> &hb() { return hidden_balls; }
-    std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
@@ -110,8 +107,7 @@ private:
     std::shared_ptr<Ball> tempball; //temp:副小球检测
     Event tempEvent;
 #endif
-    std::vector<std::shared_ptr<Ball>> balls, hidden_balls;
-    std::vector<std::shared_ptr<Wall>> walls;
+    std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Container>> containers;
     float currentTime = 0.0, targetTime = 0.0, temp = 0.0; //temp:各种计算
 
