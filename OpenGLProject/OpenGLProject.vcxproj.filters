@@ -21,6 +21,12 @@
     <ClCompile Include="Collision.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="main_test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

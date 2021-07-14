@@ -40,8 +40,7 @@ std::ostream &operator<<(std::ostream &os, const Event &event)
         break;
     }
     os << '\t' << event.object->num()
-       << '\t' << event.countObject
-       << std::defaultfloat;
+       << '\t' << event.countObject;
     return os;
 }
 
@@ -65,7 +64,7 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 
 //int flag = 1;
 
-void CollisionSystem::run(const float t)
+void CollisionSystem::run(const double t)
 {
     targetTime = currentTime + t;
 #ifdef TIME_DRIVEN
@@ -104,7 +103,7 @@ void CollisionSystem::run(const float t)
         move(eventQueue.top().t() - currentTime); //有效，跳转到事件发生时间
         tempEvent = eventQueue.top();       //提出放置，因为需要检测对应物体
         eventQueue.pop();
-        //sumbounce++; //<info>
+        sumbounce++; //<info>
         tempEvent.handle(); //处理事件，处理时小球自动递增计数器
 
         { //主小球检测note:只要碰撞处理得好就不应该出现再次预测的情况
@@ -188,7 +187,7 @@ void CollisionSystem::init()
     std::cout << "log:system 初始化成功" << std::endl;
 }
 
-float CollisionSystem::ek()
+double CollisionSystem::ek()
 {
     temp = 0.0f;
     for (auto const i : balls)
@@ -199,7 +198,7 @@ float CollisionSystem::ek()
 //#############
 //private
 //#############
-void CollisionSystem::move(float t)
+void CollisionSystem::move(double t)
 {
     for (auto &i : balls)
         i->move(t);

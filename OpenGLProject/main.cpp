@@ -177,36 +177,6 @@ void setupVert_coord(void)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertCoordPositions), vertCoordPositions, GL_STATIC_DRAW);
 }
 
-void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
-{
-	glUseProgram(planeRenderingProgram);
-	vector<float> normalVectors;
-	vector<float> locations;
-	float planeVertexPositions[18] =
-		{5.0f, -5.0f, 0.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f,
-		 -5.0f, -5.0f, 0.0f, -5.0f, 5.0f, 0.0f, 5.0f, 5.0f, 0.0f};
-	for (auto const &i : walls)
-	{
-		locations.push_back(i->loc().x);
-		locations.push_back(i->loc().y);
-		locations.push_back(i->loc().z);
-		normalVectors.push_back(i->norm().x);
-		normalVectors.push_back(i->norm().y);
-		normalVectors.push_back(i->norm().z);
-	}
-
-	glGenBuffers(3, planeVbo);
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertexPositions), planeVertexPositions, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, locations.size() * sizeof(float), &locations[0], GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, normalVectors.size() * sizeof(float), &normalVectors[0], GL_STATIC_DRAW);
-	cout << "log:OpenGL初始化成功plane" << endl;
-}
-
 void setupVert_container(std::vector<std::shared_ptr<Container>> const &containers)
 {
 	glUseProgram(containerRenderingProgram);
@@ -269,8 +239,8 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	//设置模型顶点
 	setupVert_coord();
 	setupVert_sphere(system.b());
-	if(!system.w().empty())
-		setupVert_plane(system.w());
+	//if(!system.w().empty())
+	//	setupVert_plane(system.w());
 	if(!system.c().empty())
 		setupVert_container(system.c());
 
@@ -344,37 +314,6 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 	glDisable(GL_CULL_FACE);
 }
 
-void draw_wall(vector<shared_ptr<Wall>> const &walls)
-{
-	glUseProgram(planeRenderingProgram);
-	glLineWidth(1.0f);
-
-	//uniform
-	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "v_matrix"), 1, GL_FALSE, glm::value_ptr(lMat));
-	glUniformMatrix4fv(glGetUniformLocation(planeRenderingProgram, "p_matrix"), 1, GL_FALSE, glm::value_ptr(pMat));
-
-	//VBO1:model
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[0]);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
-
-	//VBO:location
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[1]);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribDivisor(1, 1);
-
-	//VBO3:normal
-	glBindBuffer(GL_ARRAY_BUFFER, planeVbo[2]);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(2);
-	glVertexAttribDivisor(2, 1);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArraysInstanced(GL_PATCHES, 0, 6, walls.size());
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
 void draw_container(vector<shared_ptr<Container>> const &containers)
 {
 	glUseProgram(containerRenderingProgram);
@@ -418,8 +357,6 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 
 	draw_coord();
 	draw_sphere(system.b());
-	if (!system.w().empty())
-		draw_wall(system.w());
 	if (!system.c().empty())
 		draw_container(system.c());
 	//cout << "OpenGL render success" << endl;//<debug>
@@ -450,7 +387,7 @@ int main(void)
 	//string file;
 	//cin >> file;
 	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("testdata.txt");
+	ifstream ifstrm("E:\\Coding\\data\\4.1.3.2.txt");
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
@@ -458,7 +395,7 @@ int main(void)
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.05f;
 	CollisionSystem system(ifstrm);
-	//ofstream ofstrm("out.txt");
+	ofstream ofstrm("out.txt");
 	//cout << system;
 
 #ifndef OPENGL_CLOSE
@@ -470,7 +407,11 @@ int main(void)
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;//*/
 
-
+	int k = 0,m=1;
+	bool flag = false;
+	system.run(11.0);
+	system.reverse();
+	system.run(11.0);
 	//程序主循环
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
@@ -501,7 +442,14 @@ int main(void)
 			//sumexam = 0;
 		}//*/
 
-		system.run(1.0f/30.0f);
+		/*if (!(k<0))
+		system.run(1.0f/15.0);
+		k += m;
+		if (k == 150)
+		{
+			m = -1;
+			system.reverse();
+		}*/
 
 
 		//if (system.time() > 30)
@@ -514,8 +462,8 @@ int main(void)
 		glfwPollEvents();
 		#endif
 	}
-
-	//ofstrm << system;
+	getchar();
+	ofstrm << system;
 #ifndef OPENGL_CLOSE
 	glfwDestroyWindow(window);
 	glfwTerminate();

@@ -8,16 +8,15 @@
 #include <iostream>
 #include <memory>
 #include <queue>
-#include <GLFW\glfw3.h> //for GLFW*WINDOWS
 extern int sumbounce;
 extern int sumexam;
 
 #ifdef TIME_DRIVEN
-constexpr auto DELTATIME = 1.0f / 60.0f; //时间驱动专用
+constexpr auto DELTATIME = 1.0 / 3600.0; //时间驱动专用
 #endif
 
 #ifdef EVENT_DRIVEN
-constexpr auto TIME_LIMIT = 10.1f;
+constexpr auto TIME_LIMIT = INFINITY;
 #endif
 
 //预先声明所有用到的外部类
@@ -40,7 +39,7 @@ class Event
 
 public:
     //construct
-    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const float t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
+    Event(std::shared_ptr<Ball> b, std::shared_ptr<Object> o, const double t) : ball(b), object(o), time(t), countBall(b->cnt()), countObject(o->cnt()) {}
     Event() = default;
 
     //copy move destruct
@@ -51,7 +50,7 @@ public:
     ~Event() = default;
 
     //information
-    float t() const { return time; }
+    double t() const { return time; }
 
     //action
     void handle() const;
@@ -63,7 +62,7 @@ public:
 private:
     std::shared_ptr<Ball> ball;
     std::shared_ptr<Object> object;
-    float time;
+    double time;
     unsigned int countBall, countObject;
 };
 std::ostream &operator<<(std::ostream &, const Event &);
@@ -87,12 +86,12 @@ public:
     } //输入后自动初始化
 
     //action
-    void run(float);
+    void run(double);
     void reverse();
 
     //information
-    float time() { return currentTime; }
-    float ek();
+    double time() { return currentTime; }
+    double ek();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
 #ifdef EVENT_DRIVEN
@@ -100,7 +99,7 @@ public:
 #endif // EVENT_DRIVEN
 
 private:
-    void move(float);
+    void move(double);
     void init();
 
 #ifdef EVENT_DRIVEN
@@ -109,7 +108,7 @@ private:
 #endif
     std::vector<std::shared_ptr<Ball>> balls;
     std::vector<std::shared_ptr<Container>> containers;
-    float currentTime = 0.0, targetTime = 0.0, temp = 0.0; //temp:各种计算
+    double currentTime = 0.0, targetTime = 0.0, temp = 0.0; //temp:各种计算
 
 #ifdef EVENT_DRIVEN
     std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用
