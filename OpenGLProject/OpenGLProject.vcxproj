@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Collision.cpp" />
-    <ClCompile Include="main_test.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="Utils.cpp" />

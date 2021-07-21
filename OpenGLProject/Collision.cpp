@@ -79,7 +79,7 @@ void CollisionSystem::run(const double t)
                 {
                     //std::cout << "log:###ball bounce\t当前系统时间" << currentTime <<"\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
                     (**i).bounce(**j);
-                    //sumbounce++;
+                    sumbounce++;
                 }
             }
             if(!containers.empty())
@@ -89,7 +89,7 @@ void CollisionSystem::run(const double t)
                     if ((**i).examine(**j))
                     {
                         (**i).bounce(**j);
-                        //sumbounce++;
+                        sumbounce++;
                     }
                 }
         }
@@ -140,7 +140,7 @@ void CollisionSystem::run(const double t)
         flag = -1;
     }*/
 #endif
-    //std::cout << "当前系统时间：" << currentTime << std::endl;//<debug>
+    std::cout <<eventQueue.size() << std::endl;//<debug>
 }
 
 void CollisionSystem::reverse()
@@ -168,6 +168,7 @@ void CollisionSystem::init()
             }
     }*/
 #ifdef EVENT_DRIVEN
+
     for (auto i = balls.cbegin(); i != balls.cend(); i++) //遍历初始化
     {
         for (auto j = i + 1; j != balls.cend(); j++)

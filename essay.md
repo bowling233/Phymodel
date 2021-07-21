@@ -291,6 +291,10 @@ void Ball::bounce(Object &object)
 
 碰撞检测对每
 
+
+
+
+
 ### 4.3 算法探究3：优先队列和索引优先队列
 
 > 原命题：使用索引优先队列来保证优先队列的长度最多与例子数量呈线性关系，而非平方级别或者更糟
@@ -331,7 +335,7 @@ $$\vec{k}= \vec{a}\times\vec{b}$$
 
 在三维空间中旋转一个向量可以使用罗德里格旋转公式。应用该公式可以得到如下关系：
 
-$$\displaystyle \vec {a}=\vec {b} \cos \theta +(\vec {k} \times \vec {b} )\sin \theta +\vec {k} (\vec {k} \cdot \vec {b} )(1-\cos \theta )$$
+$$\vec {a}=\vec {b} \cos \theta +(\vec {k} \times \vec {b} )\sin \theta +\vec {k} (\vec {k} \cdot \vec {b} )(1-\cos \theta )$$
 
 如果用$\mathbf {K}$表示叉乘中的反对称矩阵
 
@@ -339,11 +343,11 @@ $$\displaystyle \mathbf {K} =\left[{\begin{array}{ccc}0&-k_{z}&k_{y}\\k_{z}&0&-k
 
 则*式又可以表示为
 
-$$\displaystyle \vec {a}=\mathbf {R} \vec {b} $$
+$$\vec {a}=\mathbf {R} \vec {b} $$
 
 其中：
 
-$$\displaystyle \mathbf {R} =\exp(\theta \mathbf {K} )$$
+$$\mathbf {R} =\exp(\theta \mathbf {K} )$$
 
 在C++中实现代码如下：
 

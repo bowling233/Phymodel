@@ -1,4 +1,4 @@
-﻿//#define OPENGL_CLOSE
+﻿#define OPENGL_CLOSE
 //################
 //头文件
 //################
@@ -387,31 +387,32 @@ int main(void)
 	//string file;
 	//cin >> file;
 	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\data\\4.1.3.2.txt");
+	ifstream ifstrm("E:\\Coding\\data\\4.1.3.1.txt");
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
 	cameraLoc = glm::vec3(10, 10, 5);
 	lookAt = glm::vec3(0.0f);
-	rot_v = 0.05f;
+	rot_v = 0.00f;
 	CollisionSystem system(ifstrm);
-	ofstream ofstrm("out.txt");
+	//ofstream ofstrm("out.txt");
 	//cout << system;
 
 #ifndef OPENGL_CLOSE
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 #endif
-	//*帧率
+	/*帧率
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;//*/
 
-	int k = 0,m=1;
-	bool flag = false;
-	system.run(11.0);
-	system.reverse();
-	system.run(11.0);
+	//int k = 0,m=1;
+	//bool flag = false;
+	for(int i=0;i!=10;i++)
+	system.run(1.0);
+	//system.reverse();
+	//system.run(6.0);
 	//程序主循环
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
@@ -437,7 +438,7 @@ int main(void)
 			count = 0;
 			sumbounce = 0;
 			cout << "系统动能：" << system.ek() << endl;
-			//cout << "事件队列长度：" << system.e().size() << endl;
+			
 			cout << "当前系统时间：" << system.time() << std::endl;//<debug>
 			//sumexam = 0;
 		}//*/
@@ -456,6 +457,7 @@ int main(void)
 			//break;
 
 		//显示
+		//cout << system.e().size() << endl;
 		#ifndef OPENGL_CLOSE
 		display(window, glfwGetTime(), system);
 		glfwSwapBuffers(window);
@@ -463,7 +465,7 @@ int main(void)
 		#endif
 	}
 	getchar();
-	ofstrm << system;
+	//ofstrm << system;
 #ifndef OPENGL_CLOSE
 	glfwDestroyWindow(window);
 	glfwTerminate();
