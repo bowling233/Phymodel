@@ -168,9 +168,9 @@ void setupVert_coord(void)
 {
 	glUseProgram(coordRenderingProgram);
 	float vertCoordPositions[18] = {
-		-1000.f, 0.0f, 0.0f, 1000.f, 0.0f, 0.0f,
-		0.0f, -1000.0f, 0.0f, 0.0f, 1000.0f, 0.0f,
-		0.0f, 0.0f, -1000.0f, 0.0f, 0.0f, 1000.0f};
+		-10000.f, 0.0f, 0.0f, 10000.f, 0.0f, 0.0f,
+		0.0f, -10000.0f, 0.0f, 0.0f, 10000.0f, 0.0f,
+		0.0f, 0.0f, -10000.0f, 0.0f, 0.0f, 10000.0f};
 	glGenBuffers(1, coordVbo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, coordVbo[0]);
@@ -183,8 +183,8 @@ void setupVert_plane(std::vector<std::shared_ptr<Wall>> const &walls)
 	vector<float> normalVectors;
 	vector<float> locations;
 	float planeVertexPositions[18] =
-		{5.0f, -5.0f, 0.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f,
-		 -5.0f, -5.0f, 0.0f, -5.0f, 5.0f, 0.0f, 5.0f, 5.0f, 0.0f};
+		{1000.0f, -1000.0f, 0.0f, 1000.0f, 1000.0f, 0.0f, -1000.0f, -1000.0f, 0.0f,
+		 -1000.0f, -1000.0f, 0.0f, -1000.0f, 1000.0f, 0.0f, 1000.0f, 1000.0f, 0.0f};
 	for (auto const &i : walls)
 	{
 		locations.push_back(i->loc().x);
@@ -347,6 +347,7 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 void draw_wall(vector<shared_ptr<Wall>> const &walls)
 {
 	glUseProgram(planeRenderingProgram);
+	glLineWidth(3.0f);
 	glLineWidth(1.0f);
 
 	//uniform
@@ -373,6 +374,7 @@ void draw_wall(vector<shared_ptr<Wall>> const &walls)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArraysInstanced(GL_PATCHES, 0, 6, walls.size());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glLineWidth(1.0f);
 }
 
 void draw_container(vector<shared_ptr<Container>> const &containers)
@@ -450,11 +452,11 @@ int main(void)
 	//string file;
 	//cin >> file;
 	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("testdata.txt");
+	ifstream ifstrm("E:\\Coding\\data\\walls.txt");
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(10, 10, 5);
+	cameraLoc = glm::vec3(100, 100, 50);
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.05f;
 	CollisionSystem system(ifstrm);
@@ -501,7 +503,7 @@ int main(void)
 			//sumexam = 0;
 		}//*/
 
-		system.run(1.0f/30.0f);
+		//system.run(1.0f/30.0f);
 
 
 		//if (system.time() > 30)
