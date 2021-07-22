@@ -4,7 +4,7 @@
 
 研究性学习：计算机模拟刚性球体系统的物理分析、算法设计和OpenGL可视化
 
-![](https://img.shields.io/badge/license-GPL-blue) ![](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)
+![](https://img.shields.io/badge/license-GPL-blue?style=for-the-badge) ![](https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png)
 
 **请注意**：本项目仓库源码遵循GPL许可协议，论文遵循CC-BY-NC-ND（知识共享-署名-非商业性使用-禁止演绎）协议。
 
