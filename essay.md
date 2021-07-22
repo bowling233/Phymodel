@@ -291,6 +291,10 @@ void Ball::bounce(Object &object)
 
 碰撞检测对每
 
+
+
+
+
 ### 4.3 算法探究3：优先队列和索引优先队列
 
 > 原命题：使用索引优先队列来保证优先队列的长度最多与例子数量呈线性关系，而非平方级别或者更糟
@@ -331,7 +335,7 @@ $$\vec{k}= \vec{a}\times\vec{b}$$
 
 在三维空间中旋转一个向量可以使用罗德里格旋转公式。应用该公式可以得到如下关系：
 
-$$\displaystyle \vec {a}=\vec {b} \cos \theta +(\vec {k} \times \vec {b} )\sin \theta +\vec {k} (\vec {k} \cdot \vec {b} )(1-\cos \theta )$$
+$$\vec {a}=\vec {b} \cos \theta +(\vec {k} \times \vec {b} )\sin \theta +\vec {k} (\vec {k} \cdot \vec {b} )(1-\cos \theta )$$
 
 如果用$\mathbf {K}$表示叉乘中的反对称矩阵
 
@@ -339,11 +343,11 @@ $$\displaystyle \mathbf {K} =\left[{\begin{array}{ccc}0&-k_{z}&k_{y}\\k_{z}&0&-k
 
 则*式又可以表示为
 
-$$\displaystyle \vec {a}=\mathbf {R} \vec {b} $$
+$$\vec {a}=\mathbf {R} \vec {b} $$
 
 其中：
 
-$$\displaystyle \mathbf {R} =\exp(\theta \mathbf {K} )$$
+$$\mathbf {R} =\exp(\theta \mathbf {K} )$$
 
 在C++中实现代码如下：
 
@@ -479,7 +483,7 @@ $$\delta =\frac{\sum\left |\Delta\vec{p}  \right |+\left |\Delta\vec{v}\right |}
 
 #### 6.2.1 实验方案
 
-实验目的：使用前文设计的刚性小球系统模拟程序模拟$1μm^3$体积内的理想气体分子的运动。监测其宏观状态参量温度和压强是否稳定，以此来验证碰撞系统模拟的有效性。
+实验目的：使用前文设计的刚性小球系统模拟程序模拟$0.027μm^3$体积内的理想气体分子的运动。监测其宏观状态参量温度和压强是否稳定，以此来验证碰撞系统模拟的有效性。
 
 实验数据生成：查阅CRC手册可以获得经过精确测量的氧气分子数据。以标准状态（273.15K，1atm）下的数据为基础，根据理想气体状态方程计算出10℃、25℃、60℃、100℃下的氧气分子运动速率
 

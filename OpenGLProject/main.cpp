@@ -456,7 +456,7 @@ int main(void)
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(100, 100, 50);
+	cameraLoc = glm::vec3(50, 50, 30);
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.05f;
 	CollisionSystem system(ifstrm);
