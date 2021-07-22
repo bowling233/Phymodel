@@ -245,7 +245,7 @@ void CollisionSystem::run(const double t)
     //发生的事件全部处理完成
     move(targetTime - currentTime);
 #endif
-    //std::cout << eventQueue.size() << std::endl; //<debug>
+    std::cout << eventQueue.size() << std::endl; //<debug>
 }
 
 void CollisionSystem::reverse()
@@ -289,7 +289,7 @@ void CollisionSystem::init()
     std::cout << "log:当前使用事件驱动方式:" << eventQueue.size() << std::endl;
     //std::cout << eventQueue << std::endl;
 #endif
-    //std::cout << "log:system 初始化成功" << std::endl;
+    std::cout << "log:system 初始化成功" << std::endl;
 }
 
 double CollisionSystem::ek()

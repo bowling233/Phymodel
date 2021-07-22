@@ -1,4 +1,4 @@
-﻿//#define OPENGL_CLOSE
+﻿#define OPENGL_CLOSE
 //################
 //头文件
 //################
@@ -233,7 +233,7 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	//构建视口矩阵
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	pMat = glm::perspective(1.0472f, aspect, 0.01f, 1000.0f);
 	lMat = glm::lookAt(cameraLoc, lookAt, glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 
 	//设置模型顶点
@@ -347,6 +347,7 @@ void draw_container(vector<shared_ptr<Container>> const &containers)
 
 void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
+	//std::cout << "OpenGL调用开始" << std::endl;
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -357,8 +358,8 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 
 	draw_coord();
 	draw_sphere(system.b());
-	if (!system.c().empty())
-		draw_container(system.c());
+	//if (!system.c().empty())
+	//	draw_container(system.c());
 	//cout << "OpenGL render success" << endl;//<debug>
 }
 #endif
@@ -387,22 +388,22 @@ int main(void)
 	//string file;
 	//cin >> file;
 	//freopen("out.txt", "w", stdout);
-	//ifstream ifstrm("E:\\Coding\\data\\4.1.9.1.txt");
-	ifstream ifstrm("4.1.9.1.txt");
+	ifstream ifstrm("E:\\Coding\\data\\gas.txt");
+	//ifstream ifstrm("4.1.9.1.txt");
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(30, 30, 25);
+	cameraLoc = glm::vec3(0.1, 0.1, 0.1);
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.00f;
-	CollisionSystem system(15625, ifstrm);
+	CollisionSystem system(704969, ifstrm);
 	//ofstream ofstrm("out.txt");
 	//cout << system;
 
 #ifndef OPENGL_CLOSE
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 #endif
-	//*帧率
+	/*帧率
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
@@ -422,7 +423,7 @@ int main(void)
 	while(1)
 #endif
 	{
-		//*帧率
+		/*帧率
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -452,8 +453,9 @@ int main(void)
 			m = -1;
 			system.reverse();
 		}*/
+		std::cout << "调试断点" << std::endl;
 
-		system.run(1.0/60.0);
+		system.run(0.0001);
 
 		//if (system.time() > 30)
 			//break;
