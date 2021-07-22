@@ -38,21 +38,26 @@ int main()
 
 	string txt(".txt");
 	string data("E:\\Coding\\data\\4.1.");
-	for(int t = 1;t!=30;t+=5)
-		for(int i = 4;i!=5;i++)
-			for (int j = 1; j != 4; j++)
+
+	for(int i = 9;i!=10;i++)
+		for (int j = 3; j != 4; j++)
 		{
 			string s(data + to_string(i) + '.' + to_string(j) + txt);
 			cout << s << endl;
-			string out(to_string(t) + '.' + to_string(j) + txt);
 			ifstream ifstrm(s);
-			ofstream ofstrm(out);
-			CollisionSystem system(ifstrm);
-			system.run(t);
-			system.reverse();
-			system.run(t);
-			ofstrm << system;
-			ofstrm << sumbounce << endl;
+			CollisionSystem system(15625,ifstrm);
+			auto start = system_clock::now();
+			for (int i = 1; i != 100; i++)
+			{
+				system.run(1.0/60.0);
+				//system.e().size();
+			}
+			auto end = system_clock::now();
+			auto duration = duration_cast<milliseconds>(end - start);
+			cout << duration.count() << endl;
+
+			//ofstrm << system;
+			//ofstrm << sumbounce << endl;
 			sumbounce = 0;
 		}
 	

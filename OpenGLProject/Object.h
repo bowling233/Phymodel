@@ -142,7 +142,7 @@ public:
 private:
     glm::dvec3 length;
     static unsigned int sum;            //extern
-    unsigned int number = 0, count = 0; //默认为0
+    unsigned int number, count = 0; //默认为0
 };
 
 std::istream &operator>>(std::istream &, Container &);

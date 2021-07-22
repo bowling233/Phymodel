@@ -1,4 +1,4 @@
-﻿#define OPENGL_CLOSE
+﻿//#define OPENGL_CLOSE
 //################
 //头文件
 //################
@@ -348,7 +348,7 @@ void draw_container(vector<shared_ptr<Container>> const &containers)
 void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	amt += rot_v; //配置旋转
@@ -386,22 +386,23 @@ int main(void)
 	//cout << "请输入您的数据文件名（其它路径记得转义）：";
 	//string file;
 	//cin >> file;
-	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\data\\4.1.3.1.txt");
+	//freopen("out.txt", "w", stdout);
+	//ifstream ifstrm("E:\\Coding\\data\\4.1.9.1.txt");
+	ifstream ifstrm("4.1.9.1.txt");
 
 	//创建碰撞系统
 	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(10, 10, 5);
+	cameraLoc = glm::vec3(30, 30, 25);
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.00f;
-	CollisionSystem system(ifstrm);
+	CollisionSystem system(15625, ifstrm);
 	//ofstream ofstrm("out.txt");
 	//cout << system;
 
 #ifndef OPENGL_CLOSE
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 #endif
-	/*帧率
+	//*帧率
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
@@ -409,10 +410,10 @@ int main(void)
 
 	//int k = 0,m=1;
 	//bool flag = false;
-	for(int i=0;i!=10;i++)
-	system.run(1.0);
+	//for(int i=0;i!=10;i++)
+	//system.run(1.0);
 	//system.reverse();
-	//system.run(6.0);
+	//system.run(1.0);
 	//程序主循环
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
@@ -421,25 +422,25 @@ int main(void)
 	while(1)
 #endif
 	{
-		/*帧率
+		//*帧率
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
 			duration = duration_cast<microseconds>(current - last);
 			cout << "fps::"
 				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
-				<< endl
-				<< "每秒碰撞::"
-				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
+				//<< endl
+				//<< "每秒碰撞::"
+				//<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
 				//<< endl
 				//<< "exam persecond::"
 				//<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl;
 			count = 0;
-			sumbounce = 0;
-			cout << "系统动能：" << system.ek() << endl;
+			//sumbounce = 0;
+			//cout << "系统动能：" << system.ek() << endl;
 			
-			cout << "当前系统时间：" << system.time() << std::endl;//<debug>
+			//cout << "当前系统时间：" << system.time() << std::endl;//<debug>
 			//sumexam = 0;
 		}//*/
 
@@ -452,6 +453,7 @@ int main(void)
 			system.reverse();
 		}*/
 
+		system.run(1.0/60.0);
 
 		//if (system.time() > 30)
 			//break;
@@ -464,7 +466,6 @@ int main(void)
 		glfwPollEvents();
 		#endif
 	}
-	getchar();
 	//ofstrm << system;
 #ifndef OPENGL_CLOSE
 	glfwDestroyWindow(window);

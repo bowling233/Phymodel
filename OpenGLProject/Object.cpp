@@ -285,7 +285,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Bal
 
 //container
 
-Container::Container(std::istream &is)
+Container::Container(std::istream &is):Container()
 {
     is >> *this;
 }
