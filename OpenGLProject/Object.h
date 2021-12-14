@@ -21,6 +21,8 @@ enum class Object_type
 #define square(x) ((x) * (x))
 std::ostream &operator<<(std::ostream &, const glm::dvec3 &);
 std::istream &operator>>(std::istream &, glm::dvec3 &);
+std::ostream &operator<<(std::ostream &, const glm::vec3 &);
+std::istream &operator>>(std::istream &, glm::vec3 &);
 
 
 

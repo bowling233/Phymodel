@@ -1,4 +1,4 @@
-﻿#define OPENGL_CLOSE
+﻿//#define OPENGL_CLOSE
 //################
 //头文件
 //################
@@ -20,29 +20,34 @@ using namespace std;
 //自选用的头文件
 #include <cmath>
 #include <cstdlib>
-#include <chrono>
 #include <vector>
 #include <queue>
+
 #include "Object.h"
 #include "Collision.h"
+
+#include <chrono>
 using namespace chrono;
-//为freopen()关闭visual studio错误提示
+//关闭visual studio错误提示
+/*
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
+*/
 
 //################
 //预分配变量
 //################
+//相机参数
 float aspect, rot_v, amt = 0.0f;
 glm::vec3 cameraLoc, lookAt;
 
-#ifndef OPENGL_CLOSE
 //OpenGL数据
+#ifndef OPENGL_CLOSE
+// 分配数据区
 #define numVAOs 1
 GLuint vao[numVAOs];
 GLuint coordVbo[1], sphereVbo[4], planeVbo[3], containerVbo[3];
-//OpenGL着色器和计算
 GLuint coordRenderingProgram,
 	sphereRenderingProgram,
 	planeRenderingProgram,
@@ -55,7 +60,7 @@ glm::vec3 currentLightPos, transformed;
 // 窗口、视角、位置、变换
 int width, height;
 glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
-//OpenGL材质和模型
+//材质和模型
 // white light
 float globalAmbient[4] = {0.7f, 0.7f, 0.7f, 1.0f};
 float lightAmbient[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -239,8 +244,8 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	//设置模型顶点
 	setupVert_coord();
 	setupVert_sphere(system.b());
-	//if(!system.w().empty())
-	//	setupVert_plane(system.w());
+	if(!system.w().empty())
+		setupVert_plane(system.w());
 	if(!system.c().empty())
 		setupVert_container(system.c());
 
@@ -271,7 +276,7 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 
 	//light
 	currentLightPos = cameraLoc;
-	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
+	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));//光源转动
 	installLights(sphereRenderingProgram, lMat);
 
 	//uniform
@@ -358,6 +363,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 
 	draw_coord();
 	draw_sphere(system.b());
+	draw_container(system.c());
 	//if (!system.c().empty())
 	//	draw_container(system.c());
 	//cout << "OpenGL render success" << endl;//<debug>
@@ -367,14 +373,14 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 //############
 //主程序
 //############
-int main(void)
+int main(int argc, char * argv[])
 {
 	//OpenGL初始化
 #ifndef OPENGL_CLOSE
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);//版本4.0以上
 	GLFWwindow *window = glfwCreateWindow(600, 600, "Phymodel", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK)
@@ -383,20 +389,18 @@ int main(void)
 	glfwSetWindowSizeCallback(window, window_size_callback);
 #endif
 
-	//输入输出
-	//cout << "请输入您的数据文件名（其它路径记得转义）：";
-	//string file;
-	//cin >> file;
-	//freopen("out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\data\\gas.txt");
-	//ifstream ifstrm("4.1.9.1.txt");
+	//输入和初始化
+	ifstream ifstrm(argv[1]);
 
-	//创建碰撞系统
-	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(0.1, 0.1, 0.1);
+	bool if_gl, if_out, if_fps, if_disp_ifm;
+	ifstrm >> if_gl >> if_out >> if_fps >> if_disp_ifm;//Line1
+	ifstrm >> cameraLoc >> lookAt >> rot_v;
+
+	CollisionSystem system(8, ifstrm);
+	/*cameraLoc = glm::vec3(10, 10, 10);
 	lookAt = glm::vec3(0.0f);
-	rot_v = 0.00f;
-	CollisionSystem system(704969, ifstrm);
+	rot_v = 0.00f;*/
+
 	//ofstream ofstrm("out.txt");
 	//cout << system;
 
@@ -453,9 +457,9 @@ int main(void)
 			m = -1;
 			system.reverse();
 		}*/
-		std::cout << "调试断点" << std::endl;
+		
 
-		system.run(0.0001);
+		system.run(0.1);
 
 		//if (system.time() > 30)
 			//break;

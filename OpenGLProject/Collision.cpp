@@ -60,7 +60,7 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 #endif
 
 //Event_mgr
-void Event_mgr::push(const Event &event)
+void Event_mgr_indexed::push(const Event &event)
 {
    // std::cout << "push:----------------------------------------------------------------------------\n"
     //          << event << std::endl;
@@ -91,7 +91,7 @@ void Event_mgr::push(const Event &event)
     //std::cout << *this;
 }
 
-void Event_mgr::pop()
+void Event_mgr_indexed::pop()
 {
     //std::cout << "action:pop" << std::endl;
     exch(1, N--); //先换到最后一位，扔掉
@@ -100,7 +100,7 @@ void Event_mgr::pop()
     qp[pq[N + 1]] = -1; //标记为不存在
 }
 
-void Event_mgr::swim(int k) //对pq中的k进行上浮
+void Event_mgr_indexed::swim(int k) //对pq中的k进行上浮
 {
     while (k > 1 && more(k / 2, k)) //k不是根节点，k的父节点比k大
     {
@@ -110,7 +110,7 @@ void Event_mgr::swim(int k) //对pq中的k进行上浮
     }
 }
 
-void Event_mgr::sink(int k) //对k下沉，k子节点比较小的换上来
+void Event_mgr_indexed::sink(int k) //对k下沉，k子节点比较小的换上来
 {
     while (2 * k <= N) //k的子节点在堆内部
     {
@@ -125,7 +125,7 @@ void Event_mgr::sink(int k) //对k下沉，k子节点比较小的换上来
     }
 }
 
-void Event_mgr::exch(int i, int j)
+void Event_mgr_indexed::exch(int i, int j)
 {
     //std::cout << "action:exch: << std::endl";
     /*std::cout
@@ -140,7 +140,7 @@ void Event_mgr::exch(int i, int j)
     pq[j] = pq[0];
 }
 
-std::ostream &operator<<(std::ostream &os, Event_mgr &eventQueue)
+std::ostream &operator<<(std::ostream &os, Event_mgr_indexed &eventQueue)
 {
     os << "---------------Events-------------------------" << std::endl;
     os << "time\tBall\tcnt\tObj_typ\tObj_num\tObj_cnt"

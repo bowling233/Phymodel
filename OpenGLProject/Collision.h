@@ -26,7 +26,7 @@ class Ball;
 
 #ifdef EVENT_DRIVEN
 class Event;
-class Event_mgr;
+class Event_mgr_indexed;
 #endif
 
 class CollisionSystem;
@@ -37,7 +37,7 @@ class Event
     //io
     friend std::ostream& operator<<(std::ostream&, const Event&);
     friend CollisionSystem;
-    friend Event_mgr;
+    friend Event_mgr_indexed;
 
 public:
     //construct
@@ -71,12 +71,12 @@ private:
 std::ostream &operator<<(std::ostream &, const Event &);
 //std::ostream &operator<<(std::ostream &, std::priority_queue<Event, std::vector<Event>>); //time consuming，这里直接拷贝了整个数组，思考一下这是为什么
 
-class Event_mgr
+class Event_mgr_indexed
 {
-    friend std::ostream& operator<<(std::ostream&, Event_mgr&);
+    friend std::ostream& operator<<(std::ostream&, Event_mgr_indexed&);
 public:
-    Event_mgr() = delete;
-    Event_mgr(int capacity) : maxN(capacity)
+    Event_mgr_indexed() = delete;
+    Event_mgr_indexed(int capacity) : maxN(capacity)
     {
         events = new Event[maxN + 1];
         pq = new int[maxN + 1];
@@ -86,7 +86,7 @@ public:
     };
 
     //copy move destruct
-    ~Event_mgr() {
+    ~Event_mgr_indexed() {
         delete[] events; delete[] pq; delete[] qp;
     }
 
@@ -129,7 +129,7 @@ private:
     void sink(int);
 };
 
-std::ostream& operator<<(std::ostream&, Event_mgr&);
+std::ostream& operator<<(std::ostream&, Event_mgr_indexed&);
 
 #endif
 
@@ -160,7 +160,7 @@ public:
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
 #ifdef EVENT_DRIVEN
     //std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
-    Event_mgr& e() { return eventQueue; }
+    Event_mgr_indexed& e() { return eventQueue; }
 #endif // EVENT_DRIVEN
 
 private:
@@ -173,7 +173,7 @@ private:
 
 #ifdef EVENT_DRIVEN
     //std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用
-    Event_mgr eventQueue;
+    Event_mgr_indexed eventQueue;
     std::shared_ptr<Ball> tempball; //temp:副小球检测
     Event tempEvent;
 #endif

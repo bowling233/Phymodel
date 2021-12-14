@@ -33,6 +33,21 @@ std::istream &operator>>(std::istream &is, glm::dvec3 &v)
     return is;
 }
 
+std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
+{
+    os << std::setprecision(8) << std::fixed;
+    os << v.x << '\t'
+       << v.y << '\t'
+       << v.z << '\t';
+    return os;
+}
+
+std::istream &operator>>(std::istream &is, glm::vec3 &v)
+{
+    is >> v.x >> v.y >> v.z;
+    return is;
+}
+
 double positive_min(double a, double b, double c)
 {
     temp = INFINITY;
