@@ -20,29 +20,34 @@ using namespace std;
 //自选用的头文件
 #include <cmath>
 #include <cstdlib>
-#include <chrono>
 #include <vector>
 #include <queue>
+
 #include "Object.h"
 #include "Collision.h"
+
+#include <chrono>
 using namespace chrono;
-//为freopen()关闭visual studio错误提示
+//关闭visual studio错误提示
+/*
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996)
+*/
 
 //################
 //预分配变量
 //################
+//相机参数
 float aspect, rot_v, amt = 0.0f;
 glm::vec3 cameraLoc, lookAt;
 
-#ifndef OPENGL_CLOSE
 //OpenGL数据
+#ifndef OPENGL_CLOSE
+// 分配数据区
 #define numVAOs 1
 GLuint vao[numVAOs];
 GLuint coordVbo[1], sphereVbo[4], planeVbo[3], containerVbo[3];
-//OpenGL着色器和计算
 GLuint coordRenderingProgram,
 	sphereRenderingProgram,
 	planeRenderingProgram,
@@ -55,7 +60,7 @@ glm::vec3 currentLightPos, transformed;
 // 窗口、视角、位置、变换
 int width, height;
 glm::mat4 pMat, mMat, mvMat, lMat, invTrMat, rMat, vMat;
-//OpenGL材质和模型
+//材质和模型
 // white light
 float globalAmbient[4] = {0.7f, 0.7f, 0.7f, 1.0f};
 float lightAmbient[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -263,7 +268,7 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	//构建视口矩阵
 	glfwGetFramebufferSize(window, &width, &height);
 	aspect = (float)width / (float)height;
-	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	pMat = glm::perspective(1.0472f, aspect, 0.01f, 1000.0f);
 	lMat = glm::lookAt(cameraLoc, lookAt, glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)));
 
 	//设置模型顶点
@@ -301,7 +306,7 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 
 	//light
 	currentLightPos = cameraLoc;
-	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));
+	//currentLightPos = glm::vec3(rMat * glm::vec4(currentLightPos, 1.0f));//光源转动
 	installLights(sphereRenderingProgram, lMat);
 
 	//uniform
@@ -410,8 +415,9 @@ void draw_container(vector<shared_ptr<Container>> const &containers)
 
 void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
+	//std::cout << "OpenGL调用开始" << std::endl;
 	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0, 1.0, 1.0, 1.0);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	amt += rot_v; //配置旋转
@@ -420,10 +426,9 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 
 	draw_coord();
 	draw_sphere(system.b());
-	if (!system.w().empty())
-		draw_wall(system.w());
-	if (!system.c().empty())
-		draw_container(system.c());
+	draw_container(system.c());
+	//if (!system.c().empty())
+	//	draw_container(system.c());
 	//cout << "OpenGL render success" << endl;//<debug>
 }
 #endif
@@ -431,14 +436,14 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 //############
 //主程序
 //############
-int main(void)
+int main(int argc, char * argv[])
 {
 	//OpenGL初始化
 #ifndef OPENGL_CLOSE
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);//版本4.0以上
 	GLFWwindow *window = glfwCreateWindow(600, 600, "Phymodel", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK)
@@ -447,32 +452,36 @@ int main(void)
 	glfwSetWindowSizeCallback(window, window_size_callback);
 #endif
 
-	//输入输出
-	//cout << "请输入您的数据文件名（其它路径记得转义）：";
-	//string file;
-	//cin >> file;
-	//freopen("event_out.txt", "w", stdout);
-	ifstream ifstrm("E:\\Coding\\data\\walls.txt");
+	//输入和初始化
+	ifstream ifstrm(argv[1]);
 
-	//创建碰撞系统
-	//ifstrm >> cameraLoc >> lookAt >> rot_v;
-	cameraLoc = glm::vec3(50, 50, 30);
+	bool if_gl, if_out, if_fps, if_disp_ifm;
+	ifstrm >> if_gl >> if_out >> if_fps >> if_disp_ifm;//Line1
+	ifstrm >> cameraLoc >> lookAt >> rot_v;
+
+	CollisionSystem system(8, ifstrm);
+	/*cameraLoc = glm::vec3(10, 10, 10);
 	lookAt = glm::vec3(0.0f);
-	rot_v = 0.05f;
-	CollisionSystem system(ifstrm);
+	rot_v = 0.00f;*/
+
 	//ofstream ofstrm("out.txt");
 	//cout << system;
 
 #ifndef OPENGL_CLOSE
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 #endif
-	//*帧率
+	/*帧率
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;//*/
 
-
+	//int k = 0,m=1;
+	//bool flag = false;
+	//for(int i=0;i!=10;i++)
+	//system.run(1.0);
+	//system.reverse();
+	//system.run(1.0);
 	//程序主循环
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
@@ -488,35 +497,34 @@ int main(void)
 			duration = duration_cast<microseconds>(current - last);
 			cout << "fps::"
 				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den)
-				<< endl
-				<< "每秒碰撞::"
-				<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
+				//<< endl
+				//<< "每秒碰撞::"
+				//<< sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) 
 				//<< endl
 				//<< "exam persecond::"
 				//<< sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den)
 				<< endl;
 			count = 0;
-			sumbounce = 0;
-			cout << "系统动能：" << system.ek() << endl;
-			//cout << "事件队列长度：" << system.e().size() << endl;
-			cout << "当前系统时间：" << system.time() << std::endl;//<debug>
+			//sumbounce = 0;
+			//cout << "系统动能：" << system.ek() << endl;
+			
+			//cout << "当前系统时间：" << system.time() << std::endl;//<debug>
 			//sumexam = 0;
 		}//*/
 
-		//system.run(1.0f/30.0f);
-
+		system.run(0.1);
 
 		//if (system.time() > 30)
 			//break;
 
 		//显示
+		//cout << system.e().size() << endl;
 		#ifndef OPENGL_CLOSE
 		display(window, glfwGetTime(), system);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		#endif
 	}
-
 	//ofstrm << system;
 #ifndef OPENGL_CLOSE
 	glfwDestroyWindow(window);

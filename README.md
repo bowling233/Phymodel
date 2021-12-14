@@ -1,6 +1,12 @@
+# Archieved 2021.7.22
+
 # PhyModel
 
-研究性学习：小球碰撞模型的物理分析、算法设计和C++/OpenGL实现
+研究性学习：计算机模拟刚性球体系统的物理分析、算法设计和OpenGL可视化
+
+![](https://img.shields.io/badge/license-GPL-blue?style=for-the-badge)
+
+**请注意**：本项目仓库源码遵循GPL许可协议。
 
 ## 环境配置
 

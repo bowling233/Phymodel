@@ -8,23 +8,37 @@
 #include <memory>
 
 //definition
-unsigned int Wall::sum = 0;
 unsigned int Ball::sum = 0;
 unsigned int Container::sum = 0;
 
 //temp
-glm::vec3 dp, dv;
-float p_n, v_n, a, b, c, delta, x1, x2, temp;
-float v10, v20, v1, v2;
+glm::dvec3 dp, dv, ckd_nor;
+double p_n, v_n, a, b, c, delta, x1, x2, temp;
+double v10, v20, v1, v2;
+double x = INFINITY, y = INFINITY, z = INFINITY;
 
 //tools---------------------------------------------------------------------------------------------
-std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
+std::ostream &operator<<(std::ostream &os, const glm::dvec3 &v)
 {
-    os << std::setprecision(3) << std::fixed;
+    os << std::setprecision(8) << std::fixed;
     os << v.x << '\t'
        << v.y << '\t'
-       << v.z << '\t'
-       << std::defaultfloat;
+       << v.z << '\t';
+    return os;
+}
+
+std::istream &operator>>(std::istream &is, glm::dvec3 &v)
+{
+    is >> v.x >> v.y >> v.z;
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, const glm::vec3 &v)
+{
+    os << std::setprecision(8) << std::fixed;
+    os << v.x << '\t'
+       << v.y << '\t'
+       << v.z << '\t';
     return os;
 }
 
@@ -34,7 +48,7 @@ std::istream &operator>>(std::istream &is, glm::vec3 &v)
     return is;
 }
 
-float positive_min(float a, float b, float c)
+double positive_min(double a, double b, double c)
 {
     temp = INFINITY;
     if ((a > 0) && (a < temp))
@@ -44,38 +58,6 @@ float positive_min(float a, float b, float c)
     if ((c > 0) && (c < temp))
         temp = c;
     return temp;
-}
-
-//Wall---------------------------------------------------------------------------------------------
-Wall::Wall(std::istream &is) : Wall()
-{
-    is >> *this;
-}
-
-std::istream &operator>>(std::istream &is, Wall &wall)
-{
-    is >> wall.location >> wall.normalVector;
-    wall.normalVector = glm::normalize(wall.normalVector); //预先归一化
-    return is;
-}
-
-std::ostream &operator<<(std::ostream &os, const Wall &wall)
-{
-    os << std::setprecision(3) << std::fixed;
-    os << wall.number << '\t'
-       << wall.location << wall.normalVector << std::endl
-       << std::defaultfloat;
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wall>> &walls)
-{
-    os << "Walls-----------------------------------------------------------------" << std::endl;
-    os << "Wall\tlocX\tloxY\tlocZ\tnorX\tnorY\tnorZ"
-       << std::endl;
-    for (auto const &i : walls)
-        os << *i;
-    return os;
 }
 
 //Ball---------------------------------------------------------------------------------------------
@@ -88,25 +70,12 @@ Ball::Ball(std::istream &is) : Ball()
 //predict
 //################
 
-float Ball::predict(const Wall &wall) //tochk
-{
-    //std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl; //<debug>
-    dp = location - wall.loc();
-    p_n = glm::dot(dp, wall.norm());        //球到平面的垂直距离
-    v_n = glm::dot(velocity, wall.norm()); //速度在平面法向量方向上的分量
-
-    if (v_n * p_n >= 0)
-        return -1.0f;
-    //std::cout << "pass" << std::endl;
-    return -p_n / v_n;
-}
-
-float Ball::predict(const Ball &ball) //tochk
+double Ball::predict(const Ball &ball) //tochk
 {
     //std::cout << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
 
     if (number == ball.number) //防止自预测
-        return -1.0f;
+        return -1.0;
 
     if (this->back(ball))
         return -1.0;
@@ -117,15 +86,15 @@ float Ball::predict(const Ball &ball) //tochk
     //std::cout << "predict:计算信息 dv dp r1 r2\n" << dv << dp << this->radius << '\t' << ball.radius << std::endl;//<debug>
 
     a = square(glm::length(dv));
-    b = 2.0f * glm::dot(dv, dp);
+    b = 2.0 * glm::dot(dv, dp);
     c = square(glm::length(dp)) - square(radius + ball.radius);
-    delta = square(b) - 4.0f * a * c;
+    delta = square(b) - 4.0 * a * c;
 
     if (delta < 0.0)
         return -1.0;
 
-    x1 = ((-b + std::sqrt(delta)) / (2.0f * a));
-    x2 = ((-b - std::sqrt(delta)) / (2.0f * a));
+    x1 = ((-b + std::sqrt(delta)) / (2.0 * a));
+    x2 = ((-b - std::sqrt(delta)) / (2.0 * a));
 
     if (x2 < 0 || x1 < 0) //事实上，这里小球已经相交
         return -1.0;
@@ -142,10 +111,12 @@ float Ball::predict(const Ball &ball) //tochk
     return x2; //返回小根
 }
 
-float Ball::predict(const Container &container) //tochk
+double Ball::predict(const Container &container) //tochk
 {
     //std::cout << "predict:容器" << container << '\n' << *this << std::endl;//<debug>
-    float x = -1.0, y = -1.0, z = -1.0;
+    x = -1.0;
+    y = -1.0;
+    z = -1.0;
 
     //根据速度方向选择判断墙面
 
@@ -186,26 +157,12 @@ void Ball::bounce(Object &object)
         this->bounce(dynamic_cast<Ball &>(object));
         break;
     }
-    case Object_type::WALL:
-    {
-        this->bounce(dynamic_cast<Wall &>(object));
-        break;
-    }
     case Object_type::CONTAINER:
     {
         this->bounce(dynamic_cast<Container &>(object));
         break;
     }
     }
-}
-
-void Ball::bounce(Wall &wall) //tochk
-{
-    std::cout << "info:碰撞wall处理" << std::endl
-              << "主小球：\t" << *this << std::endl; //<debug>
-    glm::vec3 ckd_nor = glm::dot((location - wall.loc()), wall.norm()) > 0 ? wall.norm() : -wall.norm();
-    velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
-    count++;
 }
 
 void Ball::bounce(Ball &ball)
@@ -229,10 +186,14 @@ void Ball::bounce(Ball &ball)
     //std::cout << "info:碰撞处理后\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;//<debug>
 }
 
+
+
 void Ball::bounce(Container &container) //tochk
 {
-
-    float x = INFINITY, y = INFINITY, z = INFINITY;
+    x = INFINITY;
+    y = INFINITY;
+    z = INFINITY;
+    
 
     if (velocity.x > 0)
         x = abs(container.x_p() - radius - location.x);
@@ -293,11 +254,6 @@ bool Ball::examine(const Ball &ball)
     return (glm::length(location - ball.location) < (radius + ball.radius));
 }
 
-bool Ball::examine(const Wall &wall)
-{
-    return (abs(glm::dot(location - wall.loc(), wall.norm())) < radius);
-}
-
 bool Ball::examine(const Container &container) //tochk
 {
     return ((location.x + radius > container.x_p()) 
@@ -323,13 +279,12 @@ std::istream &operator>>(std::istream &is, Ball &ball)
 
 std::ostream &operator<<(std::ostream &os, const Ball &ball)
 {
-    os << std::setprecision(3) << std::fixed;
+    os << std::setprecision(8) << std::fixed;
     os << ball.number << '\t'
        << ball.location << ball.velocity
        << ball.mass << '\t'
        << ball.radius << '\t'
-       << ball.count << '\t'
-       << std::defaultfloat;
+       << ball.count << '\t';
     return os;
 }
 
@@ -345,7 +300,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Bal
 
 //container
 
-Container::Container(std::istream &is)
+Container::Container(std::istream &is):Container()
 {
     is >> *this;
 }
@@ -359,10 +314,9 @@ std::istream &operator>>(std::istream &is, Container &container)
 
 std::ostream &operator<<(std::ostream &os, const Container &container)
 {
-    os << std::setprecision(3) << std::fixed
+    os << std::setprecision(8) << std::fixed
        << container.number << '\t'
-       << container.location << container.length
-       << std::defaultfloat;
+       << container.location << container.length;
     return os;
 }
 

@@ -13,7 +13,7 @@ using namespace std;
 
 int main()
 {
-    ofstream ofstrm("testdata.txt");
+    ofstream ofstrm("4.1.10.3.txt");
     std::default_random_engine e;                        //引擎
     std::normal_distribution<double> n(MEAN,DELTA);
     e.seed(time(0));
