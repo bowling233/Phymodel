@@ -21,8 +21,6 @@ constexpr auto TIME_LIMIT = 10.0;
 #endif
 
 //预先声明所有用到的外部类
-class Object;
-class Ball;
 
 #ifdef EVENT_DRIVEN
 class Event;
@@ -157,6 +155,7 @@ public:
     double time() { return currentTime; }
     double ek();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
+    std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
 #ifdef EVENT_DRIVEN
     //std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
@@ -168,6 +167,7 @@ private:
     void init();
 
     std::vector<std::shared_ptr<Ball>> balls;
+    std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
     double currentTime = 0.0, targetTime = 0.0, temp = 0.0; //temp:各种计算
 

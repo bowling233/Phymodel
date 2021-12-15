@@ -210,6 +210,10 @@ void CollisionSystem::run(const double t)
             for (auto const &i : balls)
                 if (((temp = tempEvent.ball->predict(*i)) >= 0)) //predict内置防重复
                     eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
+            if (!walls.empty())
+                for (auto const &i : walls)
+                    if (((temp = tempEvent.ball->predict(*i)) >= 0)) //容器无需防重复
+                        eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
             if (!containers.empty())
                 for (auto const &i : containers)
                     if (((temp = tempEvent.ball->predict(*i)) >= 0)) //容器无需防重复
@@ -222,6 +226,10 @@ void CollisionSystem::run(const double t)
             for (auto const &i : balls)
                 if (((temp = tempball->predict(*i)) >= 0))
                     eventQueue.push(Event(tempball, i, temp + currentTime));
+            if (!walls.empty())
+                for (auto const &i : walls)
+                    if (((temp = tempball->predict(*i)) >= 0))
+                        eventQueue.push(Event(tempball, i, temp + currentTime));
             if (!containers.empty())
                 for (auto const &i : containers)
                     if (((temp = tempball->predict(*i)) >= 0))
@@ -236,6 +244,10 @@ void CollisionSystem::run(const double t)
             for (auto const &i : balls)
                 if (((temp = tempEvent.ball->predict(*i)) >= 0)) //predict内置防重复
                     eventQueue.push(Event(tempEvent.ball, i, temp + currentTime));
+            if (!walls.empty())
+                for (auto const &i : walls)
+                    if (((temp = tempball->predict(*i)) >= 0))
+                        eventQueue.push(Event(tempball, i, temp + currentTime));
             if (!containers.empty())
                 for (auto const &i : containers)
                     if (((temp = tempEvent.ball->predict(*i)) >= 0)) //容器无需防重复
@@ -245,7 +257,7 @@ void CollisionSystem::run(const double t)
     //发生的事件全部处理完成
     move(targetTime - currentTime);
 #endif
-    std::cout << eventQueue.size() << std::endl; //<debug>
+    //std::cout << eventQueue.size() << std::endl; //<debug>
 }
 
 void CollisionSystem::reverse()
@@ -280,6 +292,10 @@ void CollisionSystem::init()
             if (((temp = (**i).predict(**j)) >= 0))
                 eventQueue.push(Event(*i, *j, temp + currentTime));
         }
+        if (!walls.empty())
+            for (auto const &j : walls)
+                if (((temp = (**i).predict(*j)) >= 0))
+                    eventQueue.push(Event(*i, j, temp + currentTime));
         if (!containers.empty())
             for (auto const &j : containers)
                 if (((temp = (**i).predict(*j)) >= 0))
@@ -347,6 +363,12 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
                 system.containers.push_back(std::make_shared<Container>(is));
             break;
         }
+        case 'W':
+        {
+            for (int i = 0; i != num; i++)
+                system.walls.push_back(std::make_shared<Wall>(is));
+            break;
+        }
         }
     }
     std::cout << "log:system输入成功" << std::endl;
@@ -357,6 +379,8 @@ std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
 {
     if (!system.balls.empty())
         os << system.balls;
+    if (!system.walls.empty())
+        os << system.walls;
     if (!system.containers.empty())
         os << system.containers;
 #ifdef EVENT_DRIVEN

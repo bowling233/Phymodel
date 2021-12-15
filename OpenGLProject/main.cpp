@@ -38,8 +38,10 @@ using namespace chrono;
 //################
 //预分配变量
 //################
+bool if_gl, if_out, if_fps, if_disp_ifm;
 //相机参数
 float aspect, rot_v, amt = 0.0f;
+double fps;
 glm::vec3 cameraLoc, lookAt;
 
 //OpenGL数据
@@ -78,6 +80,7 @@ Sphere mySphere = Sphere(48);
 //################
 //小工具函数
 //################
+
 #ifndef OPENGL_CLOSE
 float toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
@@ -436,7 +439,8 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 //############
 //主程序
 //############
-int main(int argc, char * argv[])
+//int main(int argc, char * argv[])
+int main()
 {
 	//OpenGL初始化
 #ifndef OPENGL_CLOSE
@@ -453,13 +457,19 @@ int main(int argc, char * argv[])
 #endif
 
 	//输入和初始化
-	ifstream ifstrm(argv[1]);
+	string fileLoc("test.txt");
+	//std::cin >> fileLoc;
 
-	bool if_gl, if_out, if_fps, if_disp_ifm;
+	ifstream ifstrm(fileLoc);
+
+	//ifstream ifstrm(argv[1]);
+
+
+
 	ifstrm >> if_gl >> if_out >> if_fps >> if_disp_ifm;//Line1
-	ifstrm >> cameraLoc >> lookAt >> rot_v;
+	ifstrm >> cameraLoc >> lookAt >> rot_v >> fps;
 
-	CollisionSystem system(8, ifstrm);
+	CollisionSystem system(8000, ifstrm);
 	/*cameraLoc = glm::vec3(10, 10, 10);
 	lookAt = glm::vec3(0.0f);
 	rot_v = 0.00f;*/
@@ -470,18 +480,13 @@ int main(int argc, char * argv[])
 #ifndef OPENGL_CLOSE
 	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
 #endif
-	/*帧率
+
 	auto last = system_clock::now();
 	auto current = system_clock::now();
 	auto duration = duration_cast<microseconds>(current - last);
-	unsigned int count = 0;//*/
+	unsigned int count = 0;
 
-	//int k = 0,m=1;
-	//bool flag = false;
-	//for(int i=0;i!=10;i++)
-	//system.run(1.0);
-	//system.reverse();
-	//system.run(1.0);
+
 	//程序主循环
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
@@ -490,7 +495,7 @@ int main(int argc, char * argv[])
 	while(1)
 #endif
 	{
-		/*帧率
+		if(if_fps)
 		if (count++ == 30) {
 			last = current;
 			current = system_clock::now();
@@ -510,9 +515,9 @@ int main(int argc, char * argv[])
 			
 			//cout << "当前系统时间：" << system.time() << std::endl;//<debug>
 			//sumexam = 0;
-		}//*/
+		}
 
-		system.run(0.1);
+		system.run(1.0/60.0);
 
 		//if (system.time() > 30)
 			//break;

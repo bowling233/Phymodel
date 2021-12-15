@@ -9,9 +9,10 @@
 
 //definition
 unsigned int Ball::sum = 0;
+unsigned int Wall::sum = 0;
 unsigned int Container::sum = 0;
 
-//temp
+//预分配计算使用变量
 glm::dvec3 dp, dv, ckd_nor;
 double p_n, v_n, a, b, c, delta, x1, x2, temp;
 double v10, v20, v1, v2;
@@ -61,15 +62,8 @@ double positive_min(double a, double b, double c)
 }
 
 //Ball---------------------------------------------------------------------------------------------
-Ball::Ball(std::istream &is) : Ball()
-{
-    is >> *this;
-}
 
-//################
 //predict
-//################
-
 double Ball::predict(const Ball &ball) //tochk
 {
     //std::cout << "predict:球体" << this->num() << "|" << ball.number <<std::endl;//<debug>
@@ -111,6 +105,29 @@ double Ball::predict(const Ball &ball) //tochk
     return x2; //返回小根
 }
 
+double Ball::predict(const Wall &wall) //tochk
+{
+    //std::cout << "predict:墙体" << this->number << "|" << wall.num() << std::endl; //<debug>
+    glm::dvec3 p = location - wall.location;
+    float p_n = glm::dot(p, wall.normalVector);        //球到平面的垂直距离
+    float v_n = glm::dot(velocity, wall.normalVector); //速度在平面法向量方向上的分量
+
+    if (v_n * p_n >= 0)
+        return -1.0;
+    //std::cout << "pass" << std::endl;
+    return -p_n / v_n;
+    //another solution
+    /*
+    glm::vec3 r = location - wall.loc();
+    glm::vec3 chk_nor = (glm::dot(r, wall.norm())) > 0 ? wall.norm() : -wall.norm(); //选择一个背向球的法向量
+    float v_l = glm::dot(velocity, chk_nor);//速度在平面法向量方向上的分量
+    if (v_1 < 0)
+        return -1.0f;                 //背向运动
+    float r_l = glm::dot(r, chk_nor); //球到平面的垂直距离
+    return r_l / v_l;
+    /*/
+}
+
 double Ball::predict(const Container &container) //tochk
 {
     //std::cout << "predict:容器" << container << '\n' << *this << std::endl;//<debug>
@@ -143,10 +160,7 @@ double Ball::predict(const Container &container) //tochk
         return positive_min(x, y, z); //返回最小值
 }
 
-//################
 //bounce
-//################
-
 void Ball::bounce(Object &object)
 {
     //为了兼容time驱动，在传递后递增计数器
@@ -155,6 +169,11 @@ void Ball::bounce(Object &object)
     case Object_type::BALL:
     {
         this->bounce(dynamic_cast<Ball &>(object));
+        break;
+    }
+    case Object_type::WALL:
+    {
+        this->bounce(dynamic_cast<Wall &>(object));
         break;
     }
     case Object_type::CONTAINER:
@@ -186,7 +205,14 @@ void Ball::bounce(Ball &ball)
     //std::cout << "info:碰撞处理后\n主小球：\t" << *this << "\n副小球：\t" << ball << std::endl;//<debug>
 }
 
-
+void Ball::bounce(Wall &wall) //tochk
+{
+    //std::cout << "info:碰撞wall处理" << std::endl
+    //          << "主小球：\t" << *this << std::endl; //<debug>
+    glm::dvec3 ckd_nor = glm::dot((location - wall.location), wall.normalVector) > 0 ? wall.normalVector : -wall.normalVector;
+    velocity += -2 * (dot(velocity, ckd_nor)) * ckd_nor; //速度反两倍
+    count++;
+}
 
 void Ball::bounce(Container &container) //tochk
 {
@@ -254,6 +280,11 @@ bool Ball::examine(const Ball &ball)
     return (glm::length(location - ball.location) < (radius + ball.radius));
 }
 
+bool Ball::examine(const Wall &wall)
+{
+    return (abs(glm::dot(location - wall.location, wall.normalVector)) < radius);
+}
+
 bool Ball::examine(const Container &container) //tochk
 {
     return ((location.x + radius > container.x_p()) 
@@ -270,7 +301,13 @@ bool Ball::back(const Ball &ball)
         && (glm::dot(location - ball.location, ball.velocity) < 0));
 }
 
+
 //io------------------------------------------------------------------------------------------------------------
+Ball::Ball(std::istream &is) : Ball()
+{
+    is >> *this;
+}
+
 std::istream &operator>>(std::istream &is, Ball &ball)
 {
     is >> ball.location >> ball.velocity >> ball.mass >> ball.radius;
@@ -298,8 +335,39 @@ std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Bal
     return os;
 }
 
-//container
+//Wall---------------------------------------------------------------------------------------------
+Wall::Wall(std::istream &is) : Wall()
+{
+    is >> *this;
+}
 
+std::istream &operator>>(std::istream &is, Wall &wall)
+{
+    is >> wall.location >> wall.normalVector;
+    wall.normalVector = glm::normalize(wall.normalVector); //预先归一化
+    return is;
+}
+
+std::ostream &operator<<(std::ostream &os, const Wall &wall)
+{
+    os << std::setprecision(3) << std::fixed;
+    os << wall.number << '\t'
+       << wall.location << wall.normalVector << std::endl
+       << std::defaultfloat;
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const std::vector<std::shared_ptr<Wall>> &walls)
+{
+    os << "Walls-----------------------------------------------------------------" << std::endl;
+    os << "Wall\tlocX\tloxY\tlocZ\tnorX\tnorY\tnorZ"
+       << std::endl;
+    for (auto const &i : walls)
+        os << *i;
+    return os;
+}
+
+//Container
 Container::Container(std::istream &is):Container()
 {
     is >> *this;

@@ -6,14 +6,18 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+//Notice：为保证计算精确度，Object类内部全部使用double和dvec3类型储存和计算，传送至OpenGL时统一转换为vec3类型
+
 //definition
 class Object;
 class Ball;
+class Wall;
 class Container;
 
 enum class Object_type
 {
     BALL,
+    WALL,
     CONTAINER
 };
 
@@ -24,8 +28,7 @@ std::istream &operator>>(std::istream &, glm::dvec3 &);
 std::ostream &operator<<(std::ostream &, const glm::vec3 &);
 std::istream &operator>>(std::istream &, glm::vec3 &);
 
-
-
+//各类型定义
 class Object //protected:location
 {
 public:
@@ -51,7 +54,7 @@ protected:
     glm::dvec3 location;
 };
 
-class Ball final : public Object //velocity,mass
+class Ball final : public Object //private:velocity,mass
 {
     //friend io
     friend std::istream &operator>>(std::istream &, Ball &);
@@ -84,32 +87,67 @@ public:
 
     //predict
     double predict(const Ball &);
+    double predict(const Wall &);
     double predict(const Container &);
 
     //bounce
     void bounce(Object &);
     void bounce(Ball &);
+    void bounce(Wall &);
     void bounce(Container &);
 
     //examine
     bool examine(const Ball &);
+    bool examine(const Wall &);
     bool examine(const Container &);
 
 
 private:
-    bool back(const Ball&);
+    bool back(const Ball &);
     glm::dvec3 velocity;
     double mass, radius;
     static unsigned int sum; //extern
     unsigned int number = 0, count = 0;
 };
-
 std::istream &operator>>(std::istream &, Ball &);
 std::ostream &operator<<(std::ostream &, const Ball &);
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Ball>> &);
 
-//Container++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class Container final : public Object //private:a,b,c
+class Wall final : public Object //private:normalVector
+{
+    //friend io
+    friend std::istream &operator>>(std::istream &, Wall &);
+    friend std::ostream &operator<<(std::ostream &, const Wall &);
+    friend class Ball;
+
+public:
+    //construct
+    Wall() : Wall(glm::dvec3(0.0), glm::dvec3(0.0, 0.0, 1.0)) {}
+    Wall(const glm::dvec3 &loc, const glm::dvec3 &norv) : Object(loc), normalVector(norv), number(++sum) {}
+    Wall(std::istream &);
+    //copy move destructj
+    Wall(const Wall &) = default;
+    Wall(Wall &&) = default;
+    Wall &operator=(const Wall &) = default;
+    Wall &operator=(Wall &&) = default;
+    ~Wall() = default;
+
+    //information
+    glm::vec3 norm() const { return normalVector; }
+    unsigned int cnt() const { return 0; }
+    Object_type type() const { return Object_type::WALL; }
+    unsigned int num() const { return number; }
+
+private:
+    glm::dvec3 normalVector;
+    static unsigned int sum;
+    unsigned int number = 0;
+};
+std::istream &operator>>(std::istream &, Wall &);
+std::ostream &operator<<(std::ostream &, const Wall &);
+std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Wall>> &);
+
+class Container final : public Object //private:length
 {
     //friend io
     friend std::istream &operator>>(std::istream &, Container &);
@@ -146,7 +184,6 @@ private:
     static unsigned int sum;            //extern
     unsigned int number, count = 0; //默认为0
 };
-
 std::istream &operator>>(std::istream &, Container &);
 std::ostream &operator<<(std::ostream &, const Container &);
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Container>> &);
