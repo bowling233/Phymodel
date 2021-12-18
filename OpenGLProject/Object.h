@@ -28,6 +28,10 @@ std::istream &operator>>(std::istream &, glm::dvec3 &);
 std::ostream &operator<<(std::ostream &, const glm::vec3 &);
 std::istream &operator>>(std::istream &, glm::vec3 &);
 
+
+
+
+
 //各类型定义
 class Object //protected:location
 {
@@ -187,4 +191,6 @@ private:
 std::istream &operator>>(std::istream &, Container &);
 std::ostream &operator<<(std::ostream &, const Container &);
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Container>> &);
+
+
 #endif

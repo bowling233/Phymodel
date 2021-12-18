@@ -273,7 +273,7 @@ void CollisionSystem::reverse()
 
 void CollisionSystem::init()
 {
-    std::cout << "log:system初始化调用" << std::endl; //<debug>
+    //std::cout << "log:system初始化调用" << std::endl; //<debug>
     /*for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
@@ -302,10 +302,9 @@ void CollisionSystem::init()
                     eventQueue.push(Event(*i, j, temp + currentTime));
     }
 
-    std::cout << "log:当前使用事件驱动方式:" << eventQueue.size() << std::endl;
-    //std::cout << eventQueue << std::endl;
+    std::cout << "log:EventDriven:length of queue" << eventQueue.size() << std::endl;
 #endif
-    std::cout << "log:system 初始化成功" << std::endl;
+    std::cout << "success:CollisionSystem initialized" << std::endl;
 }
 
 double CollisionSystem::ek()
@@ -333,7 +332,7 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 {
     if (!is)
     {
-        std::cout << "error:is输入错误" << std::endl;
+        std::cout << "error:istream is bad" << std::endl;
         std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -344,8 +343,8 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 
         if (!(is >> num)) //num
         {
-            std::cout << "error:system输入错误" << std::endl;
-            //std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;//<debug>
+            std::cout << "error:CollisionSystem input:num" << std::endl;
+            std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;//<debug>
             exit(EXIT_FAILURE);
         }
 
@@ -371,8 +370,8 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
         }
         }
     }
-    std::cout << "log:system输入成功" << std::endl;
     return is;
+    std::cout << "success:CollisionSystem input" << std::endl;
 }
 
 std::ostream &operator<<(std::ostream &os, CollisionSystem &system)
