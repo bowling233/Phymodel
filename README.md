@@ -1,5 +1,3 @@
-# Archieved 2021.7.22
-
 # PhyModel
 
 研究性学习：计算机模拟刚性球体系统的物理分析、算法设计和OpenGL可视化
@@ -8,11 +6,20 @@
 
 **请注意**：本项目仓库源码遵循GPL许可协议。
 
+使用方法请参阅[用户手册](Manual.md)
+
 ## 环境配置
 
-2.8更新：使用了VS项目路径变量，不再需要拷贝`OpenGLtemplate`文件夹
+本项目使用Visual Studio 2022创建，`OpenGLtemplate`中包含了程序构建所需的库，因此无需配置环境变量。
 
 >从[bilibili](https://www.bilibili.com/video/BV1MJ411u7Bc)学到的\_(:з」∠)\_
+
+本项目默认使用`x64`配置编译运行，未配置过`x86`选项，也未在32位系统上进行测试。
+
+项目测试环境：
+* Windows11 x64 22000.348 i5-8250U
+* Windows10 x64 19043.928 i5-10500U
+* Windows10 x64 
 
 ## 依赖项
 
