@@ -146,18 +146,19 @@ public:
     CollisionSystem(int maxN, std::istream &is):eventQueue(maxN)
     {
         is >> *this;
+        ballNum = balls.size();
+        ofstrm << this->time() << '\t' << this->temperature() << '\t' << std::endl;
         this->init();
     } //输入后自动初始化
 
     //action
     void run(double);
-    void reverse();
 
     //information
     double time() { return currentTime; }
     double ek();
+    double temperature();
     std::vector<std::shared_ptr<Ball>> &b() { return balls; }
-    std::vector<std::shared_ptr<Wall>> &w() { return walls; }
     std::vector<std::shared_ptr<Container>> &c() { return containers; }
 #ifdef EVENT_DRIVEN
     //std::priority_queue<Event, std::vector<Event>>& e() { return eventQueue; }
@@ -169,9 +170,9 @@ private:
     void init();
 
     std::vector<std::shared_ptr<Ball>> balls;
-    std::vector<std::shared_ptr<Wall>> walls;
     std::vector<std::shared_ptr<Container>> containers;
     double currentTime = 0.0, targetTime = 0.0, temp = 0.0; //temp:各种计算
+    int ballNum, tempInt;
 
 #ifdef EVENT_DRIVEN
     //std::priority_queue<Event, std::vector<Event>> eventQueue; //事件驱动队列专用

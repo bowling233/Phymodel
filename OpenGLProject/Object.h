@@ -13,13 +13,11 @@ extern std::ofstream ofstrm;
 //definition
 class Object;
 class Ball;
-class Wall;
 class Container;
 
 enum class Object_type
 {
     BALL,
-    WALL,
     CONTAINER
 };
 
@@ -82,7 +80,7 @@ public:
     glm::vec3 v() const { return velocity; }
     float r() const { return radius; }
     double m() const { return mass; }
-    double ek() const { return 0.5f * mass * square(glm::length(velocity)); }
+    double ek() const { return 0.5 * mass * square(glm::length(velocity)); }
     unsigned int cnt() const { return count; }
     Object_type type() const { return Object_type::BALL; }
     unsigned int num() const { return number; }
@@ -93,18 +91,15 @@ public:
 
     //predict
     double predict(const Ball &);
-    double predict(const Wall &);
     double predict(const Container &);
 
     //bounce
     void bounce(Object &);
     void bounce(Ball &);
-    void bounce(Wall &);
     void bounce(Container &);
 
     //examine
     bool examine(const Ball &);
-    bool examine(const Wall &);
     bool examine(const Container &);
 
 
@@ -118,40 +113,6 @@ private:
 std::istream &operator>>(std::istream &, Ball &);
 std::ostream &operator<<(std::ostream &, const Ball &);
 std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Ball>> &);
-
-class Wall final : public Object //private:normalVector
-{
-    //friend io
-    friend std::istream &operator>>(std::istream &, Wall &);
-    friend std::ostream &operator<<(std::ostream &, const Wall &);
-    friend class Ball;
-
-public:
-    //construct
-    Wall() : Wall(glm::dvec3(0.0), glm::dvec3(0.0, 0.0, 1.0)) {}
-    Wall(const glm::dvec3 &loc, const glm::dvec3 &norv) : Object(loc), normalVector(norv), number(++sum) {}
-    Wall(std::istream &);
-    //copy move destructj
-    Wall(const Wall &) = default;
-    Wall(Wall &&) = default;
-    Wall &operator=(const Wall &) = default;
-    Wall &operator=(Wall &&) = default;
-    ~Wall() = default;
-
-    //information
-    glm::vec3 norm() const { return normalVector; }
-    unsigned int cnt() const { return 0; }
-    Object_type type() const { return Object_type::WALL; }
-    unsigned int num() const { return number; }
-
-private:
-    glm::dvec3 normalVector;
-    static unsigned int sum;
-    unsigned int number = 0;
-};
-std::istream &operator>>(std::istream &, Wall &);
-std::ostream &operator<<(std::ostream &, const Wall &);
-std::ostream &operator<<(std::ostream &, const std::vector<std::shared_ptr<Wall>> &);
 
 class Container final : public Object //private:length
 {
