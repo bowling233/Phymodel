@@ -2,10 +2,12 @@
 #define OBJECT_H
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 
+extern std::ofstream ofstrm;
 //Notice：为保证计算精确度，Object类内部全部使用double和dvec3类型储存和计算，传送至OpenGL时统一转换为vec3类型
 
 //definition

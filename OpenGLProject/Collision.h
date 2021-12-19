@@ -6,10 +6,12 @@
 #include "Object.h"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <queue>
 extern int sumbounce;
 extern int sumexam;
+extern std::ofstream ofstrm;
 
 #ifdef TIME_DRIVEN
 constexpr auto DELTATIME = 1.0 / 3600.0; //时间驱动专用
@@ -95,7 +97,7 @@ public:
         if (k <= maxN)
             return (qp[k] != -1);
         else {
-            std::cout << "contains:error:"<<k;
+            std::cerr << "error:Event_mgr_indexed::contains()"<<k;
             exit(EXIT_FAILURE);
         }
     }

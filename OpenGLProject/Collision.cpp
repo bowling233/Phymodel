@@ -12,14 +12,14 @@ int sumexam = 0;
 #ifdef EVENT_DRIVEN
 void Event::handle() const //notice
 {
-    //std::cout << "info:事件处理信息：" << std::endl << *this << std::endl;//<debug>
+    // << "info:事件处理信息：" << std::endl << *this << std::endl;//<debug>
     if ((ball->cnt() == countBall) && (object->cnt() == countObject))
         ball->bounce(*object); //从指针变成对象的引用，由ball类进行运行时绑定
 }
 
 bool Event::valid() const
 {
-    //std::cout << "info:事件有效性检测\n" << *this << '\t' << ball->cnt() << '\t' << object->cnt() << std::endl;//debug
+    // << "info:事件有效性检测\n" << *this << '\t' << ball->cnt() << '\t' << object->cnt() << std::endl;//debug
     return ((ball->cnt() == countBall) && (object->cnt() == countObject));
 }
 
@@ -62,16 +62,16 @@ std::ostream &operator<<(std::ostream &os, std::priority_queue<Event, std::vecto
 //Event_mgr
 void Event_mgr_indexed::push(const Event &event)
 {
-   // std::cout << "push:----------------------------------------------------------------------------\n"
+   //  << "push:----------------------------------------------------------------------------\n"
     //          << event << std::endl;
     const int k = event.ball->num(); //第k个球
     if (contains(k))                 //包含
     {
-        //std::cout << "contained" << std::endl;
+        // << "contained" << std::endl;
         if (events[k].valid() && (event > events[k])) //k球事件有效且比k球的事件大
             return;
-        //std::cout << "can insert" << std::endl; //k球事件无效或k球事件小，可以插入
-        //std::cout << *this;
+        // << "can insert" << std::endl; //k球事件无效或k球事件小，可以插入
+        // << *this;
         events[k] = event; //放入事件
         swim(qp[k]);       //让k球事件上浮，通过qp快速找到pq
         if (qp[k] == -1)
@@ -80,20 +80,20 @@ void Event_mgr_indexed::push(const Event &event)
     }
     else //插入
     {
-        //std::cout << "not contained:before" << std::endl;
-        //std::cout << *this;
+        // << "not contained:before" << std::endl;
+        // << *this;
         N++;
         qp[k] = N; //tobedone
         pq[N] = k;
         events[k] = event;
         swim(N);
     }
-    //std::cout << *this;
+    // << *this;
 }
 
 void Event_mgr_indexed::pop()
 {
-    //std::cout << "action:pop" << std::endl;
+    // << "action:pop" << std::endl;
     exch(1, N--); //先换到最后一位，扔掉
     sink(1);      //最上位下沉
     //events[pq(N + 1)] = null;//?
@@ -104,7 +104,7 @@ void Event_mgr_indexed::swim(int k) //对pq中的k进行上浮
 {
     while (k > 1 && more(k / 2, k)) //k不是根节点，k的父节点比k大
     {
-        //std::cout << "action:swim" << std::endl;
+        // << "action:swim" << std::endl;
         exch(k / 2, k); //交换父节点
         k = k / 2;      //向下搜索
     }
@@ -114,7 +114,7 @@ void Event_mgr_indexed::sink(int k) //对k下沉，k子节点比较小的换上�
 {
     while (2 * k <= N) //k的子节点在堆内部
     {
-        //std::cout << "action:sink" << std::endl;
+        // << "action:sink" << std::endl;
         int j = 2 * k;               //去k的子节点
         if (j < N && more(j, j + 1)) //子节点不是孤节点且右节点小
             j++;                     //切换到右节点
@@ -127,8 +127,8 @@ void Event_mgr_indexed::sink(int k) //对k下沉，k子节点比较小的换上�
 
 void Event_mgr_indexed::exch(int i, int j)
 {
-    //std::cout << "action:exch: << std::endl";
-    /*std::cout
+    // << "action:exch: << std::endl";
+    /*
         << "i,j,qp,pq" << std::endl
         << i << '\t' << qp[i] << '\t' << pq[i] << std::endl
         << j << '\t' << qp[j] << '\t' << pq[j] << std::endl;*/
@@ -177,7 +177,7 @@ void CollisionSystem::run(const double t)
                 //sumexam++;
                 if ((**i).examine(**j))
                 {
-                    //std::cout << "log:###ball bounce\t当前系统时间" << currentTime <<"\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
+                    // << "log:###ball bounce\t当前系统时间" << currentTime <<"\ndetail:\t" << (**i).num() << '\t' << (**j).num() << std::endl;//<debug>
                     (**i).bounce(**j);
                     sumbounce++;
                 }
@@ -257,7 +257,7 @@ void CollisionSystem::run(const double t)
     //发生的事件全部处理完成
     move(targetTime - currentTime);
 #endif
-    //std::cout << eventQueue.size() << std::endl; //<debug>
+    // << eventQueue.size() << std::endl; //<debug>
 }
 
 void CollisionSystem::reverse()
@@ -273,13 +273,13 @@ void CollisionSystem::reverse()
 
 void CollisionSystem::init()
 {
-    //std::cout << "log:system初始化调用" << std::endl; //<debug>
+    // << "log:system初始化调用" << std::endl; //<debug>
     /*for (auto i = balls.cbegin(); i != balls.cend(); i++)
     {
         for (auto j = i + 1; j != balls.cend(); j++)
             if ((**i).examine(**j))
             {
-                std::cout << "error:system初始化检测重叠" << std::endl;
+                 << "error:system初始化检测重叠" << std::endl;
                 exit(EXIT_FAILURE);
             }
     }*/
@@ -302,9 +302,9 @@ void CollisionSystem::init()
                     eventQueue.push(Event(*i, j, temp + currentTime));
     }
 
-    std::cout << "log:EventDriven:length of queue" << eventQueue.size() << std::endl;
+     ofstrm << "log:EventDriven:length of queue" << eventQueue.size() << std::endl;
 #endif
-    std::cout << "success:CollisionSystem initialized" << std::endl;
+     ofstrm << "success:CollisionSystem::init()" << std::endl;
 }
 
 double CollisionSystem::ek()
@@ -332,8 +332,7 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 {
     if (!is)
     {
-        std::cout << "error:istream is bad" << std::endl;
-        std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
+        ofstrm << "error:istream is bad" << std::endl << is.eof() << is.bad() << is.fail() << is.good() << std::endl;
         exit(EXIT_FAILURE);
     }
     char identifier;
@@ -343,8 +342,7 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
 
         if (!(is >> num)) //num
         {
-            std::cout << "error:CollisionSystem input:num" << std::endl;
-            std::cout << is.eof() << is.bad() << is.fail() << is.good() << std::endl;//<debug>
+            ofstrm << "error:CollisionSystem::operator>>:num" << std::endl << is.eof() << is.bad() << is.fail() << is.good() << std::endl;//<debug>
             exit(EXIT_FAILURE);
         }
 
@@ -370,8 +368,8 @@ std::istream &operator>>(std::istream &is, CollisionSystem &system)
         }
         }
     }
+    ofstrm << "success:CollisionSystem::input" << std::endl;
     return is;
-    std::cout << "success:CollisionSystem input" << std::endl;
 }
 
 std::ostream &operator<<(std::ostream &os, CollisionSystem &system)

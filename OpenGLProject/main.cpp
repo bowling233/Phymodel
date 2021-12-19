@@ -24,7 +24,7 @@ using namespace std;
 #include <vector>
 #include <queue>
 #include <sstream>
-#include <windows.h>
+
 #include "Object.h"
 #include "Collision.h"
 
@@ -263,7 +263,6 @@ void setupVert_container(std::vector<std::shared_ptr<Container>> const &containe
 //############
 void init(GLFWwindow *window, CollisionSystem &system)
 {
-	cout << "OpenGL:初始化" << endl;
 	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 
@@ -271,7 +270,6 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	sphereRenderingProgram = Utils::createShaderProgram("vs_sphere.glsl", "fs_sphere.glsl");
 	planeRenderingProgram = Utils::createShaderProgram("vs_plane.glsl", "tcs_plane.glsl", "tes_plane.glsl", "fs_plane.glsl");
 	containerRenderingProgram = Utils::createShaderProgram("vs_container.glsl", "tcs_plane.glsl", "tes_plane.glsl", "fs_plane.glsl");
-	cout << "OpenGL:Shader创建成功" << endl;
 
 	//构建视口矩阵
 	glfwGetFramebufferSize(window, &width, &height);
@@ -287,7 +285,11 @@ void init(GLFWwindow *window, CollisionSystem &system)
 	if(!system.c().empty())
 		setupVert_container(system.c());
 
-	cout << "OpenGL:初始化成功" << endl;
+	glFrontFace(GL_CCW);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	ofstrm << "success:init()" << endl;
 }
 
 //############
@@ -349,8 +351,9 @@ void draw_sphere(vector<shared_ptr<Ball>> const &balls)
 	glVertexAttribDivisor(3, 1); //配置实例化更新数据
 
 	//draw
-	
+	glEnable(GL_CULL_FACE); //背面消除
 	glDrawArraysInstanced(GL_TRIANGLES, 0, mySphere.getNumIndices(), balls.size());
+	glDisable(GL_CULL_FACE);
 }
 
 void draw_wall(vector<shared_ptr<Wall>> const &walls)
@@ -420,7 +423,7 @@ void draw_container(vector<shared_ptr<Container>> const &containers)
 
 void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 {
-	//std::cout << "OpenGL调用开始" << std::endl;
+	//ofstrm << "OpenGL调用开始" << std::endl;
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -435,7 +438,7 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 		draw_container(system.c());
 	if (!system.w().empty())
 		draw_wall(system.w());
-	//cout << "OpenGL render success" << endl;//<debug>
+	//ofstrm << "OpenGL render success" << endl;//<debug>
 }
 #endif
 
@@ -445,36 +448,34 @@ void display(GLFWwindow *window, double currentTime, CollisionSystem &system)
 int main(int argc, char * argv[])
 //int main()
 {
-	cout << "Computer Simulation of Rigid Sphere System" << endl << "--Physical analysis, algorithm design and visualization based on OpenGL/C++" << endl;
-	//ifstream ifstrm("ball_8_130050.txt"); int num = 8;
-	//输入和初始化
-	//*
-	cout << argc << endl;
-	for (int i = 0; i != argc; i++)
-		cout << argv[i] << endl;
-	//<debug>*/
+	auto start = system_clock::now();
+	//check arguments and output
 	if (argc != 4) {
-		cout << "error:arguments are incorrect" << endl;
+		cerr << "error:arguments are incorrect" << endl;
 		exit(EXIT_FAILURE);
 	}
+	ofstrm.open(argv[3]);
+	if ((!ofstrm)) {
+		cerr << "error:can't open output file" << endl;
+		cerr << ofstrm.eof() << ofstrm.bad() << ofstrm.fail() << ofstrm.good() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	ofstrm << "Computer Simulation of Rigid Sphere System" << endl << "--Physical analysis, algorithm design and visualization based on OpenGL/C++" << endl;
 
-	int num;	stringstream ss;	ss << argv[2];	ss >> num;
+	//input and initialization
 	ifstream ifstrm(argv[1]);
-	//ofstrm.open(argv[3]);
 	if ((!ifstrm)) {
-		cout << "error:can't open data file" << endl;
-		std::cout << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << std::endl;
+		cerr << "error:can't open data file" << endl;
+		cerr << ifstrm.eof() << ifstrm.bad() << ifstrm.fail() << ifstrm.good() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	cout << "success:open data and output file" << endl;
-
 	ifstrm >> if_gl >> if_out >> if_fps >> if_disp_ifm;//Line1
 	ifstrm >> cameraLoc >> lookAt >> rot_v >> dispRate;//Line2
-
+	int num;	stringstream ss;	ss << argv[2];	ss >> num;
 	CollisionSystem system(num, ifstrm);
 
 #ifndef OPENGL_CLOSE
-	//OpenGL初始化
+	//OpenGL initialization
 	if (!glfwInit())
 		exit(EXIT_FAILURE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -485,12 +486,9 @@ int main(int argc, char * argv[])
 		exit(EXIT_FAILURE);
 	glfwSwapInterval(1); //垂直同步
 	glfwSetWindowSizeCallback(window, window_size_callback);
-	init(window, system); //提供system的相关信息为OpenGL绘制预先存储数据
-	cout << "success:OpenGL initialized" << endl;
-	glEnable(GL_CULL_FACE); //背面消除，加快速度
-	glFrontFace(GL_CCW);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	init(window, system); //提供system的相关信息，为OpenGL绘制预先存储数据
+	ofstrm << "success:OpenGL initialized" << endl;
+	
 #endif
 
 	auto last = system_clock::now();
@@ -498,10 +496,10 @@ int main(int argc, char * argv[])
 	auto duration = duration_cast<microseconds>(current - last);
 	unsigned int count = 0;
 
-	//cout << "SystemInfomation" << endl
-	//	<< "Process Time\tSystem Time\tFPS\tfrequency of collision\t kinetic energy of system\t";
+	ofstrm << "--------------------------System Infomation----------------------------------------" << endl
+		   << "ProcessT\tSystemT\tFPS\tcollisionF\tSystemEk\t" << endl;
 
-	//程序主循环
+	//Main circle
 #ifndef OPENGL_CLOSE
 	while (!glfwWindowShouldClose(window))
 #endif
@@ -513,16 +511,17 @@ int main(int argc, char * argv[])
 			last = current;
 			current = system_clock::now();
 			duration = duration_cast<microseconds>(current - last);
-			cout << "fps:"	<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den) << endl
-				//<< "每秒碰撞::" << sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) << endl
+			ofstrm 	<< double(duration_cast<microseconds>(current - start).count()) / microseconds::period::num / microseconds::period::den << '\t'
+				<< system.time() << '\t'
+				<< 30.0/(double(duration.count()) * microseconds::period::num / microseconds::period::den) << '\t'
+			    << sumbounce / (double(duration.count()) * microseconds::period::num / microseconds::period::den) << '\t'
+				<< system.ek() << '\t'
 				//<< "每秒检查::" << sumexam / (double(duration.count()) * microseconds::period::num / microseconds::period::den) << endl
-				;
+				<< endl;
 			count = 0;
-			//sumbounce = 0;
-			//cout << "系统动能：" << system.ek() << endl;
-			
-			cout << "system:time:" << system.time() << std::endl;//<debug>
+			sumbounce = 0;
 			//sumexam = 0;
+
 		}
 
 		system.run(1.0/dispRate);
@@ -537,11 +536,13 @@ int main(int argc, char * argv[])
 	glfwDestroyWindow(window);
 	glfwTerminate();
 #endif
-	cout << "success:OpenGL closed" << endl;
+	ofstrm << "success:OpenGL closed" << endl;
 	if (if_out) {
-		cout << "log:outputting" << endl;
-		//ofstrm << system;
+		ofstrm << "log:outputting" << endl;
+		ofstrm << system;
 	}
-	cout << "success:process closed" << endl;
+
+	ofstrm << "success:process closed" << endl;
+
 	exit(EXIT_SUCCESS);
 }
